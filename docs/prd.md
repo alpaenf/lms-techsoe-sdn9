@@ -215,14 +215,16 @@ Spesifikasi teknis dasar yang direkomendasikan untuk implementasi sistem[cite: 1
 
 | Komponen Arsitektur | Pilihan Teknologi Rekomendasi |
 | :--- | :--- |
-| **Arsitektur Platform** | Web-based Application (Model-View-Controller)[cite: 1] |
-| **Backend Framework** | PHP 8.x / Laravel Framework[cite: 1] |
-| **Database Server** | MySQL versi 8.0 / MariaDB 10.x[cite: 1] |
-| **Frontend Stack** | HTML5, CSS3/Tailwind, Modern JavaScript, Font Poppins[cite: 1] |
-| **Web Server** | Nginx atau Apache dengan konfigurasi Gzip aktif[cite: 1] |
-| **Keamanan Jaringan** | HTTPS / Sertifikat SSL Let's Encrypt[cite: 1] |
-| **Hosting / Server** | VPS Cloud (Spesifikasi awal disesuaikan dengan volume pengguna sekolah)[cite: 1] |
-| **Format Ekspor File** | Microsoft Excel (`.xlsx`) dan format cetak PDF[cite: 1] |
+| **Arsitektur Platform** | Modern Monolith Single Page Application (SPA) via Inertia.js |
+| **Backend Framework** | Laravel 13 (PHP 8.2+ / PHP 8.3) |
+| **Frontend Framework** | React.js (React 18/19), TypeScript / JSX |
+| **SPA Bridge Layer** | Inertia.js v2 (Server-driven Single Page Application) |
+| **Database Server** | MySQL 8.0 |
+| **Styling & Design System**| Tailwind CSS, Theme Burgundy (#800020), Font Poppins |
+| **Web Server** | Nginx dengan HTTP/2 dan Gzip/Brotli kompresi aktif |
+| **Keamanan Jaringan** | HTTPS / Sertifikat SSL Let's Encrypt TLS 1.3 |
+| **Hosting / Server** | VPS Cloud (Ubuntu 22.04/24.04 LTS) |
+| **Format Ekspor File** | Microsoft Excel (`.xlsx`) dan format cetak PDF |
 
 ---
 
