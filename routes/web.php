@@ -75,6 +75,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // 06. E-Rapor
     Route::get('/erapor', [ERaporController::class, 'index'])->name('erapor.index');
+    Route::post('/erapor/grades', [ERaporController::class, 'saveGrades'])->name('erapor.grades.save');
+    Route::post('/erapor/evaluation', [ERaporController::class, 'saveEvaluation'])->name('erapor.evaluation.save');
+    Route::post('/erapor/verify', [ERaporController::class, 'verifyRapor'])->name('erapor.verify');
+    Route::post('/erapor/approve', [ERaporController::class, 'approveRapor'])->name('erapor.approve');
 
     // 07. Manajemen BK
     Route::get('/bk', [BKController::class, 'index'])->name('bk.index');

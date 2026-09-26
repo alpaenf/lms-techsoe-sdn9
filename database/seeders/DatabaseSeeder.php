@@ -165,38 +165,65 @@ class DatabaseSeeder extends Seeder
             ]));
         }
 
-        // 7. Seed Student Demo (Kelas 6)
-        $studentId = DB::table('students')->insertGetId([
-            'user_id' => $siswaUserId,
-            'nis' => '2026001',
-            'nisn' => '0081234567',
-            'nik' => '7318012345670001',
-            'full_name' => 'Siti Nurhaliza',
-            'class_id' => $class6Id,
-            'gender' => 'P',
-            'birth_place' => 'Gandangbatu',
-            'birth_date' => '2014-05-12',
-            'religion' => 'Kristen',
-            'address' => 'Dusun Gandangbatu RT 02 RW 01',
-            'entry_date' => '2020-07-13',
-            'status' => 'aktif',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // 7. Seed Students Demo (Kelas 6)
+        $studentsData = [
+            ['name' => 'Siti Nurhaliza', 'nis' => '2026001', 'nisn' => '0081234567', 'gender' => 'P', 'user_id' => $siswaUserId],
+            ['name' => 'Markus Rapa', 'nis' => '2026002', 'nisn' => '0081234568', 'gender' => 'L', 'user_id' => null],
+            ['name' => 'Yohana Tandi', 'nis' => '2026003', 'nisn' => '0081234569', 'gender' => 'P', 'user_id' => null],
+            ['name' => 'Christian Batara', 'nis' => '2026004', 'nisn' => '0081234570', 'gender' => 'L', 'user_id' => null],
+            ['name' => 'Elsafitri Limbong', 'nis' => '2026005', 'nisn' => '0081234571', 'gender' => 'P', 'user_id' => null],
+        ];
 
-        // 8. Seed Guardian
-        DB::table('guardians')->insert([
-            'student_id' => $studentId,
-            'relation_type' => 'ayah',
-            'name' => 'Yohanes Rante',
-            'occupation' => 'Petani',
-            'phone_number' => '082198765432',
-            'address' => 'Dusun Gandangbatu RT 02 RW 01',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $studentIds = [];
+        foreach ($studentsData as $st) {
+            $uId = $st['user_id'];
+            if (!$uId) {
+                $uId = DB::table('users')->insertGetId([
+                    'name' => $st['name'],
+                    'username' => $st['nisn'],
+                    'email' => strtolower(str_replace(' ', '', $st['name'])) . '@sdn9gandangbatu.sch.id',
+                    'password' => $defaultPassword,
+                    'role' => 'siswa',
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
 
-        // 9. Seed Announcement
+            $stId = DB::table('students')->insertGetId([
+                'user_id' => $uId,
+                'nis' => $st['nis'],
+                'nisn' => $st['nisn'],
+                'nik' => '73180123456' . rand(1000, 9999),
+                'full_name' => $st['name'],
+                'class_id' => $class6Id,
+                'gender' => $st['gender'],
+                'birth_place' => 'Gandangbatu',
+                'birth_date' => '2014-05-12',
+                'religion' => 'Kristen',
+                'address' => 'Dusun Gandangbatu RT 02 RW 01',
+                'entry_date' => '2020-07-13',
+                'status' => 'aktif',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $studentIds[] = $stId;
+
+            // Seed Guardian
+            DB::table('guardians')->insert([
+                'student_id' => $stId,
+                'relation_type' => 'ayah',
+                'name' => 'Orang Tua ' . $st['name'],
+                'occupation' => 'Petani',
+                'phone_number' => '08219876' . rand(1000, 9999),
+                'address' => 'Dusun Gandangbatu',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+        $studentId = $studentIds[0]; // Siti Nurhaliza
+
+        // 8. Seed Announcement
         DB::table('announcements')->insert([
             'title' => 'Selamat Datang di Smart School LMS UPT SDN 9 Gandangbatu Sillanan',
             'content' => 'Sistem pembelajaran dan administrasi akademik terintegrasi telah aktif untuk Tahun Ajaran 2026/2027 Semester Ganjil. Seluruh guru dan siswa dapat mengakses materi ajar dan presensi harian.',
@@ -208,23 +235,31 @@ class DatabaseSeeder extends Seeder
             'updated_at' => now(),
         ]);
 
-        // 10. Seed Teacher Subjects, Topics, Materials, Assignments & Submissions
+        // 9. Seed Teacher Subjects, Topics, Materials, Assignments & Submissions
         $ipaSubject = DB::table('subjects')->where('code', 'IPA-SD')->first();
         $matSubject = DB::table('subjects')->where('code', 'MAT-SD')->first();
         $mlkSubject = DB::table('subjects')->where('code', 'MLK-TOR')->first();
+        $binSubject = DB::table('subjects')->where('code', 'BIN-SD')->first();
+        $ipsSubject = DB::table('subjects')->where('code', 'IPS-SD')->first();
 
-        if ($ipaSubject && $class6Id && $teacherGuruId) {
-            $tsIpaId = DB::table('teacher_subjects')->insertGetId([
+        // Ensure teacher subjects map for all subjects in class 6
+        $allSubjectRecords = DB::table('subjects')->get();
+        $tsMap = [];
+        foreach ($allSubjectRecords as $sbj) {
+            $tsId = DB::table('teacher_subjects')->insertGetId([
                 'teacher_id' => $teacherGuruId,
-                'subject_id' => $ipaSubject->id,
+                'subject_id' => $sbj->id,
                 'class_id' => $class6Id,
                 'academic_year_id' => $academicYearId,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            $tsMap[$sbj->id] = $tsId;
+        }
 
+        if ($ipaSubject && isset($tsMap[$ipaSubject->id])) {
             $topicIpaId = DB::table('topics')->insertGetId([
-                'teacher_subject_id' => $tsIpaId,
+                'teacher_subject_id' => $tsMap[$ipaSubject->id],
                 'title' => 'Bab 1: Sistem Tata Surya & Karakteristik Planet',
                 'description' => 'Materi rotasi bumi, revolusi bulan, serta pengenalan 8 planet dalam tata surya.',
                 'order' => 1,
@@ -266,73 +301,45 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        if ($matSubject && $class6Id && $teacherGuruId) {
-            $tsMatId = DB::table('teacher_subjects')->insertGetId([
-                'teacher_id' => $teacherGuruId,
-                'subject_id' => $matSubject->id,
-                'class_id' => $class6Id,
+        // Seed Initial Grades & Raport Evaluations for all 5 Students in Kelas 6
+        foreach ($studentIds as $idx => $sId) {
+            // Seed Raport Evaluation
+            DB::table('raport_evaluations')->insert([
+                'student_id' => $sId,
                 'academic_year_id' => $academicYearId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            $topicMatId = DB::table('topics')->insertGetId([
-                'teacher_subject_id' => $tsMatId,
-                'title' => 'Bab 2: Operasi Hitung Bilangan Bulat',
-                'description' => 'Operasi hitung campuran penjumlahan, pengurangan, perkalian, dan pembagian bilangan bulat.',
-                'order' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            DB::table('materials')->insert([
-                'topic_id' => $topicMatId,
-                'title' => 'Video Pembelajaran: Operasi Hitung Bilangan Bulat Negatif',
-                'type' => 'video_link',
-                'content_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-                'body_text' => 'Panduan visual metode garis bilangan untuk menyelesaikan soal penjumlahan dan pengurangan bilangan bulat negatif.',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            DB::table('assignments')->insert([
-                'topic_id' => $topicMatId,
-                'title' => 'Soal Cerita: Menghitung Keliling dan Luas Lingkaran',
-                'instructions' => 'Selesaikan 5 soal cerita pada lembar kerja 2B di buku paket halaman 45.',
-                'due_date' => now()->addDays(7)->format('Y-m-d H:i:s'),
-                'max_score' => 100,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-
-        if ($mlkSubject && $class6Id && $teacherGuruId) {
-            $tsMlkId = DB::table('teacher_subjects')->insertGetId([
-                'teacher_id' => $teacherGuruId,
-                'subject_id' => $mlkSubject->id,
                 'class_id' => $class6Id,
-                'academic_year_id' => $academicYearId,
+                'attitude_score' => $idx === 0 ? 'Sangat Baik' : 'Baik',
+                'homeroom_notes' => 'Menunjukkan perkembangan akademis yang sangat memuaskan, aktif dalam kegiatan pembelajaran serta bersikap sopan dan santun.',
+                'status' => 'verified_wali_kelas',
+                'verified_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            $topicMlkId = DB::table('topics')->insertGetId([
-                'teacher_subject_id' => $tsMlkId,
-                'title' => 'Bab 1: Kosa Kata Dasar Bahasa Toraja',
-                'description' => 'Silsilah keluarga, kekerabatan, dan tata krama komunikasi di lingkungan keluarga Toraja.',
-                'order' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            // Seed Grades for each subject
+            foreach ($allSubjectRecords as $sbj) {
+                $tugas = rand(80, 95);
+                $uts = rand(75, 92);
+                $uas = rand(80, 96);
+                $final = round(($tugas * 0.30) + ($uts * 0.30) + ($uas * 0.40), 2);
+                $grade = $final >= 89 ? 'A' : ($final >= 78 ? 'B' : ($final >= 65 ? 'C' : 'D'));
 
-            DB::table('materials')->insert([
-                'topic_id' => $topicMlkId,
-                'title' => 'Kosa Kata Dasar Bahasa Toraja: Silsilah Keluarga & Kekerabatan',
-                'type' => 'article',
-                'body_text' => 'Mengenal istilah ambe (ayah), indo (ibu), siulu (saudara), dan tata krama komunikasi di lingkungan keluarga Toraja.',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+                $desc = "Menunjukkan penguasaan yang sangat baik dalam memahami konsep {$sbj->name}.";
+
+                DB::table('student_grades')->insert([
+                    'student_id' => $sId,
+                    'teacher_subject_id' => $tsMap[$sbj->id],
+                    'academic_year_id' => $academicYearId,
+                    'tugas_avg' => $tugas,
+                    'uts_score' => $uts,
+                    'uas_score' => $uas,
+                    'final_score' => $final,
+                    'letter_grade' => $grade,
+                    'competency_desc' => $desc,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
     }
 }
