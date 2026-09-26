@@ -51,8 +51,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/master-data/subjects/{id}', [MasterDataController::class, 'updateSubject'])->name('master-data.subjects.update');
     Route::delete('/master-data/subjects/{id}', [MasterDataController::class, 'destroySubject'])->name('master-data.subjects.destroy');
 
-    // 04. E-Learning
+    // 04. E-Learning & Penugasan
     Route::get('/elearning', [ELearningController::class, 'index'])->name('elearning.index');
+
+    // E-Learning Materials (Bahan Ajar)
+    Route::post('/elearning/materials', [ELearningController::class, 'storeMaterial'])->name('elearning.materials.store');
+    Route::put('/elearning/materials/{id}', [ELearningController::class, 'updateMaterial'])->name('elearning.materials.update');
+    Route::delete('/elearning/materials/{id}', [ELearningController::class, 'destroyMaterial'])->name('elearning.materials.destroy');
+
+    // E-Learning Assignments (Tugas & Asesmen)
+    Route::post('/elearning/assignments', [ELearningController::class, 'storeAssignment'])->name('elearning.assignments.store');
+    Route::put('/elearning/assignments/{id}', [ELearningController::class, 'updateAssignment'])->name('elearning.assignments.update');
+    Route::delete('/elearning/assignments/{id}', [ELearningController::class, 'destroyAssignment'])->name('elearning.assignments.destroy');
+
+    // E-Learning Submissions & Grading
+    Route::post('/elearning/submissions', [ELearningController::class, 'submitAssignment'])->name('elearning.submissions.submit');
+    Route::get('/elearning/assignments/{id}/submissions', [ELearningController::class, 'getAssignmentSubmissions'])->name('elearning.assignments.submissions');
+    Route::post('/elearning/submissions/{id}/grade', [ELearningController::class, 'gradeSubmission'])->name('elearning.submissions.grade');
 
     // 05. Presensi
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');

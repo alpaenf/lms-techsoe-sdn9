@@ -207,5 +207,132 @@ class DatabaseSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // 10. Seed Teacher Subjects, Topics, Materials, Assignments & Submissions
+        $ipaSubject = DB::table('subjects')->where('code', 'IPA-SD')->first();
+        $matSubject = DB::table('subjects')->where('code', 'MAT-SD')->first();
+        $mlkSubject = DB::table('subjects')->where('code', 'MLK-TOR')->first();
+
+        if ($ipaSubject && $class6Id && $teacherGuruId) {
+            $tsIpaId = DB::table('teacher_subjects')->insertGetId([
+                'teacher_id' => $teacherGuruId,
+                'subject_id' => $ipaSubject->id,
+                'class_id' => $class6Id,
+                'academic_year_id' => $academicYearId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $topicIpaId = DB::table('topics')->insertGetId([
+                'teacher_subject_id' => $tsIpaId,
+                'title' => 'Bab 1: Sistem Tata Surya & Karakteristik Planet',
+                'description' => 'Materi rotasi bumi, revolusi bulan, serta pengenalan 8 planet dalam tata surya.',
+                'order' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::table('materials')->insert([
+                'topic_id' => $topicIpaId,
+                'title' => 'Modul 01: Sistem Tata Surya & Karakteristik Planet',
+                'type' => 'file',
+                'file_path' => null,
+                'content_url' => null,
+                'body_text' => 'Tata surya adalah kumpulan benda langit yang terdiri atas sebuah bintang yang disebut Matahari dan semua objek yang terikat oleh gaya gravitasinya.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $assignmentIpaId = DB::table('assignments')->insertGetId([
+                'topic_id' => $topicIpaId,
+                'title' => 'Latihan Mandiri: Rangkaian Listrik Seri & Paralel',
+                'instructions' => 'Gambarlah rangkaian listrik seri dan paralel pada buku gambar Anda, lalu foto dan unggah file hasil pekerjaan di sini.',
+                'due_date' => now()->addDays(5)->format('Y-m-d H:i:s'),
+                'max_score' => 100,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::table('assignment_submissions')->insert([
+                'assignment_id' => $assignmentIpaId,
+                'student_id' => $studentId,
+                'submitted_at' => now()->subHours(2),
+                'student_notes' => 'Berikut hasil gambar rangkaian listrik seri dan paralel saya Pak Budi.',
+                'score' => 90.00,
+                'teacher_feedback' => 'Gambar sangat rapi dan penjelasan diagram jelas. Bagus sekali!',
+                'graded_at' => now()->subHour(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        if ($matSubject && $class6Id && $teacherGuruId) {
+            $tsMatId = DB::table('teacher_subjects')->insertGetId([
+                'teacher_id' => $teacherGuruId,
+                'subject_id' => $matSubject->id,
+                'class_id' => $class6Id,
+                'academic_year_id' => $academicYearId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $topicMatId = DB::table('topics')->insertGetId([
+                'teacher_subject_id' => $tsMatId,
+                'title' => 'Bab 2: Operasi Hitung Bilangan Bulat',
+                'description' => 'Operasi hitung campuran penjumlahan, pengurangan, perkalian, dan pembagian bilangan bulat.',
+                'order' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::table('materials')->insert([
+                'topic_id' => $topicMatId,
+                'title' => 'Video Pembelajaran: Operasi Hitung Bilangan Bulat Negatif',
+                'type' => 'video_link',
+                'content_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'body_text' => 'Panduan visual metode garis bilangan untuk menyelesaikan soal penjumlahan dan pengurangan bilangan bulat negatif.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::table('assignments')->insert([
+                'topic_id' => $topicMatId,
+                'title' => 'Soal Cerita: Menghitung Keliling dan Luas Lingkaran',
+                'instructions' => 'Selesaikan 5 soal cerita pada lembar kerja 2B di buku paket halaman 45.',
+                'due_date' => now()->addDays(7)->format('Y-m-d H:i:s'),
+                'max_score' => 100,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        if ($mlkSubject && $class6Id && $teacherGuruId) {
+            $tsMlkId = DB::table('teacher_subjects')->insertGetId([
+                'teacher_id' => $teacherGuruId,
+                'subject_id' => $mlkSubject->id,
+                'class_id' => $class6Id,
+                'academic_year_id' => $academicYearId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $topicMlkId = DB::table('topics')->insertGetId([
+                'teacher_subject_id' => $tsMlkId,
+                'title' => 'Bab 1: Kosa Kata Dasar Bahasa Toraja',
+                'description' => 'Silsilah keluarga, kekerabatan, dan tata krama komunikasi di lingkungan keluarga Toraja.',
+                'order' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::table('materials')->insert([
+                'topic_id' => $topicMlkId,
+                'title' => 'Kosa Kata Dasar Bahasa Toraja: Silsilah Keluarga & Kekerabatan',
+                'type' => 'article',
+                'body_text' => 'Mengenal istilah ambe (ayah), indo (ibu), siulu (saudara), dan tata krama komunikasi di lingkungan keluarga Toraja.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 }
