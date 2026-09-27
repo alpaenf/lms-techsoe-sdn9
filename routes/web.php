@@ -27,6 +27,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // 02. Kelembagaan
     Route::get('/kelembagaan', [KelembagaanController::class, 'index'])->name('kelembagaan.index');
+    Route::post('/kelembagaan/profile', [KelembagaanController::class, 'updateProfile'])->name('kelembagaan.profile.update');
+    Route::post('/kelembagaan/academic-years', [KelembagaanController::class, 'storeAcademicYear'])->name('kelembagaan.academic-years.store');
+    Route::post('/kelembagaan/academic-years/{id}/activate', [KelembagaanController::class, 'activateAcademicYear'])->name('kelembagaan.academic-years.activate');
+    Route::delete('/kelembagaan/academic-years/{id}', [KelembagaanController::class, 'destroyAcademicYear'])->name('kelembagaan.academic-years.destroy');
 
     // 03. Master Data
     Route::get('/master-data', [MasterDataController::class, 'index'])->name('master-data.index');
