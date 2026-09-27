@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { 
     BookOpen, 
     AlertTriangle, 
@@ -14,16 +14,70 @@ import {
     HeartHandshake,
     Sparkles,
     MessageSquareQuote,
-    CheckCircle2
+    CheckCircle2,
+    Trash2,
+    Trophy,
+    Shield
 } from 'lucide-react';
+import ModalSesiKonseling from './Modals/ModalSesiKonseling';
+import ModalPelanggaran from './Modals/ModalPelanggaran';
+import ModalPrestasi from './Modals/ModalPrestasi';
 
-export default function BKIndex({ sessions, violations, achievements }) {
+export default function BKIndex({ 
+    sessions = [], 
+    violations = [], 
+    achievements = [], 
+    students = [], 
+    counselors = [] 
+}) {
     const { auth } = usePage().props;
     const userRole = auth?.user?.role || 'admin';
     const isStudent = userRole === 'siswa';
+    const isGuruOrAdmin = userRole === 'admin' || userRole === 'guru' || userRole === 'bk' || userRole === 'pimpinan';
 
     const [tab, setTab] = useState(isStudent ? 'prestasi' : 'konseling');
-    const [requestSuccess, setRequestSuccess] = useState(false);
+    const [notification, setNotification] = useState(null);
+
+    // Modal States
+    const [isModalSessionOpen, setIsModalSessionOpen] = useState(false);
+    const [isModalViolationOpen, setIsModalViolationOpen] = useState(false);
+    const [isModalAchievementOpen, setIsModalAchievementOpen] = useState(false);
+
+    const handleDeleteSession = (id) => {
+        if (confirm('Apakah Anda yakin ingin menghapus catatan sesi konseling ini?')) {
+            router.delete(route('bk.sessions.destroy', id), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setNotification('Catatan sesi konseling berhasil dihapus.');
+                    setTimeout(() => setNotification(null), 4000);
+                }
+            });
+        }
+    };
+
+    const handleDeleteViolation = (id) => {
+        if (confirm('Apakah Anda yakin ingin menghapus catatan pelanggaran ini?')) {
+            router.delete(route('bk.violations.destroy', id), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setNotification('Catatan pelanggaran berhasil dihapus.');
+                    setTimeout(() => setNotification(null), 4000);
+                }
+            });
+        }
+    };
+
+    const handleDeleteAchievement = (id) => {
+        if (confirm('Apakah Anda yakin ingin menghapus data prestasi ini?')) {
+            router.delete(route('bk.achievements.destroy', id), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setNotification('Data prestasi berhasil dihapus.');
+                    setTimeout(() => setNotification(null), 4000);
+                }
+            });
+        }
+    };
 
     return (
         <AuthenticatedLayout
@@ -35,30 +89,30 @@ export default function BKIndex({ sessions, violations, achievements }) {
                         </h2>
                         <p className="text-xs text-slate-500 font-medium mt-0.5">
                             {isStudent 
-                                ? 'Galeri Kebanggaan Prestasi Siswa & Konsultasi Ramah Anak'
+                                ? 'Galeri Kebanggaan Prestasi Siswa & Konsultasi Ramah Anak UPT SDN 9'
                                 : 'Buku Sesi Bimbingan Siswa, Inventarisasi Kedisiplinan & Piagam Prestasi'}
                         </p>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
                         {!isStudent && (
                             <>
                                 <button
                                     onClick={() => setTab('konseling')}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                                         tab === 'konseling'
                                             ? 'bg-[#800020] text-white shadow-sm'
-                                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                                            : 'text-slate-600 hover:text-slate-900'
                                     }`}
                                 >
                                     Sesi Konseling ({sessions ? sessions.length : 0})
                                 </button>
                                 <button
                                     onClick={() => setTab('pelanggaran')}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                                         tab === 'pelanggaran'
                                             ? 'bg-[#800020] text-white shadow-sm'
-                                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                                            : 'text-slate-600 hover:text-slate-900'
                                     }`}
                                 >
                                     Pelanggaran & Poin ({violations ? violations.length : 0})
@@ -68,27 +122,14 @@ export default function BKIndex({ sessions, violations, achievements }) {
 
                         <button
                             onClick={() => setTab('prestasi')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                                 tab === 'prestasi'
                                     ? 'bg-[#800020] text-white shadow-sm'
-                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                                    : 'text-slate-600 hover:text-slate-900'
                             }`}
                         >
                             {isStudent ? 'Galeri Prestasi' : `Catatan Prestasi (${achievements ? achievements.length : 0})`}
                         </button>
-
-                        {isStudent && (
-                            <button
-                                onClick={() => setTab('konseling')}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
-                                    tab === 'konseling'
-                                        ? 'bg-[#800020] text-white shadow-sm'
-                                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                                }`}
-                            >
-                                Layanan Curhat & Bimbingan
-                            </button>
-                        )}
                     </div>
                 </div>
             }
@@ -96,6 +137,14 @@ export default function BKIndex({ sessions, violations, achievements }) {
             <Head title={isStudent ? "Prestasi & Bimbingan - Smart School LMS" : "Bimbingan Konseling - Smart School LMS"} />
 
             <div className="space-y-6 max-w-7xl mx-auto">
+                {/* Notification toast */}
+                {notification && (
+                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-2xl flex items-center space-x-3 shadow-sm animate-fade-in">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                        <span className="text-xs font-semibold">{notification}</span>
+                    </div>
+                )}
+
                 {/* Action Bar */}
                 <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <span className="text-xs text-slate-500 font-medium">
@@ -104,153 +153,262 @@ export default function BKIndex({ sessions, violations, achievements }) {
 
                     {isStudent ? (
                         <button 
-                            onClick={() => {
-                                setRequestSuccess(true);
-                                setTimeout(() => setRequestSuccess(false), 4000);
-                            }}
-                            className="px-3.5 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition"
+                            onClick={() => setIsModalSessionOpen(true)}
+                            className="px-4 py-2.5 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-bold rounded-xl inline-flex items-center space-x-1.5 shadow-md transition"
                         >
-                            <HeartHandshake className="w-3.5 h-3.5 mr-1.5" />
-                            <span>Ajukan Janji Temu Bimbingan</span>
+                            <HeartHandshake className="w-4 h-4" />
+                            <span>Ajukan Sesi Konseling BK</span>
                         </button>
                     ) : (
-                        <button className="px-3.5 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition">
-                            <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
-                            <span>
-                                {tab === 'konseling' && 'Tambah Catatan Konseling'}
-                                {tab === 'pelanggaran' && 'Catat Pelanggaran Baru'}
-                                {tab === 'prestasi' && 'Input Prestasi Siswa'}
-                            </span>
-                        </button>
+                        <div className="flex items-center space-x-2">
+                            {tab === 'konseling' && (
+                                <button 
+                                    onClick={() => setIsModalSessionOpen(true)}
+                                    className="px-4 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-bold rounded-xl inline-flex items-center space-x-1.5 shadow-md transition"
+                                >
+                                    <PlusCircle className="w-4 h-4" />
+                                    <span>Tambah Catatan Konseling</span>
+                                </button>
+                            )}
+                            {tab === 'pelanggaran' && (
+                                <button 
+                                    onClick={() => setIsModalViolationOpen(true)}
+                                    className="px-4 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-bold rounded-xl inline-flex items-center space-x-1.5 shadow-md transition"
+                                >
+                                    <PlusCircle className="w-4 h-4" />
+                                    <span>Catat Pelanggaran Baru</span>
+                                </button>
+                            )}
+                            {tab === 'prestasi' && (
+                                <button 
+                                    onClick={() => setIsModalAchievementOpen(true)}
+                                    className="px-4 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-bold rounded-xl inline-flex items-center space-x-1.5 shadow-md transition"
+                                >
+                                    <PlusCircle className="w-4 h-4" />
+                                    <span>Input Prestasi Siswa</span>
+                                </button>
+                            )}
+                        </div>
                     )}
                 </div>
 
-                {requestSuccess && (
-                    <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                        <span>Permintaan bimbingan konseling berhasil dikirim ke Ibu Maria Rante, S.Pd. Jadwal bimbingan akan dikabarkan melalui wali kelas.</span>
+                {/* TAB 1: KONSELING */}
+                {tab === 'konseling' && (
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <h3 className="text-base font-bold text-slate-900">
+                                Riwayat Sesi Bimbingan & Konseling Peserta Didik
+                            </h3>
+                            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                                Total: {sessions.length} Sesi
+                            </span>
+                        </div>
+
+                        <div className="divide-y divide-slate-100">
+                            {sessions && sessions.length > 0 ? (
+                                sessions.map((sess) => (
+                                    <div key={sess.id} className="py-4 space-y-2 hover:bg-[#FDF2F4]/30 p-3 rounded-2xl transition">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-2">
+                                                <span className="text-sm font-bold text-slate-900">
+                                                    {sess.student_name || 'Peserta Didik'}
+                                                </span>
+                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                                    Pembimbing: {sess.counselor_name || 'Maria Rante, S.Pd.'}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex items-center space-x-3">
+                                                <span className="text-xs text-slate-400 font-mono">
+                                                    {sess.session_date}
+                                                </span>
+                                                {isGuruOrAdmin && (
+                                                    <button
+                                                        onClick={() => handleDeleteSession(sess.id)}
+                                                        className="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition"
+                                                        title="Hapus Catatan"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <p className="text-xs font-bold text-[#800020]">
+                                            Topik: {sess.topic}
+                                        </p>
+
+                                        <div className="text-xs text-slate-600 bg-[#F8F9FA] p-3.5 rounded-xl border border-slate-100 space-y-1">
+                                            <span className="font-bold text-slate-800 block">Rencana Tindak Lanjut & Kesepakatan:</span>
+                                            <p className="leading-relaxed">{sess.action_plan}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-10 text-slate-400">
+                                    Belum ada catatan sesi bimbingan konseling.
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
-                {/* TAB 1: KONSELING */}
-                {tab === 'konseling' && (
-                    isStudent ? (
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-                            <div className="p-5 rounded-2xl bg-[#FDF2F4] border border-[#E8B4B8] flex items-start space-x-4">
-                                <div className="p-3 bg-[#800020] text-white rounded-xl">
-                                    <HeartHandshake className="w-6 h-6" />
-                                </div>
-                                <div className="space-y-1">
-                                    <h4 className="text-sm font-bold text-[#800020]">
-                                        Ruang Bimbingan & Konseling Sahabat Siswa
-                                    </h4>
-                                    <p className="text-xs text-slate-600 leading-relaxed">
-                                        Layanan bimbingan konseling di UPT SDN 9 Gandangbatu Sillanan bersifat ramah anak, rahasia, dan mendampingi kamu dalam proses belajar, pertemanan, dan pengembangan bakat minat.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="border border-slate-100 rounded-2xl p-5 bg-[#F8F9FA] space-y-3">
-                                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                                    Topik Yang Bisa Kamu Konsultasikan:
-                                </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div className="bg-white p-3.5 rounded-xl border border-slate-200">
-                                        <p className="font-bold text-xs text-slate-900">Bimbingan Belajar</p>
-                                        <p className="text-[11px] text-slate-500 mt-1">Mengatasi kesulitan memahami materi atau persiapan ujian.</p>
-                                    </div>
-                                    <div className="bg-white p-3.5 rounded-xl border border-slate-200">
-                                        <p className="font-bold text-xs text-slate-900">Hubungan Sosial</p>
-                                        <p className="text-[11px] text-slate-500 mt-1">Cara bergaul yang sehat, anti perundungan (bullying), dan kekompakan kelas.</p>
-                                    </div>
-                                    <div className="bg-white p-3.5 rounded-xl border border-slate-200">
-                                        <p className="font-bold text-xs text-slate-900">Minat & Bakat</p>
-                                        <p className="text-[11px] text-slate-500 mt-1">Mengikuti lomba seni, olahraga, dan olimpiade sains.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-                            <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">
-                                Riwayat Sesi Bimbingan & Konseling Peserta Didik
-                            </h3>
-
-                            <div className="divide-y divide-slate-100">
-                                <div className="py-4 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-bold text-slate-900">
-                                            Siti Nurhaliza (Kelas 6)
-                                        </span>
-                                        <span className="text-[11px] text-slate-400 font-mono">
-                                            22 September 2026
-                                        </span>
-                                    </div>
-                                    <p className="text-xs font-medium text-slate-700">
-                                        Topik: Konsultasi Persiapan Asesmen Akhir Jenjang Sekolah Dasar
-                                    </p>
-                                    <p className="text-xs text-slate-500 bg-[#F8F9FA] p-3 rounded-xl">
-                                        Rencana Tindak Lanjut: Pemberian bimbingan belajar tambahan di luar jam pelajaran dan penguatan motivasi kepercayaan diri.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                )}
-
-                {/* TAB 2: PELANGGARAN (Only for Staff/Teachers/Admin) */}
+                {/* TAB 2: PELANGGARAN & POIN */}
                 {tab === 'pelanggaran' && !isStudent && (
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-4">
+                        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                            <div>
+                                <h3 className="text-base font-bold text-slate-900">
+                                    Buku Catatan Pelanggaran Kedisiplinan & Poin Sanksi
+                                </h3>
+                                <p className="text-xs text-slate-500">
+                                    Inventarisasi pelanggaran tata tertib dan tindakan pembinaan karakter
+                                </p>
+                            </div>
+                        </div>
+
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-xs">
                                 <thead className="bg-[#F8F9FA] text-slate-600 border-b border-slate-200 uppercase tracking-wider font-semibold">
                                     <tr>
                                         <th className="px-4 py-3.5">Tanggal</th>
-                                        <th className="px-4 py-3.5">Nama Siswa</th>
-                                        <th className="px-4 py-3.5">Uraian Pelanggaran Kedisiplinan</th>
+                                        <th className="px-4 py-3.5">Nama Peserta Didik</th>
+                                        <th className="px-4 py-3.5">Uraian Pelanggaran</th>
                                         <th className="px-4 py-3.5 text-center">Poin Sanksi</th>
                                         <th className="px-4 py-3.5">Tindakan Pembinaan</th>
+                                        <th className="px-4 py-3.5 text-center">Surat Ortu</th>
+                                        <th className="px-4 py-3.5 text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200">
-                                    <tr className="hover:bg-[#FDF2F4]/50 transition">
-                                        <td className="px-4 py-3.5 font-mono text-slate-600">18 September 2026</td>
-                                        <td className="px-4 py-3.5 font-bold text-slate-900">Siswa Binaan (Kelas 5)</td>
-                                        <td className="px-4 py-3.5 text-slate-700">Terlambat masuk kelas melebihi 15 menit tanpa surat izin</td>
-                                        <td className="px-4 py-3.5 text-center">
-                                            <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-bold">
-                                                5 Poin
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3.5 text-slate-600">Teguran lisan & piket kebersihan kelas</td>
-                                    </tr>
+                                    {violations && violations.length > 0 ? (
+                                        violations.map((vio) => (
+                                            <tr key={vio.id} className="hover:bg-[#FDF2F4]/40 transition">
+                                                <td className="px-4 py-3.5 font-mono text-slate-600">{vio.violation_date}</td>
+                                                <td className="px-4 py-3.5 font-bold text-slate-900">{vio.student_name}</td>
+                                                <td className="px-4 py-3.5 text-slate-700">{vio.violation_name}</td>
+                                                <td className="px-4 py-3.5 text-center">
+                                                    <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-bold">
+                                                        +{vio.penalty_points} Poin
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3.5 text-slate-600">{vio.sanction_action}</td>
+                                                <td className="px-4 py-3.5 text-center">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                                        vio.call_letter_sent 
+                                                            ? 'bg-rose-100 text-rose-800' 
+                                                            : 'bg-slate-100 text-slate-500'
+                                                    }`}>
+                                                        {vio.call_letter_sent ? 'Dikirim' : 'Tidak'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3.5 text-center">
+                                                    <button
+                                                        onClick={() => handleDeleteViolation(vio.id)}
+                                                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition"
+                                                        title="Hapus Pelanggaran"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={7} className="text-center py-8 text-slate-400">
+                                                Tidak ada catatan pelanggaran kedisiplinan.
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 )}
 
-                {/* TAB 3: PRESTASI */}
+                {/* TAB 3: GALERI PRESTASI */}
                 {tab === 'prestasi' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-[#E8B4B8] transition space-y-3">
-                            <div className="flex items-center justify-between">
-                                <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold">
-                                    Tingkat Kabupaten
-                                </span>
-                                <span className="text-[11px] text-slate-400 font-mono">Agustus 2026</span>
-                            </div>
-                            <h4 className="text-sm font-bold text-slate-900">
-                                Juara 1 Olimpiade Sains Nasional (OSN) IPA SD
-                            </h4>
-                            <p className="text-xs text-slate-600">
-                                Diraih oleh Siti Nurhaliza (Kelas 6) mewakili Kecamatan Gandangbatu Sillanan di Tana Toraja.
-                            </p>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-base font-bold text-slate-900">
+                                Galeri Kebanggaan Prestasi Siswa UPT SDN 9 Gandangbatu Sillanan
+                            </h3>
+                            <span className="text-xs text-slate-500 font-medium">
+                                Total Prestasi: <strong className="text-slate-900">{achievements.length} Piagam</strong>
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {achievements && achievements.length > 0 ? (
+                                achievements.map((ach) => (
+                                    <div key={ach.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-[#E8B4B8] transition space-y-3 relative group">
+                                        <div className="flex items-center justify-between">
+                                            <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${
+                                                ach.level === 'nasional' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                                                ach.level === 'provinsi' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                                                ach.level === 'kabupaten' ? 'bg-blue-100 text-blue-800 border-blue-300' : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                            }`}>
+                                                Tingkat {ach.level}
+                                            </span>
+                                            <span className="text-[11px] text-slate-400 font-mono">{ach.event_date}</span>
+                                        </div>
+
+                                        <div className="flex items-start space-x-3">
+                                            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl border border-amber-200 shrink-0">
+                                                <Trophy className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-bold text-slate-900 leading-snug">
+                                                    {ach.title}
+                                                </h4>
+                                                <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                                                    {ach.rank} &bull; <span className="text-slate-900 font-bold">{ach.student_name}</span>
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {isGuruOrAdmin && (
+                                            <div className="pt-2 border-t border-slate-100 flex items-center justify-end">
+                                                <button
+                                                    onClick={() => handleDeleteAchievement(ach.id)}
+                                                    className="text-xs text-slate-400 hover:text-rose-600 font-semibold transition inline-flex items-center space-x-1"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                    <span>Hapus</span>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="col-span-3 bg-white p-8 text-center rounded-2xl border border-slate-200 text-slate-400">
+                                    Belum ada data prestasi siswa yang dicatat.
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
             </div>
+
+            {/* Modals */}
+            <ModalSesiKonseling 
+                isOpen={isModalSessionOpen}
+                onClose={() => setIsModalSessionOpen(false)}
+                students={students}
+                counselors={counselors}
+            />
+
+            <ModalPelanggaran 
+                isOpen={isModalViolationOpen}
+                onClose={() => setIsModalViolationOpen(false)}
+                students={students}
+            />
+
+            <ModalPrestasi 
+                isOpen={isModalAchievementOpen}
+                onClose={() => setIsModalAchievementOpen(false)}
+                students={students}
+            />
         </AuthenticatedLayout>
     );
 }
-

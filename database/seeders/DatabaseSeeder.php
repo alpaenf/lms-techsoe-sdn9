@@ -401,5 +401,63 @@ class DatabaseSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // Seed Counseling Sessions (BK)
+        DB::table('counseling_sessions')->insert([
+            'student_id' => $studentIds[0],
+            'counselor_id' => $teacherBkId,
+            'session_date' => '2026-09-22',
+            'topic' => 'Konsultasi Persiapan Asesmen Akhir Jenjang Sekolah Dasar',
+            'action_plan' => 'Pemberian bimbingan belajar tambahan di luar jam pelajaran dan penguatan motivasi kepercayaan diri siswa.',
+            'is_confidential' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('counseling_sessions')->insert([
+            'student_id' => $studentIds[1],
+            'counselor_id' => $teacherBkId,
+            'session_date' => '2026-09-24',
+            'topic' => 'Bimbingan Kedisiplinan & Kekompakan Rombel',
+            'action_plan' => 'Penguatan nilai toleransi antar teman dan kesepakatan tata tertib kelas.',
+            'is_confidential' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Seed Discipline Violations (Poin Pelanggaran)
+        DB::table('discipline_violations')->insert([
+            'student_id' => $studentIds[1], // Markus Rapa
+            'violation_date' => '2026-09-18',
+            'violation_name' => 'Terlambat masuk kelas melebihi 15 menit tanpa surat izin',
+            'penalty_points' => 5,
+            'sanction_action' => 'Teguran lisan & piket kebersihan kelas',
+            'call_letter_sent' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Seed Student Achievements (Galeri Prestasi)
+        DB::table('student_achievements')->insert([
+            'student_id' => $studentIds[0], // Siti Nurhaliza
+            'title' => 'Juara 1 Olimpiade Sains Nasional (OSN) IPA SD',
+            'level' => 'kabupaten',
+            'rank' => 'Juara 1',
+            'event_date' => '2026-08-20',
+            'certificate_file' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('student_achievements')->insert([
+            'student_id' => $studentIds[3], // Christian Batara
+            'title' => 'Juara 2 Lomba Lari Atletik FLS2N SD',
+            'level' => 'kecamatan',
+            'rank' => 'Juara 2',
+            'event_date' => '2026-08-15',
+            'certificate_file' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }

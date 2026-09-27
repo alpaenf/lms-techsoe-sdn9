@@ -84,6 +84,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // 07. Manajemen BK
     Route::get('/bk', [BKController::class, 'index'])->name('bk.index');
+    Route::post('/bk/sessions', [BKController::class, 'storeSession'])->name('bk.sessions.store');
+    Route::delete('/bk/sessions/{id}', [BKController::class, 'destroySession'])->name('bk.sessions.destroy');
+    Route::post('/bk/violations', [BKController::class, 'storeViolation'])->name('bk.violations.store');
+    Route::delete('/bk/violations/{id}', [BKController::class, 'destroyViolation'])->name('bk.violations.destroy');
+    Route::post('/bk/achievements', [BKController::class, 'storeAchievement'])->name('bk.achievements.store');
+    Route::delete('/bk/achievements/{id}', [BKController::class, 'destroyAchievement'])->name('bk.achievements.destroy');
 
     // Profil Pengguna
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
