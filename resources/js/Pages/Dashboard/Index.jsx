@@ -29,14 +29,19 @@ export default function DashboardIndex({
     role = 'siswa', 
     roleLabel = 'Pengguna',
     academicYear = '2026/2027 • Ganjil',
+    schoolProfile = null,
     metrics = {},
     announcements = [],
     recent_classes = [],
     assignments = [],
     recent_violations = [],
+    recent_sessions = [],
+    recent_achievements = [],
+    pending_submissions = [],
     attendance = {}
 }) {
     const user = auth?.user;
+    const schoolName = schoolProfile?.school_name || 'UPT SDN 9 Gandangbatu Sillanan';
 
     return (
         <AuthenticatedLayout
@@ -51,7 +56,7 @@ export default function DashboardIndex({
                             {role === 'siswa' && 'Portal Belajar Mandiri Peserta Didik'}
                         </h2>
                         <p className="text-xs text-slate-500 font-medium mt-0.5">
-                            UPT SDN 9 Gandangbatu Sillanan • Peran: {roleLabel}
+                            {schoolName} • Peran: {roleLabel}
                         </p>
                     </div>
 
@@ -356,71 +361,115 @@ export default function DashboardIndex({
                                     </Link>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {recent_classes && recent_classes.map((cls) => (
-                                        <div key={cls.id} className="p-3.5 rounded-xl border border-slate-200 hover:border-[#800020]/40 transition flex items-center justify-between">
-                                            <div className="flex items-center space-x-3">
-                                                <div className="w-9 h-9 rounded-lg bg-[#FDF2F4] text-[#800020] flex items-center justify-center font-bold text-xs">
-                                                    {cls.grade_level}
+                                    {recent_classes && recent_classes.length > 0 ? (
+                                        recent_classes.map((cls) => (
+                                            <div key={cls.id} className="p-3.5 rounded-xl border border-slate-200 hover:border-[#800020]/40 transition flex items-center justify-between">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-9 h-9 rounded-lg bg-[#FDF2F4] text-[#800020] flex items-center justify-center font-bold text-xs">
+                                                        {cls.grade_level}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-bold text-slate-900">{cls.name}</p>
+                                                        <p className="text-[11px] text-slate-500">Wali: {cls.homeroom_teacher_name || 'Belum Ditugaskan'}</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-xs font-bold text-slate-900">{cls.name}</p>
-                                                    <p className="text-[11px] text-slate-500">Wali: {cls.homeroom_teacher_name || 'Belum Ditugaskan'}</p>
-                                                </div>
+                                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">
+                                                    {cls.student_count ?? 0} Siswa
+                                                </span>
                                             </div>
-                                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">Aktif</span>
+                                        ))
+                                    ) : (
+                                        <div className="col-span-2 text-center py-6 text-xs text-slate-500">
+                                            Belum ada data rombongan belajar.
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             </div>
                         )}
 
                         {role === 'pimpinan' && (
-                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <h4 className="text-base font-bold text-slate-900">
-                                        Supervisi Capaian Rapor & Presensi
-                                    </h4>
-                                    <Link
-                                        href={route('erapor.index') + '?tab=cetak'}
-                                        className="text-xs font-semibold text-[#800020] hover:underline inline-flex items-center"
-                                    >
-                                        <span>Pengesahan Rapor</span>
-                                        <ChevronRight className="w-3.5 h-3.5 ml-1" />
-                                    </Link>
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                                        <div className="flex items-center space-x-3">
-                                            <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700">
-                                                <CheckCircle2 className="w-5 h-5" />
-                                            </div>
-                                            <div>
-                                                <p className="text-xs font-bold text-slate-900">Pengisian Leger Nilai Kelas 6</p>
-                                                <p className="text-[11px] text-slate-500">Wali Kelas: Budi Santoso, S.Pd. • 28 Nilai Siswa Lengkap</p>
-                                            </div>
-                                        </div>
-                                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            Siap Sahkan
-                                        </span>
-                                    </div>
-                                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                                        <div className="flex items-center space-x-3">
-                                            <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
-                                                <UserCheck className="w-5 h-5" />
-                                            </div>
-                                            <div>
-                                                <p className="text-xs font-bold text-slate-900">Presensi Guru & Pegawai Hari Ini</p>
-                                                <p className="text-[11px] text-slate-500">12 Guru Hadir • 0 Terlambat • 0 Izin</p>
-                                            </div>
-                                        </div>
+                            <div className="space-y-6">
+                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="text-base font-bold text-slate-900">
+                                            Supervisi Capaian Rapor & Presensi
+                                        </h4>
                                         <Link
-                                            href={route('presensi.index') + '?type=guru'}
-                                            className="text-xs font-semibold text-[#800020] hover:underline"
+                                            href={route('erapor.index') + '?tab=cetak'}
+                                            className="text-xs font-semibold text-[#800020] hover:underline inline-flex items-center"
                                         >
-                                            Cek Presensi
+                                            <span>Pengesahan Rapor</span>
+                                            <ChevronRight className="w-3.5 h-3.5 ml-1" />
                                         </Link>
                                     </div>
+                                    <div className="space-y-3">
+                                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700">
+                                                    <CheckCircle2 className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-bold text-slate-900">Pengisian Leger Nilai & Evaluasi Rapor</p>
+                                                    <p className="text-[11px] text-slate-500">{metrics.verified_raports ?? 5} Dokumen Rapor Siap Disahkan</p>
+                                                </div>
+                                            </div>
+                                            <Link
+                                                href={route('erapor.index') + '?tab=cetak'}
+                                                className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                            >
+                                                Siap Sahkan
+                                            </Link>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
+                                                    <UserCheck className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-bold text-slate-900">Presensi Guru & Pegawai Hari Ini</p>
+                                                    <p className="text-[11px] text-slate-500">{metrics.teachers_present_today ?? 0} dari {metrics.total_teachers ?? 0} Guru Hadir</p>
+                                                </div>
+                                            </div>
+                                            <Link
+                                                href={route('presensi.index') + '?type=guru'}
+                                                className="text-xs font-semibold text-[#800020] hover:underline"
+                                            >
+                                                Cek Presensi
+                                            </Link>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {recent_achievements && recent_achievements.length > 0 && (
+                                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-base font-bold text-slate-900 flex items-center">
+                                                <Award className="w-4 h-4 mr-2 text-amber-500" />
+                                                Galeri Piagam Prestasi Siswa Terakhir
+                                            </h4>
+                                            <Link
+                                                href={route('bk.index') + '?tab=prestasi'}
+                                                className="text-xs font-semibold text-[#800020] hover:underline inline-flex items-center"
+                                            >
+                                                <span>Lihat Semua</span>
+                                                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                                            </Link>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {recent_achievements.map((ach) => (
+                                                <div key={ach.id} className="p-3.5 rounded-xl border border-slate-200 bg-amber-50/30 flex flex-col justify-between">
+                                                    <div>
+                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 uppercase">
+                                                            {ach.rank} • {ach.level}
+                                                        </span>
+                                                        <p className="text-xs font-bold text-slate-900 mt-1.5 line-clamp-1">{ach.title}</p>
+                                                        <p className="text-[11px] text-slate-600 mt-0.5">Siswa: {ach.student_name}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -439,83 +488,107 @@ export default function DashboardIndex({
                                     </Link>
                                 </div>
                                 <div className="space-y-3">
-                                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                                        <div>
-                                            <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold text-[10px] border border-blue-200">
-                                                Matematika
-                                            </span>
-                                            <p className="text-xs font-bold text-slate-900 mt-1">Latihan Soal Operasi Hitung Campuran</p>
-                                            <p className="text-[11px] text-slate-500">24 dari 28 siswa telah mengumpulkan</p>
+                                    {pending_submissions && pending_submissions.length > 0 ? (
+                                        pending_submissions.map((sub) => (
+                                            <div key={sub.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                                                <div>
+                                                    <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-semibold text-[10px] border border-amber-200">
+                                                        Belum Dinilai
+                                                    </span>
+                                                    <p className="text-xs font-bold text-slate-900 mt-1">{sub.assignment_title}</p>
+                                                    <p className="text-[11px] text-slate-500">Dikumpulkan oleh: {sub.student_name}</p>
+                                                </div>
+                                                <Link
+                                                    href={route('elearning.index') + '?tab=tugas'}
+                                                    className="px-3 py-1.5 rounded-lg bg-[#800020] text-white text-xs font-bold hover:bg-[#5C0017] transition"
+                                                >
+                                                    Beri Nilai
+                                                </Link>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-6 text-center rounded-xl bg-emerald-50/50 border border-emerald-200/60 space-y-2">
+                                            <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+                                            <p className="text-xs font-bold text-emerald-900">Semua Berkas Tugas Telah Dinilai!</p>
+                                            <p className="text-[11px] text-emerald-700">Tidak ada pengumpulan tugas siswa yang tertunda saat ini.</p>
                                         </div>
-                                        <Link
-                                            href={route('elearning.index') + '?tab=tugas'}
-                                            className="px-3 py-1.5 rounded-lg bg-[#800020] text-white text-xs font-bold hover:bg-[#5C0017] transition"
-                                        >
-                                            Beri Nilai
-                                        </Link>
-                                    </div>
-                                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                                        <div>
-                                            <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold text-[10px] border border-emerald-200">
-                                                IPAS
-                                            </span>
-                                            <p className="text-xs font-bold text-slate-900 mt-1">Tugas Pengamatan Rantai Makanan Ekosistem</p>
-                                            <p className="text-[11px] text-slate-500">22 dari 28 siswa telah mengumpulkan</p>
-                                        </div>
-                                        <Link
-                                            href={route('elearning.index') + '?tab=tugas'}
-                                            className="px-3 py-1.5 rounded-lg bg-[#800020] text-white text-xs font-bold hover:bg-[#5C0017] transition"
-                                        >
-                                            Beri Nilai
-                                        </Link>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         )}
 
                         {role === 'bk' && (
-                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <h4 className="text-base font-bold text-slate-900">
-                                        Catatan Pelanggaran Kedisiplinan Terbaru
-                                    </h4>
-                                    <Link
-                                        href={route('bk.index') + '?tab=pelanggaran'}
-                                        className="text-xs font-semibold text-[#800020] hover:underline inline-flex items-center"
-                                    >
-                                        <span>Buku Pelanggaran</span>
-                                        <ChevronRight className="w-3.5 h-3.5 ml-1" />
-                                    </Link>
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                                        <div>
-                                            <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-semibold text-[10px] border border-amber-200">
-                                                Pelanggaran Ringan • 5 Poin
-                                            </span>
-                                            <p className="text-xs font-bold text-slate-900 mt-1">Terlambat Masuk Jam Pertama (3x)</p>
-                                            <p className="text-[11px] text-slate-500">Siswa: Ahmad Fauzi (Kelas 5) • Tanggal: 23 September 2026</p>
-                                        </div>
-                                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-200 text-slate-700">
-                                            Tercatat
-                                        </span>
-                                    </div>
-                                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                                        <div>
-                                            <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-700 font-semibold text-[10px] border border-rose-200">
-                                                Pelanggaran Sedang • 15 Poin
-                                            </span>
-                                            <p className="text-xs font-bold text-slate-900 mt-1">Meninggalkan Lingkungan Sekolah Tanpa Izin</p>
-                                            <p className="text-[11px] text-slate-500">Siswa: Rian Pratama (Kelas 6) • Bimbingan Konseling Dijadwalkan</p>
-                                        </div>
+                            <div className="space-y-6">
+                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="text-base font-bold text-slate-900">
+                                            Catatan Pelanggaran Kedisiplinan Terbaru
+                                        </h4>
                                         <Link
-                                            href={route('bk.index') + '?tab=konseling'}
-                                            className="px-3 py-1.5 rounded-lg bg-[#800020] text-white text-xs font-bold hover:bg-[#5C0017] transition"
+                                            href={route('bk.index') + '?tab=pelanggaran'}
+                                            className="text-xs font-semibold text-[#800020] hover:underline inline-flex items-center"
                                         >
-                                            Konseling
+                                            <span>Buku Pelanggaran</span>
+                                            <ChevronRight className="w-3.5 h-3.5 ml-1" />
                                         </Link>
                                     </div>
+                                    <div className="space-y-3">
+                                        {recent_violations && recent_violations.length > 0 ? (
+                                            recent_violations.map((v) => (
+                                                <div key={v.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                                                    <div>
+                                                        <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-semibold text-[10px] border border-amber-200">
+                                                            Poin: +{v.penalty_points} Poin
+                                                        </span>
+                                                        <p className="text-xs font-bold text-slate-900 mt-1">{v.violation_name}</p>
+                                                        <p className="text-[11px] text-slate-500">Siswa: {v.student_name} ({v.class_name || 'Siswa'}) • {v.violation_date}</p>
+                                                    </div>
+                                                    <Link
+                                                        href={route('bk.index') + '?tab=pelanggaran'}
+                                                        className="text-xs font-semibold text-[#800020] hover:underline"
+                                                    >
+                                                        Detail
+                                                    </Link>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-6 text-xs text-slate-500">
+                                                Belum ada catatan pelanggaran kedisiplinan.
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
+
+                                {recent_sessions && recent_sessions.length > 0 && (
+                                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-base font-bold text-slate-900 flex items-center">
+                                                <Users className="w-4 h-4 mr-2 text-emerald-600" />
+                                                Sesi Bimbingan & Konseling Terakhir
+                                            </h4>
+                                            <Link
+                                                href={route('bk.index') + '?tab=konseling'}
+                                                className="text-xs font-semibold text-[#800020] hover:underline inline-flex items-center"
+                                            >
+                                                <span>Kelola Konseling</span>
+                                                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                                            </Link>
+                                        </div>
+                                        <div className="space-y-3">
+                                            {recent_sessions.map((s) => (
+                                                <div key={s.id} className="p-3.5 rounded-xl border border-slate-200 bg-emerald-50/30 flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-xs font-bold text-slate-900">{s.topic}</p>
+                                                        <p className="text-[11px] text-slate-600">Siswa: {s.student_name} ({s.class_name || 'Siswa'}) • Tanggal: {s.session_date}</p>
+                                                    </div>
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                                                        Terlaksana
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -534,43 +607,32 @@ export default function DashboardIndex({
                                     </Link>
                                 </div>
                                 <div className="space-y-3">
-                                    <div className="p-4 rounded-xl bg-[#FDF2F4]/40 border border-[#E8B4B8]/60 flex items-center justify-between">
-                                        <div className="space-y-1">
-                                            <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold text-[10px] border border-blue-200">
-                                                Matematika
-                                            </span>
-                                            <p className="text-xs font-bold text-slate-900">Latihan Soal Operasi Hitung Campuran</p>
-                                            <p className="text-[11px] text-slate-500 flex items-center">
-                                                <Clock className="w-3.5 h-3.5 mr-1 text-[#800020]" />
-                                                Batas Waktu: 28 September 2026, 23:59 WITA
-                                            </p>
+                                    {assignments && assignments.length > 0 ? (
+                                        assignments.map((asg, index) => (
+                                            <div key={asg.id} className={`p-4 rounded-xl border flex items-center justify-between ${index === 0 ? 'bg-[#FDF2F4]/40 border-[#E8B4B8]/60' : 'bg-slate-50 border-slate-200'}`}>
+                                                <div className="space-y-1">
+                                                    <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold text-[10px] border border-blue-200">
+                                                        {asg.subject_name || 'Mata Pelajaran'}
+                                                    </span>
+                                                    <p className="text-xs font-bold text-slate-900">{asg.title}</p>
+                                                    <p className="text-[11px] text-slate-500 flex items-center">
+                                                        <Clock className="w-3.5 h-3.5 mr-1 text-[#800020]" />
+                                                        Batas Waktu: {asg.due_date || 'Segera'}
+                                                    </p>
+                                                </div>
+                                                <Link
+                                                    href={route('elearning.index') + '?tab=tugas'}
+                                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm ${index === 0 ? 'bg-[#800020] text-white hover:bg-[#5C0017]' : 'bg-slate-800 text-white hover:bg-slate-900'}`}
+                                                >
+                                                    Kumpul Tugas
+                                                </Link>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-6 text-center rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500">
+                                            Tidak ada tugas aktif yang perlu dikumpulkan saat ini.
                                         </div>
-                                        <Link
-                                            href={route('elearning.index') + '?tab=tugas'}
-                                            className="px-4 py-2 rounded-xl bg-[#800020] text-white text-xs font-bold hover:bg-[#5C0017] transition shadow-sm"
-                                        >
-                                            Kumpul Tugas
-                                        </Link>
-                                    </div>
-
-                                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                                        <div className="space-y-1">
-                                            <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold text-[10px] border border-emerald-200">
-                                                IPAS
-                                            </span>
-                                            <p className="text-xs font-bold text-slate-900">Tugas Pengamatan Rantai Makanan Ekosistem</p>
-                                            <p className="text-[11px] text-slate-500 flex items-center">
-                                                <Clock className="w-3.5 h-3.5 mr-1 text-slate-400" />
-                                                Batas Waktu: 30 September 2026, 23:59 WITA
-                                            </p>
-                                        </div>
-                                        <Link
-                                            href={route('elearning.index') + '?tab=tugas'}
-                                            className="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-900 transition"
-                                        >
-                                            Lihat Soal
-                                        </Link>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         )}
