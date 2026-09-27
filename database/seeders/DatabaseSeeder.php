@@ -341,5 +341,65 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+
+        // Seed 15 days of historical student attendances for Kelas 6
+        $statuses = ['Hadir', 'Hadir', 'Hadir', 'Hadir', 'Izin', 'Hadir', 'Sakit', 'Hadir', 'Hadir', 'Hadir'];
+        for ($d = 0; $d < 15; $d++) {
+            $date = date('Y-m-d', strtotime("-{$d} days"));
+            // Skip weekends
+            $dayOfWeek = date('N', strtotime($date));
+            if ($dayOfWeek >= 6) continue;
+
+            foreach ($studentIds as $sIdx => $sId) {
+                $status = $statuses[($d + $sIdx) % count($statuses)];
+                DB::table('student_attendances')->insert([
+                    'student_id' => $sId,
+                    'class_id' => $class6Id,
+                    'academic_year_id' => $academicYearId,
+                    'attendance_date' => $date,
+                    'status' => $status,
+                    'notes' => $status === 'Izin' ? 'Izin acara keluarga' : ($status === 'Sakit' ? 'Sakit demam' : null),
+                    'recorded_by' => $guruUserId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // Seed teacher attendance
+            DB::table('teacher_attendances')->insert([
+                'teacher_id' => $teacherGuruId,
+                'attendance_date' => $date,
+                'status' => 'Hadir',
+                'check_in_time' => '07:15:00',
+                'notes' => 'Hadir Tepat Waktu',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            DB::table('teacher_attendances')->insert([
+                'teacher_id' => $teacherBkId,
+                'attendance_date' => $date,
+                'status' => 'Hadir',
+                'check_in_time' => '07:20:00',
+                'notes' => 'Hadir Tepat Waktu',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        // Seed Attendance Permission Request
+        DB::table('attendance_permissions')->insert([
+            'user_id' => $siswaUserId,
+            'student_id' => $studentIds[0],
+            'type' => 'siswa',
+            'permission_type' => 'Sakit',
+            'start_date' => date('Y-m-d', strtotime('+1 day')),
+            'end_date' => date('Y-m-d', strtotime('+2 days')),
+            'reason' => 'Mohon izin Bapak/Ibu Wali Kelas, anak kami Siti Nurhaliza sedang sakit demam dan disarankan istirahat oleh dokter.',
+            'attachment_path' => null,
+            'status' => 'approved',
+            'approved_by' => $guruUserId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }

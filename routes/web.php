@@ -72,6 +72,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // 05. Presensi
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
     Route::post('/presensi', [PresensiController::class, 'store'])->name('presensi.store');
+    Route::post('/presensi/permissions', [PresensiController::class, 'storePermission'])->name('presensi.permissions.store');
+    Route::post('/presensi/permissions/{id}/status', [PresensiController::class, 'updatePermissionStatus'])->name('presensi.permissions.update-status');
 
     // 06. E-Rapor
     Route::get('/erapor', [ERaporController::class, 'index'])->name('erapor.index');
