@@ -8,6 +8,9 @@ use App\Http\Controllers\ELearningController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\ERaporController;
 use App\Http\Controllers\BKController;
+use App\Http\Controllers\ExamController;
+use App\Http\Controllers\StudentExamController;
+use App\Http\Controllers\AnnouncementController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -94,6 +97,56 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/bk/violations/{id}', [BKController::class, 'destroyViolation'])->name('bk.violations.destroy');
     Route::post('/bk/achievements', [BKController::class, 'storeAchievement'])->name('bk.achievements.store');
     Route::delete('/bk/achievements/{id}', [BKController::class, 'destroyAchievement'])->name('bk.achievements.destroy');
+
+    // 08. Ujian Online - Guru Routes
+    Route::prefix('exams')->middleware(['role:guru,admin'])->group(function () {
+        Route::get('/', [ExamController::class, 'index'])->name('exams.index');
+        Route::get('/create', [ExamController::class, 'create'])->name('exams.create');
+        Route::post('/', [ExamController::class, 'store'])->name('exams.store');
+        Route::get('/{exam}', [ExamController::class, 'show'])->name('exams.show');
+        Route::get('/{exam}/edit', [ExamController::class, 'edit'])->name('exams.edit');
+        Route::put('/{exam}', [ExamController::class, 'update'])->name('exams.update');
+        Route::delete('/{exam}', [ExamController::class, 'destroy'])->name('exams.destroy');
+        
+        // Questions management
+        Route::post('/{exam}/questions', [ExamController::class, 'addQuestion'])->name('exams.questions.add');
+        Route::put('/questions/{question}', [ExamController::class, 'updateQuestion'])->name('exams.questions.update');
+        Route::delete('/questions/{question}', [ExamController::class, 'deleteQuestion'])->name('exams.questions.delete');
+        Route::post('/questions/{question}/upload-image', [ExamController::class, 'uploadQuestionImage'])->name('exams.questions.image');
+        
+        // Monitoring & Grading
+        Route::get('/{exam}/monitor', [ExamController::class, 'monitor'])->name('exams.monitor');
+        Route::get('/{exam}/results', [ExamController::class, 'results'])->name('exams.results');
+        Route::get('/{exam}/export', [ExamController::class, 'exportResults'])->name('exams.export');
+        Route::post('/answers/{answer}/grade', [ExamController::class, 'gradeEssay'])->name('exams.grade');
+        
+        // Publish/Close
+        Route::post('/{exam}/publish', [ExamController::class, 'publish'])->name('exams.publish');
+        Route::post('/{exam}/close', [ExamController::class, 'close'])->name('exams.close');
+    });
+
+    // 09. Ujian Online - Student Routes
+    Route::prefix('student/exams')->middleware(['role:siswa'])->group(function () {
+        Route::get('/', [StudentExamController::class, 'index'])->name('student.exams.index');
+        Route::get('/{exam}', [StudentExamController::class, 'show'])->name('student.exams.show');
+        Route::post('/{exam}/start', [StudentExamController::class, 'start'])->name('student.exams.start');
+        Route::get('/attempts/{attempt}', [StudentExamController::class, 'takeExam'])->name('student.exams.take');
+        Route::post('/attempts/{attempt}/save', [StudentExamController::class, 'saveAnswer'])->name('student.exams.save');
+        Route::post('/attempts/{attempt}/submit', [StudentExamController::class, 'submit'])->name('student.exams.submit');
+        Route::get('/attempts/{attempt}/review', [StudentExamController::class, 'review'])->name('student.exams.review');
+        Route::get('/attempts/{attempt}/result', [StudentExamController::class, 'result'])->name('student.exams.result');
+    });
+
+    // 10. Pengumuman & Berita Sekolah
+    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::get('/announcements/{id}', [AnnouncementController::class, 'show'])->name('announcements.show');
+    
+    // Admin only - manage announcements
+    Route::middleware(['role:admin,pimpinan'])->group(function () {
+        Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
+        Route::put('/announcements/{id}', [AnnouncementController::class, 'update'])->name('announcements.update');
+        Route::delete('/announcements/{id}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+    });
 
     // Profil Pengguna
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

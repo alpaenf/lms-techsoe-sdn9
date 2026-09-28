@@ -19,7 +19,8 @@ import {
     Users,
     School,
     SlidersHorizontal,
-    CheckCircle2
+    CheckCircle2,
+    ClipboardCheck
 } from 'lucide-react';
 
 export default function AuthenticatedLayout({ header, children }) {
@@ -116,6 +117,13 @@ export default function AuthenticatedLayout({ header, children }) {
                             ],
                         },
                         {
+                            name: 'Ujian Online',
+                            icon: ClipboardCheck,
+                            href: route('exams.index'),
+                            active: route().current('exams.*'),
+                            type: 'link',
+                        },
+                        {
                             name: 'E-Rapor',
                             icon: Files,
                             type: 'dropdown',
@@ -143,6 +151,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 { name: 'Inventarisasi Prestasi', href: route('bk.index') + '?tab=prestasi' },
                             ],
                         },
+                        { name: 'Pengumuman & Berita', icon: Landmark, href: route('announcements.index'), active: route().current('announcements.*'), type: 'link' },
                     ]
                 }
             ];
@@ -205,6 +214,13 @@ export default function AuthenticatedLayout({ header, children }) {
                             ],
                         },
                         {
+                            name: 'Supervisi Ujian Online',
+                            icon: ClipboardCheck,
+                            href: route('exams.index'),
+                            active: route().current('exams.*'),
+                            type: 'link',
+                        },
+                        {
                             name: 'Pengesahan E-Rapor',
                             icon: Files,
                             type: 'dropdown',
@@ -260,6 +276,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 { name: 'Tugas & Asesmen', href: route('elearning.index') + '?tab=tugas' },
                             ],
                         },
+                        { name: 'Ujian Online', icon: ClipboardCheck, href: route('exams.index'), active: route().current('exams.*'), type: 'link' },
                         {
                             name: 'E-Rapor Kelas',
                             icon: Files,
@@ -277,7 +294,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 {
                     category: 'LAYANAN',
                     items: [
-                        { name: 'Pengumuman Sekolah', icon: Landmark, href: route('kelembagaan.index') + '?tab=pengumuman', active: route().current('kelembagaan.*'), type: 'link' },
+                        { name: 'Pengumuman Sekolah', icon: Landmark, href: route('announcements.index'), active: route().current('announcements.*'), type: 'link' },
                     ]
                 }
             ];
@@ -313,7 +330,8 @@ export default function AuthenticatedLayout({ header, children }) {
                                 { name: 'Inventarisasi Prestasi', href: route('bk.index') + '?tab=prestasi' },
                             ],
                         },
-                        { name: 'Pengumuman Sekolah', icon: Landmark, href: route('kelembagaan.index') + '?tab=pengumuman', active: route().current('kelembagaan.*'), type: 'link' },
+                        { name: 'Pengumuman & Berita', icon: Landmark, href: route('announcements.index'), active: route().current('announcements.*'), type: 'link' },
+                        { name: 'Pengumuman Sekolah', icon: Landmark, href: route('announcements.index'), active: route().current('announcements.*'), type: 'link' },
                     ]
                 }
             ];
@@ -341,6 +359,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             { name: 'Tugas & Asesmen', href: route('elearning.index') + '?tab=tugas' },
                         ],
                     },
+                    { name: 'Ujian Online', icon: ClipboardCheck, href: route('student.exams.index'), active: route().current('student.exams.*'), type: 'link' },
                     { name: 'Presensi Saya', icon: Bell, href: route('presensi.index') + '?type=siswa', active: route().current('presensi.*'), type: 'link' },
                     { name: 'Rapor Digital Saya', icon: Files, href: route('erapor.index') + '?tab=cetak', active: route().current('erapor.*'), type: 'link' },
                 ]
@@ -348,7 +367,7 @@ export default function AuthenticatedLayout({ header, children }) {
             {
                 category: 'LAYANAN',
                 items: [
-                    { name: 'Pengumuman Sekolah', icon: Landmark, href: route('kelembagaan.index') + '?tab=pengumuman', active: route().current('kelembagaan.*'), type: 'link' },
+                    { name: 'Pengumuman Sekolah', icon: Landmark, href: route('announcements.index'), active: route().current('announcements.*'), type: 'link' },
                 ]
             }
         ];
@@ -360,14 +379,14 @@ export default function AuthenticatedLayout({ header, children }) {
         <div className="min-h-screen bg-[#F8F9FB] text-slate-800 flex font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#800020] selection:text-white">
             {/* Mobile Sidebar Overlay Backdrop */}
             {sidebarOpen && (
-                <div 
+                <div
                     className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden transition-opacity"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
 
             {/* Sidebar Navigation */}
-            <aside 
+            <aside
                 className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}
@@ -388,7 +407,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         </div>
                     </Link>
 
-                    <button 
+                    <button
                         onClick={() => setSidebarOpen(false)}
                         className="lg:hidden p-1.5 rounded-lg text-white/80 hover:bg-white/10"
                     >
@@ -549,7 +568,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         </div>
 
                         {/* Notifications */}
-                        <button 
+                        <button
                             className="relative p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition"
                             aria-label="Lihat notifikasi"
                         >

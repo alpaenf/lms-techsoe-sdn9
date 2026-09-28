@@ -11,9 +11,67 @@ class ERaporController extends Controller
 {
     public function index(Request $request): Response
     {
+        $user = auth()->user();
         $academicYear = DB::table('academic_years')->where('is_active', true)->first();
         $academicYearId = $academicYear?->id ?? 1;
 
+        // Check if user is student - only show their own rapor
+        if ($user->role === 'siswa') {
+            $student = DB::table('students')->where('user_id', $user->id)->first();
+            
+            if (!$student) {
+                return Inertia::render('ERapor/Index', [
+                    'error' => 'Data siswa tidak ditemukan',
+                ]);
+            }
+
+            $class = DB::table('classes')
+                ->leftJoin('teachers', 'classes.homeroom_teacher_id', '=', 'teachers.id')
+                ->where('classes.id', $student->class_id)
+                ->select('classes.*', 'teachers.full_name as homeroom_teacher_name', 'teachers.nip as homeroom_teacher_nip')
+                ->first();
+
+            $subjects = DB::table('subjects')->orderBy('code')->get();
+
+            // Get grades for this student only
+            $grades = DB::table('student_grades')
+                ->join('teacher_subjects', 'student_grades.teacher_subject_id', '=', 'teacher_subjects.id')
+                ->where('student_grades.student_id', $student->id)
+                ->where('student_grades.academic_year_id', $academicYearId)
+                ->select(
+                    'student_grades.*',
+                    'teacher_subjects.subject_id'
+                )
+                ->get();
+
+            $gradesMap = [];
+            foreach ($grades as $g) {
+                $gradesMap[$g->student_id][$g->subject_id] = $g;
+            }
+
+            // Get evaluation
+            $evaluation = DB::table('raport_evaluations')
+                ->where('student_id', $student->id)
+                ->where('academic_year_id', $academicYearId)
+                ->first();
+
+            $schoolProfile = DB::table('school_profiles')->first();
+
+            return Inertia::render('ERapor/Index', [
+                'academicYear' => $academicYear,
+                'selectedClass' => $class,
+                'subjects' => $subjects,
+                'student' => $student,
+                'students' => [$student],
+                'gradesMap' => $gradesMap,
+                'evaluation' => $evaluation,
+                'evaluations' => $evaluation ? [$student->id => $evaluation] : [],
+                'schoolProfile' => $schoolProfile,
+                'isStudentView' => true,
+            ]);
+        }
+
+        // For teachers/admin - show class selection
         $classes = DB::table('classes')->orderBy('grade_level')->get();
         $defaultClassId = $classes->first()?->id ?? 1;
         $selectedClassId = (int)$request->query('class_id', $defaultClassId);
@@ -71,6 +129,7 @@ class ERaporController extends Controller
             'gradesMap' => $gradesMap,
             'evaluations' => $evaluations,
             'schoolProfile' => $schoolProfile,
+            'isStudentView' => false,
         ]);
     }
 

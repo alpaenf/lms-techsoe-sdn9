@@ -250,12 +250,12 @@ export default function ERaporIndex({
                     </div>
                 </div>
 
-                {/* Formula Banner */}
+                {/* Ketentuan Predikat Banner */}
                 <div className="bg-[#FDF2F4] border border-[#E8B4B8] p-4 rounded-2xl flex items-center justify-between text-xs text-[#800020]">
                     <div className="flex items-center space-x-2.5">
                         <CheckCircle2 className="w-5 h-5 shrink-0 text-[#800020]" />
                         <span>
-                            <strong>Formula Nilai Akhir Rapor:</strong> (Rata-rata Tugas × 30%) + (Nilai UTS × 30%) + (Nilai UAS × 40%). Predikat A (&ge;89), B (78-88), C (65-77), D (&lt;65).
+                            <strong>Ketentuan Predikat:</strong> A (&ge;89), B (78 - 88), C (65 - 77), D (&lt;65)
                         </span>
                     </div>
                     <span className="font-mono font-bold hidden md:block">

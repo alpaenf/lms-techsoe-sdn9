@@ -1,0 +1,277 @@
+import React, { useState } from 'react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, Link, router } from '@inertiajs/react';
+import { 
+    ArrowLeft, 
+    Save, 
+    Clock, 
+    Calendar, 
+    BookOpen, 
+    Settings,
+    Layers
+} from 'lucide-react';
+
+export default function ExamsEdit({ auth, exam, subjects = [], classes = [] }) {
+    const formatDateTimeForInput = (dateTimeStr) => {
+        if (!dateTimeStr) return '';
+        const date = new Date(dateTimeStr);
+        const pad = (n) => String(n).padStart(2, '0');
+        const yyyy = date.getFullYear();
+        const mm = pad(date.getMonth() + 1);
+        const dd = pad(date.getDate());
+        const hh = pad(date.getHours());
+        const min = pad(date.getMinutes());
+        return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+    };
+
+    const [form, setForm] = useState({
+        title: exam.title || '',
+        description: exam.description || '',
+        duration_minutes: exam.duration_minutes || 60,
+        start_time: formatDateTimeForInput(exam.start_time),
+        end_time: formatDateTimeForInput(exam.end_time),
+        max_attempts: exam.max_attempts || 1,
+        passing_score: exam.passing_score || 70,
+        randomize_questions: Boolean(exam.randomize_questions),
+        show_review: Boolean(exam.show_review),
+        show_result_immediately: Boolean(exam.show_result_immediately),
+    });
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        router.put(route('exams.update', exam.id), form, {
+            onFinish: () => setIsSubmitting(false)
+        });
+    };
+
+    return (
+        <AuthenticatedLayout
+            header={
+                <div className="flex items-center gap-4">
+                    <Link
+                        href={route('exams.show', exam.id)}
+                        className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition"
+                    >
+                        <ArrowLeft className="w-5 h-5 text-slate-600" />
+                    </Link>
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 leading-tight">
+                            Edit Pengaturan Ujian
+                        </h2>
+                        <p className="text-xs text-slate-500 font-medium mt-0.5">
+                            {exam.title}
+                        </p>
+                    </div>
+                </div>
+            }
+        >
+            <Head title={`Edit Ujian - ${exam.title}`} />
+
+            <div className="max-w-4xl mx-auto space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Information */}
+                    <div className="bg-white rounded-3xl p-7 border border-slate-200 shadow-sm space-y-5">
+                        <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+                            <div className="w-10 h-10 rounded-xl bg-[#FDF2F4] text-[#800020] flex items-center justify-center">
+                                <BookOpen className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-bold text-slate-900">Informasi Pokok</h3>
+                                <p className="text-xs text-slate-500">Judul asesmen dan petunjuk</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                                Judul Ujian <span className="text-rose-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                value={form.title}
+                                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020]"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                                Deskripsi & Petunjuk Singkat
+                            </label>
+                            <textarea
+                                rows={3}
+                                value={form.description}
+                                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] resize-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Schedule & Timing */}
+                    <div className="bg-white rounded-3xl p-7 border border-slate-200 shadow-sm space-y-5">
+                        <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
+                                <Clock className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-bold text-slate-900">Waktu & Batasan Ujian</h3>
+                                <p className="text-xs text-slate-500">Atur durasi countdown dan jadwal pelaksanaan</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    Durasi (Menit) <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    min={5}
+                                    max={300}
+                                    required
+                                    value={form.duration_minutes}
+                                    onChange={(e) => setForm({ ...form, duration_minutes: Number(e.target.value) })}
+                                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020]"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    Waktu Mulai Tersedia <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    required
+                                    value={form.start_time}
+                                    onChange={(e) => setForm({ ...form, start_time: e.target.value })}
+                                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020]"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    Batas Akhir Ujian <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    required
+                                    value={form.end_time}
+                                    onChange={(e) => setForm({ ...form, end_time: e.target.value })}
+                                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020]"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    Batas Maksimal Percobaan
+                                </label>
+                                <select
+                                    value={form.max_attempts}
+                                    onChange={(e) => setForm({ ...form, max_attempts: Number(e.target.value) })}
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] bg-white"
+                                >
+                                    <option value={1}>1 Kali (Ujian Resmi)</option>
+                                    <option value={2}>2 Kali Percobaan</option>
+                                    <option value={3}>3 Kali Percobaan</option>
+                                    <option value={999}>Tak Terbatas</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    Nilai KKM (Passing Score)
+                                </label>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    min={0}
+                                    max={100}
+                                    value={form.passing_score}
+                                    onChange={(e) => setForm({ ...form, passing_score: Number(e.target.value) })}
+                                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020]"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Preferences */}
+                    <div className="bg-white rounded-3xl p-7 border border-slate-200 shadow-sm space-y-4">
+                        <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+                            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center">
+                                <Settings className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-bold text-slate-900">Kebijakan Ujian</h3>
+                                <p className="text-xs text-slate-500">Konfigurasi acak dan transparansi nilai</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <label className="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-800">Acak Urutan Soal Siswa</p>
+                                    <p className="text-[11px] text-slate-500">Setiap siswa mendapatkan nomor urut soal berlainan</p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={form.randomize_questions}
+                                    onChange={(e) => setForm({ ...form, randomize_questions: e.target.checked })}
+                                    className="rounded text-[#800020] focus:ring-[#800020] w-4 h-4"
+                                />
+                            </label>
+
+                            <label className="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-800">Tampilkan Nilai Langsung</p>
+                                    <p className="text-[11px] text-slate-500">Siswa dapat langsung melihat skor setelah pengumpulan</p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={form.show_result_immediately}
+                                    onChange={(e) => setForm({ ...form, show_result_immediately: e.target.checked })}
+                                    className="rounded text-[#800020] focus:ring-[#800020] w-4 h-4"
+                                />
+                            </label>
+
+                            <label className="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-800">Izinkan Siswa Mereview Jawaban</p>
+                                    <p className="text-[11px] text-slate-500">Siswa dapat melihat pembahasan jawaban benar/salah</p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={form.show_review}
+                                    onChange={(e) => setForm({ ...form, show_review: e.target.checked })}
+                                    className="rounded text-[#800020] focus:ring-[#800020] w-4 h-4"
+                                />
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-3 pt-2">
+                        <Link
+                            href={route('exams.show', exam.id)}
+                            className="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+                        >
+                            Batal
+                        </Link>
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="inline-flex items-center px-6 py-2.5 rounded-xl bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-bold transition shadow-sm disabled:opacity-50"
+                        >
+                            <Save className="w-4 h-4 mr-2" />
+                            {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </AuthenticatedLayout>
+    );
+}

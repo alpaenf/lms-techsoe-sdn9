@@ -837,6 +837,46 @@ export default function DashboardIndex({
                                 </div>
                             </div>
                         </div>
+
+                        {/* 3. PENGUMUMAN SEKOLAH CARD */}
+                        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center">
+                                    <Bell className="w-3.5 h-3.5 mr-1.5 text-[#800020]" />
+                                    Pengumuman Sekolah
+                                </h4>
+                                <Link 
+                                    href={route("announcements.index")}
+                                    className="text-[10px] font-semibold text-[#800020] hover:text-[#5C0017] uppercase tracking-wider flex items-center"
+                                >
+                                    Lihat Semua
+                                    <ChevronRight className="w-3 h-3 ml-0.5" />
+                                </Link>
+                            </div>
+                            <div className="space-y-2.5">
+                                {announcements && announcements.length > 0 ? (
+                                    announcements.slice(0, 3).map((announcement) => (
+                                        <Link
+                                            key={announcement.id}
+                                            href={route("announcements.show", announcement.id)}
+                                            className="block p-3 rounded-xl bg-slate-50 border border-slate-200 hover:bg-[#FDF2F4] hover:border-[#800020] transition space-y-1"
+                                        >
+                                            <span className="text-[10px] font-semibold text-[#800020] uppercase tracking-wider">
+                                                {announcement.target_role === "all" ? "Umum" : announcement.target_role}
+                                            </span>
+                                            <p className="text-xs font-bold text-slate-900">{announcement.title}</p>
+                                            <p className="text-[11px] text-slate-500 line-clamp-2">
+                                                {announcement.content.substring(0, 100)}...
+                                            </p>
+                                        </Link>
+                                    ))
+                                ) : (
+                                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                                        <p className="text-xs text-slate-500 text-center">Belum ada pengumuman</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

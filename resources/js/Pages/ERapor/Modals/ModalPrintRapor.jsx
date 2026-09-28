@@ -151,6 +151,12 @@ export default function ModalPrintRapor({
                         </table>
                     </div>
 
+                    {/* Ketentuan Predikat Note */}
+                    <div className="mb-4 text-[10px] text-slate-700 flex items-center justify-between px-2 py-1 bg-slate-50 border border-slate-300 rounded-lg">
+                        <span><strong>Ketentuan Predikat:</strong> A (&ge;89), B (78 - 88), C (65 - 77), D (&lt;65)</span>
+                        <span className="font-semibold text-slate-500">Standar Kurikulum Merdeka</span>
+                    </div>
+
                     {/* Extra Assessment & Attendance */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 text-xs">
                         <div className="border border-slate-900 rounded-xl p-3 bg-slate-50 space-y-2">
