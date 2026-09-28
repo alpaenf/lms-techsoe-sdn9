@@ -164,11 +164,11 @@ class DashboardController extends Controller
 
         } else {
             // Siswa
-            $student = DB::table('students')
+            $student = $user ? DB::table('students')
                 ->leftJoin('classes', 'students.class_id', '=', 'classes.id')
                 ->where('students.user_id', $user->id)
                 ->select('students.*', 'classes.name as class_name')
-                ->first();
+                ->first() : null;
 
             $studentId = $student?->id;
             
@@ -190,7 +190,7 @@ class DashboardController extends Controller
             $data['attendance'] = $attendanceCounts;
             $data['metrics'] = [
                 'class_name' => $student?->class_name ?? 'Kelas 6',
-                'nisn' => $student?->nisn ?? $user->username,
+                'nisn' => $student?->nisn ?? $user?->username ?? '-',
                 'total_materials' => DB::table('materials')->count(),
                 'active_assignments' => DB::table('assignments')->count(),
                 'gpa_avg' => $avgScore ? number_format($avgScore, 1) : '88.5',
