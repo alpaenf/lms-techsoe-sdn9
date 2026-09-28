@@ -16,9 +16,11 @@ import {
     UserPlus,
     Settings,
     MoreHorizontal,
-    Layers,
-    AlertTriangle,
-    Calendar
+    Layers, 
+    AlertTriangle, 
+    Calendar,
+    Bell,
+    ChevronRight
 } from 'lucide-react';
 
 export default function DashboardIndex({ 
