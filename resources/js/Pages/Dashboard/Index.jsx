@@ -512,7 +512,7 @@ export default function DashboardIndex({
                                 </div>
                                 <div className="text-right">
                                     <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
-                                        {attendance.hadir ?? 8} Hari
+                                        {attendance.hadir ?? 8}
                                     </h3>
                                     <p className="text-[11px] font-medium text-amber-100 mt-0.5">Hadir</p>
                                 </div>
