@@ -50,23 +50,24 @@ export default function DashboardIndex({
             <Head title={`Dashboard ${roleLabel} - Smart School LMS`} />
 
             <div className="space-y-6 max-w-7xl mx-auto">
-                {/* 1. COMPACT DASHBOARD HEADER */}
+                {/* 1. CLEAN & MODERN DASHBOARD HEADER */}
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-slate-200/80 pb-5">
                     <div className="space-y-1">
-                        <div className="flex items-center space-x-2.5">
-                            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                                Dashboard
-                            </h1>
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-500/10 text-[#800020] border border-rose-200/60 tracking-wide">
-                                {roleLabel}
-                            </span>
-                        </div>
+                        {/* Eyebrow Small Red Text */}
+                        <p className="text-[11px] font-bold text-[#800020] uppercase tracking-wider">
+                            Selamat Datang
+                        </p>
+
+                        {/* Large Main Title */}
+                        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                            Dashboard {roleLabel}
+                        </h1>
                         <p className="text-xs sm:text-sm text-slate-500 font-medium">
                             Ringkasan data dan informasi utama sistem sekolah dalam satu tampilan terpadu.
                         </p>
                     </div>
 
-                    {/* Right Date & Greeting Context */}
+                    {/* Right Side: Date & Greeting Card Widget */}
                     <div className="bg-white px-4 py-2.5 rounded-2xl border border-slate-200/80 text-right shadow-2xs shrink-0 self-start md:self-auto flex items-center space-x-3">
                         <div className="w-9 h-9 rounded-xl bg-rose-50 text-[#800020] flex items-center justify-center shrink-0 border border-rose-100">
                             <Calendar className="w-4 h-4 text-[#800020]" />
