@@ -30,7 +30,7 @@ export default function TabSiswa({
                                     <td className="px-4 py-3.5 font-mono font-bold text-slate-900">{s.nisn}</td>
                                     <td className="px-4 py-3.5 font-semibold text-slate-900">{s.full_name}</td>
                                     <td className="px-4 py-3.5">
-                                        <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold text-[11px]">
+                                        <span className="px-2.5 py-1 rounded-md bg-slate-100/80 text-slate-700 font-semibold text-[11px] border border-slate-200/50">
                                             {s.class_name || 'Belum ada kelas'}
                                         </span>
                                     </td>

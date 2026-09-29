@@ -199,7 +199,7 @@ export default function BKIndex({
                             <h3 className="text-base font-bold text-slate-900">
                                 Riwayat Sesi Bimbingan & Konseling Peserta Didik
                             </h3>
-                            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                            <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-700 border border-blue-500/20">
                                 Total: {sessions.length} Sesi
                             </span>
                         </div>
@@ -213,7 +213,7 @@ export default function BKIndex({
                                                 <span className="text-sm font-bold text-slate-900">
                                                     {sess.student_name || 'Peserta Didik'}
                                                 </span>
-                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-purple-500/10 text-purple-700 border border-purple-500/20">
                                                     Pembimbing: {sess.counselor_name || 'Maria Rante, S.Pd.'}
                                                 </span>
                                             </div>
@@ -288,16 +288,16 @@ export default function BKIndex({
                                                 <td className="px-4 py-3.5 font-bold text-slate-900">{vio.student_name}</td>
                                                 <td className="px-4 py-3.5 text-slate-700">{vio.violation_name}</td>
                                                 <td className="px-4 py-3.5 text-center">
-                                                    <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-bold">
+                                                    <span className="px-2.5 py-1 rounded-md bg-rose-500/10 text-rose-700 border border-rose-500/20 font-semibold text-[11px]">
                                                         +{vio.penalty_points} Poin
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-3.5 text-slate-600">{vio.sanction_action}</td>
                                                 <td className="px-4 py-3.5 text-center">
-                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
                                                         vio.call_letter_sent 
-                                                            ? 'bg-rose-100 text-rose-800' 
-                                                            : 'bg-slate-100 text-slate-500'
+                                                            ? 'bg-rose-500/10 text-rose-700 border-rose-500/20' 
+                                                            : 'bg-slate-100 text-slate-500 border-slate-200'
                                                     }`}>
                                                         {vio.call_letter_sent ? 'Dikirim' : 'Tidak'}
                                                     </span>
@@ -343,10 +343,10 @@ export default function BKIndex({
                                 achievements.map((ach) => (
                                     <div key={ach.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-[#E8B4B8] transition space-y-3 relative group">
                                         <div className="flex items-center justify-between">
-                                            <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${
-                                                ach.level === 'nasional' ? 'bg-amber-100 text-amber-800 border-amber-300' :
-                                                ach.level === 'provinsi' ? 'bg-purple-100 text-purple-800 border-purple-300' :
-                                                ach.level === 'kabupaten' ? 'bg-blue-100 text-blue-800 border-blue-300' : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                            <span className={`px-2.5 py-1 rounded-md border text-[10px] font-semibold uppercase tracking-wider ${
+                                                ach.level === 'nasional' ? 'bg-amber-500/10 text-amber-700 border-amber-500/20' :
+                                                ach.level === 'provinsi' ? 'bg-purple-500/10 text-purple-700 border-purple-500/20' :
+                                                ach.level === 'kabupaten' ? 'bg-blue-500/10 text-blue-700 border-blue-500/20' : 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
                                             }`}>
                                                 Tingkat {ach.level}
                                             </span>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,12 +36,32 @@ class DashboardController extends Controller
         $data['announcements'] = $announcements;
 
         if ($role === 'admin') {
+            $today = date('Y-m-d');
+            $totalStudents = DB::table('students')->where('status', 'aktif')->count();
+            $totalTeachers = DB::table('teachers')->count();
+            $totalClasses = DB::table('classes')->count();
+            $totalSubjects = DB::table('subjects')->count();
+
+            $classesWithTeacher = DB::table('classes')->whereNotNull('homeroom_teacher_id')->count();
+            $classesWithStudents = DB::table('classes')
+                ->whereIn('id', DB::table('students')->whereNotNull('class_id')->pluck('class_id')->unique())
+                ->count();
+
+            $totalMaterials = Schema::hasTable('materials') ? DB::table('materials')->count() : 0;
+            $totalAssignments = Schema::hasTable('assignments') ? DB::table('assignments')->count() : 0;
+            $totalExams = Schema::hasTable('exams') ? DB::table('exams')->count() : 0;
+
             $data['metrics'] = [
-                'total_students' => DB::table('students')->where('status', 'aktif')->count(),
-                'total_teachers' => DB::table('teachers')->count(),
-                'total_classes' => DB::table('classes')->count(),
-                'total_subjects' => DB::table('subjects')->count(),
+                'total_students' => $totalStudents,
+                'total_teachers' => $totalTeachers,
+                'total_classes' => $totalClasses,
+                'total_subjects' => $totalSubjects,
                 'total_users' => DB::table('users')->count(),
+                'classes_with_teacher' => $classesWithTeacher,
+                'classes_with_students' => $classesWithStudents,
+                'total_materials' => $totalMaterials,
+                'total_assignments' => $totalAssignments,
+                'total_exams' => $totalExams,
             ];
             $data['recent_classes'] = DB::table('classes')
                 ->leftJoin('teachers', 'classes.homeroom_teacher_id', '=', 'teachers.id')

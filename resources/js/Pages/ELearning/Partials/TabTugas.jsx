@@ -113,7 +113,7 @@ export default function TabTugas({
                                             sub ? (
                                                 isGraded ? (
                                                     <div className="inline-flex flex-col items-center">
-                                                        <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[11px] inline-flex items-center">
+                                                        <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 font-semibold text-[11px] inline-flex items-center">
                                                             <Award className="w-3.5 h-3.5 mr-1 text-emerald-600" />
                                                             <span>Nilai: {sub.score} / {asg.max_score}</span>
                                                         </span>
@@ -124,14 +124,14 @@ export default function TabTugas({
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-semibold text-[11px] inline-flex items-center">
+                                                    <span className="px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-700 border border-blue-500/20 font-semibold text-[11px] inline-flex items-center">
                                                         <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-blue-600" />
                                                         <span>Dikumpulkan</span>
                                                     </span>
                                                 )
                                             ) : (
-                                                <span className={`px-3 py-1 rounded-full border font-semibold text-[11px] inline-flex items-center ${
-                                                    isOverdue ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                                                <span className={`px-2.5 py-1 rounded-md border font-semibold text-[11px] inline-flex items-center ${
+                                                    isOverdue ? 'bg-rose-500/10 text-rose-700 border-rose-500/20' : 'bg-amber-500/10 text-amber-700 border-amber-500/20'
                                                 }`}>
                                                     <AlertCircle className="w-3.5 h-3.5 mr-1" />
                                                     <span>Belum Dikumpulkan</span>
@@ -140,7 +140,7 @@ export default function TabTugas({
                                         ) : (
                                             <button 
                                                 onClick={() => onOpenSubmissions(asg)}
-                                                className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 font-semibold text-[11px] inline-flex items-center transition"
+                                                className="px-2.5 py-1 rounded-md bg-slate-100/80 text-slate-700 border border-slate-200/60 hover:bg-slate-200/80 font-semibold text-[11px] inline-flex items-center transition"
                                             >
                                                 <Eye className="w-3.5 h-3.5 mr-1 text-slate-600" />
                                                 <span>{asg.submissions_count} / {asg.total_students} Mengumpulkan</span>

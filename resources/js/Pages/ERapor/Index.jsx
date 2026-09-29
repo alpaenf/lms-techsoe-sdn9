@@ -328,7 +328,7 @@ export default function ERaporIndex({
                                                     </td>
 
                                                     <td className="px-4 py-3.5 text-center">
-                                                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 text-[11px]">
+                                                        <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-700 font-semibold border border-emerald-500/20 text-[11px]">
                                                             {stat.letter} ({stat.letter === 'A' ? 'Sangat Baik' : 'Baik'})
                                                         </span>
                                                     </td>
@@ -424,7 +424,7 @@ export default function ERaporIndex({
                                                     <td className="px-4 py-3.5 text-center font-mono font-semibold text-slate-800">{uas}</td>
                                                     <td className="px-4 py-3.5 text-center font-mono font-black text-[#800020] text-sm">{score}</td>
                                                     <td className="px-4 py-3.5 text-center">
-                                                        <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200 text-[10px]">
+                                                        <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-700 font-semibold border border-blue-500/20 text-[10px]">
                                                             {grade}
                                                         </span>
                                                     </td>
@@ -496,12 +496,12 @@ export default function ERaporIndex({
                                                     <td className="px-4 py-3.5 font-mono text-slate-700">{s.nisn}</td>
                                                     <td className="px-4 py-3.5 font-bold text-slate-900">{s.full_name}</td>
                                                     <td className="px-4 py-3.5 text-center">
-                                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                                                        <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${
                                                             attitude === 'Sangat Baik' 
-                                                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+                                                                ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' 
                                                                 : attitude === 'Baik' 
-                                                                ? 'bg-blue-50 text-blue-800 border-blue-200'
-                                                                : 'bg-amber-50 text-amber-800 border-amber-200'
+                                                                ? 'bg-blue-500/10 text-blue-700 border-blue-500/20'
+                                                                : 'bg-amber-500/10 text-amber-700 border-amber-500/20'
                                                         }`}>
                                                             {attitude}
                                                         </span>
@@ -565,12 +565,12 @@ export default function ERaporIndex({
                                             <h4 className="text-sm font-bold text-slate-900">{s.full_name}</h4>
                                             <p className="text-xs text-slate-500 font-mono">NISN: {s.nisn} &bull; NIS: {s.nis}</p>
                                             <div className="flex items-center space-x-1.5 pt-0.5">
-                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
                                                     isApproved
-                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                        ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
                                                         : isVerified
-                                                        ? 'bg-blue-50 text-blue-700 border-blue-200'
-                                                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                                                        ? 'bg-blue-500/10 text-blue-700 border-blue-500/20'
+                                                        : 'bg-amber-500/10 text-amber-700 border-amber-500/20'
                                                 }`}>
                                                     {isApproved ? 'Sah & Disetujui Kepsek' : isVerified ? 'Terverifikasi Wali Kelas' : 'Draft Rapor'}
                                                 </span>

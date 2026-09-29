@@ -30,7 +30,7 @@ export default function TabGuru({
                                     <td className="px-4 py-3.5 font-semibold text-slate-900">{t.full_name}</td>
                                     <td className="px-4 py-3.5">{t.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</td>
                                     <td className="px-4 py-3.5">
-                                        <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-semibold text-[11px]">
+                                        <span className="px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-700 border border-blue-500/20 font-semibold text-[11px]">
                                             {t.employment_status}
                                         </span>
                                     </td>

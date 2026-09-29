@@ -151,7 +151,7 @@ export default function KelembagaanIndex({ schoolProfile, academicYears = [] }) 
                                     </p>
                                 </div>
                             </div>
-                            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
                                 Data Terverifikasi Dapodik
                             </span>
                         </div>
@@ -358,12 +358,12 @@ export default function KelembagaanIndex({ schoolProfile, academicYears = [] }) 
                                                     <td className="px-4 py-3.5 text-center text-slate-600 font-mono">{ay.end_date}</td>
                                                     <td className="px-4 py-3.5 text-center">
                                                         {ay.is_active ? (
-                                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                                                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 gap-1.5">
+                                                                <CheckCircle2 className="w-3.5 h-3.5" />
                                                                 Aktif Berjalan
                                                             </span>
                                                         ) : (
-                                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                                                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100/80 text-slate-500 border border-slate-200/60">
                                                                 Arsip
                                                             </span>
                                                         )}

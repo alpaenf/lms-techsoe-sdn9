@@ -57,7 +57,7 @@ export default function DashboardIndex({
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                                 Dashboard
                             </h1>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-[#800020] border border-rose-200/60">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-500/10 text-[#800020] border border-rose-200/60 tracking-wide">
                                 {roleLabel}
                             </span>
                         </div>
@@ -383,13 +383,14 @@ export default function DashboardIndex({
                     </div>
                 )}
 
-                {/* 3. MAIN OPERATIONAL GRID (2 EQUAL-HEIGHT COLUMNS ON DESKTOP) */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                {/* 3. MAIN OPERATIONAL GRID */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                     {/* Left Column (Wide, 2 Columns Span) */}
-                    <div className="lg:col-span-2 flex flex-col justify-between">
+                    <div className="lg:col-span-2 space-y-6">
                         {role === 'admin' && (
-                            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 flex-1 flex flex-col justify-between">
-                                <div>
+                            <>
+                                {/* Card 1: Rombongan Belajar Terdaftar */}
+                                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6">
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4 mb-4">
                                         <div>
                                             <h2 className="text-base font-bold text-slate-900 tracking-tight">
@@ -454,14 +455,12 @@ export default function DashboardIndex({
                                                                 </td>
                                                                 <td className="py-3.5 px-4">
                                                                     {isComplete ? (
-                                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 gap-1.5">
-                                                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
                                                                             Lengkap
                                                                         </span>
                                                                     ) : (
-                                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80 gap-1.5">
-                                                                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                                                                            Belum lengkap
+                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold bg-rose-500/10 text-rose-700 border border-rose-500/20">
+                                                                            Belum Lengkap
                                                                         </span>
                                                                     )}
                                                                 </td>
@@ -482,7 +481,113 @@ export default function DashboardIndex({
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+
+                                {/* Card 2: Sub-Widgets (Kelengkapan Rombel & Status LMS) */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Widget A: Kelengkapan Rombel */}
+                                    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+                                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                            <div className="flex items-center space-x-2.5">
+                                                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center font-bold">
+                                                    <School className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                                                        Kelengkapan Rombel
+                                                    </h3>
+                                                    <p className="text-[11px] text-slate-500 font-medium">Penugasan Wali Kelas & Siswa</p>
+                                                </div>
+                                            </div>
+                                            <Link href={route('master-data.index') + '?tab=rombel'} className="text-[11px] font-bold text-[#800020] hover:underline flex items-center">
+                                                Atur <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                                            </Link>
+                                        </div>
+
+                                        <div className="space-y-3.5">
+                                            {/* Progress bar 1: Wali Kelas */}
+                                            <div>
+                                                <div className="flex items-center justify-between text-xs mb-1.5 font-semibold">
+                                                    <span className="text-slate-600">Penugasan Wali Kelas</span>
+                                                    <span className="text-slate-900 font-bold">
+                                                        {metrics.classes_with_teacher ?? 1} / {metrics.total_classes ?? 6} Kelas
+                                                    </span>
+                                                </div>
+                                                <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                                                        style={{ width: `${Math.round(((metrics.classes_with_teacher ?? 1) / (metrics.total_classes || 6)) * 100)}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Progress bar 2: Rombel Terisi Siswa */}
+                                            <div>
+                                                <div className="flex items-center justify-between text-xs mb-1.5 font-semibold">
+                                                    <span className="text-slate-600">Rombel Terisi Siswa</span>
+                                                    <span className="text-slate-900 font-bold">
+                                                        {metrics.classes_with_students ?? 1} / {metrics.total_classes ?? 6} Rombel
+                                                    </span>
+                                                </div>
+                                                <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-emerald-600 rounded-full transition-all duration-500"
+                                                        style={{ width: `${Math.round(((metrics.classes_with_students ?? 1) / (metrics.total_classes || 6)) * 100)}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                                                <span className="text-slate-500 font-medium">Rata-rata Siswa/Rombel</span>
+                                                <span className="font-bold text-slate-900">
+                                                    {metrics.total_classes > 0 ? (metrics.total_students / metrics.total_classes).toFixed(1) : 0} Siswa / Kelas
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Widget B: Status Pembelajaran Digital (LMS) */}
+                                    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+                                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                            <div className="flex items-center space-x-2.5">
+                                                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center font-bold">
+                                                    <BookOpen className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                                                        Aktivitas E-Learning & Ujian
+                                                    </h3>
+                                                    <p className="text-[11px] text-slate-500 font-medium">Ringkasan konten pembelajaran digital</p>
+                                                </div>
+                                            </div>
+                                            <Link href={route('elearning.index')} className="text-[11px] font-bold text-[#800020] hover:underline flex items-center">
+                                                Detail <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                                            </Link>
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-2 text-center">
+                                            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                                <p className="text-lg font-black text-slate-900">{metrics.total_materials ?? 1}</p>
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase mt-0.5">Modul Ajar</p>
+                                            </div>
+                                            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                                <p className="text-lg font-black text-slate-900">{metrics.total_assignments ?? 1}</p>
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase mt-0.5">Tugas LMS</p>
+                                            </div>
+                                            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                                <p className="text-lg font-black text-slate-900">{metrics.total_exams ?? 0}</p>
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase mt-0.5">Ujian Online</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-3 rounded-xl bg-rose-50/50 border border-rose-100/60 flex items-center justify-between text-xs">
+                                            <span className="font-semibold text-[#800020]">Status Sistem E-Learning</span>
+                                            <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                                                Aktif & Normal
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
                         )}
 
                         {role === 'pimpinan' && (
@@ -821,8 +926,7 @@ export default function DashboardIndex({
                                             <CheckCircle2 className="w-4 h-4 mr-2.5 text-emerald-500 shrink-0" />
                                             Status Data
                                         </span>
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 gap-1.5">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
                                             Normal
                                         </span>
                                     </div>
