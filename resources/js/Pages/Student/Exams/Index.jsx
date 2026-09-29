@@ -19,7 +19,7 @@ export default function StudentExamsIndex({ auth, exams = [], student }) {
         if (!exam.is_available) {
             if (!exam.has_started) {
                 return (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
                         <Clock className="w-3 h-3 mr-1" />
                         Belum Dimulai
                     </span>
@@ -27,7 +27,7 @@ export default function StudentExamsIndex({ auth, exams = [], student }) {
             }
             if (exam.has_ended) {
                 return (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
                         <AlertCircle className="w-3 h-3 mr-1" />
                         Ditutup
                     </span>
@@ -37,7 +37,7 @@ export default function StudentExamsIndex({ auth, exams = [], student }) {
         
         if (exam.latest_attempt && exam.latest_attempt.status === 'in_progress') {
             return (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-orange-500/10 text-orange-700 border border-orange-500/20">
                     <Timer className="w-3 h-3 mr-1" />
                     Sedang Dikerjakan
                 </span>
@@ -46,7 +46,7 @@ export default function StudentExamsIndex({ auth, exams = [], student }) {
 
         if (exam.latest_attempt && exam.latest_attempt.status !== 'in_progress') {
             return (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
                     <CheckCircle2 className="w-3 h-3 mr-1" />
                     Selesai
                 </span>
@@ -54,7 +54,7 @@ export default function StudentExamsIndex({ auth, exams = [], student }) {
         }
 
         return (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FDF2F4] text-[#800020] border border-[#E8B4B8]">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-rose-500/10 text-[#800020] border border-rose-200">
                 <BookOpen className="w-3 h-3 mr-1" />
                 Tersedia
             </span>
@@ -100,7 +100,7 @@ export default function StudentExamsIndex({ auth, exams = [], student }) {
                             Daftar ujian yang tersedia untuk Anda
                         </p>
                     </div>
-                    <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-[#FDF2F4] text-[#800020] border border-[#E8B4B8]">
+                    <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-rose-500/10 text-[#800020] border border-rose-200">
                         <Users className="w-3.5 h-3.5 mr-1.5" />
                         {student?.class_name || 'Siswa'}
                     </span>

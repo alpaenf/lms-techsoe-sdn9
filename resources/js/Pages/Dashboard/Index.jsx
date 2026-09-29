@@ -199,225 +199,373 @@ export default function DashboardIndex({
                     </div>
                 )}
 
+                {/* ROLE: PIMPINAN (KEPALA SEKOLAH) */}
                 {role === 'pimpinan' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Rerata Presensi Siswa</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.attendance_percentage ?? '72.0%'}
-                                </h3>
-                                <p className="text-xs font-bold text-emerald-600">Tingkat Kehadiran Baik</p>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#800020] via-[#70001C] to-[#5C0017] p-5 text-white shadow-md shadow-[#800020]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <CalendarCheck className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.attendance_percentage ?? '72.0%'}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-rose-200 mt-0.5">Tingkat Kehadiran</p>
+                                </div>
                             </div>
-                            <div className="w-12 h-12 rounded-2xl bg-emerald-50/90 text-emerald-600 border border-emerald-100/60 flex items-center justify-center shrink-0">
-                                <CalendarCheck className="w-5 h-5 text-emerald-600" />
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Kehadiran Pendidik</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.teachers_present_today ?? 2} / {metrics.total_teachers ?? 2}
-                                </h3>
-                                <p className="text-xs font-medium text-slate-400">Hadir Bertugas Hari Ini</p>
-                            </div>
-                            <div className="w-12 h-12 rounded-2xl bg-blue-50/90 text-blue-600 border border-blue-100/60 flex items-center justify-center shrink-0">
-                                <Users className="w-5 h-5 text-blue-600" />
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Rerata Presensi Siswa</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    Kategori Baik
+                                </span>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Total Siswa</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.total_students ?? 5} Siswa
-                                </h3>
-                                <p className="text-xs font-bold text-[#800020]">6 Rombel Aktif</p>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#D97706] via-[#B45309] to-[#92400E] p-5 text-white shadow-md shadow-[#D97706]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <Users className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.teachers_present_today ?? 2} / {metrics.total_teachers ?? 2}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-amber-100 mt-0.5">Guru</p>
+                                </div>
                             </div>
-                            <div className="w-12 h-12 rounded-2xl bg-rose-50/90 text-[#800020] border border-rose-100/60 flex items-center justify-center shrink-0">
-                                <School className="w-5 h-5 text-[#800020]" />
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Kehadiran Pendidik</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    Hadir Bertugas
+                                </span>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Prestasi Siswa</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.achievements_count ?? 5} Piagam
-                                </h3>
-                                <p className="text-xs font-bold text-amber-600">Tingkat Kec & Kab</p>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF] p-5 text-white shadow-md shadow-[#2563EB]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <School className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.total_students ?? 5}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-blue-100 mt-0.5">Siswa</p>
+                                </div>
                             </div>
-                            <div className="w-12 h-12 rounded-2xl bg-amber-50/90 text-amber-600 border border-amber-100/60 flex items-center justify-center shrink-0">
-                                <Award className="w-5 h-5 text-amber-600" />
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Total Siswa Aktif</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    6 Rombel Aktif
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#E11D48] via-[#BE123C] to-[#9F1239] p-5 text-white shadow-md shadow-[#E11D48]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <Award className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.achievements_count ?? 5}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-rose-100 mt-0.5">Piagam</p>
+                                </div>
+                            </div>
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Prestasi Siswa</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    Kec. & Kab.
+                                </span>
                             </div>
                         </div>
                     </div>
                 )}
 
+                {/* ROLE: GURU / WALI KELAS */}
                 {role === 'guru' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Wali Kelas</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.class_name ?? 'Kelas 6'}
-                                </h3>
-                                <p className="text-xs font-bold text-emerald-600">{metrics.homeroom_students ?? 5} Peserta Didik</p>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#800020] via-[#70001C] to-[#5C0017] p-5 text-white shadow-md shadow-[#800020]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <School className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.class_name ? metrics.class_name.replace(/^Kelas\s*/i, '') : '6'}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-rose-200 mt-0.5">Wali Kelas</p>
+                                </div>
                             </div>
-                            <div className="w-12 h-12 rounded-2xl bg-emerald-50/90 text-emerald-600 border border-emerald-100/60 flex items-center justify-center shrink-0">
-                                <School className="w-5 h-5 text-emerald-600" />
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Modul Ajar Saya</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.active_materials ?? 1} Modul
-                                </h3>
-                                <p className="text-xs font-medium text-slate-400">Tersedia untuk Siswa</p>
-                            </div>
-                            <div className="w-12 h-12 rounded-2xl bg-blue-50/90 text-blue-600 border border-blue-100/60 flex items-center justify-center shrink-0">
-                                <BookOpen className="w-5 h-5 text-blue-600" />
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Rombel Binaan</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    {metrics.homeroom_students ?? 5} Peserta Didik
+                                </span>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Tugas & Asesmen</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.active_assignments ?? 1} Tugas
-                                </h3>
-                                <p className="text-xs font-bold text-amber-600">Sedang Berlangsung</p>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#D97706] via-[#B45309] to-[#92400E] p-5 text-white shadow-md shadow-[#D97706]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <BookOpen className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.active_materials ?? 1}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-amber-100 mt-0.5">Modul</p>
+                                </div>
                             </div>
-                            <div className="w-12 h-12 rounded-2xl bg-amber-50/90 text-amber-600 border border-amber-100/60 flex items-center justify-center shrink-0">
-                                <Layers className="w-5 h-5 text-amber-600" />
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Modul Ajar Saya</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    Tersedia untuk Siswa
+                                </span>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Perlu Dinilai</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.pending_grades ?? 0} Berkas
-                                </h3>
-                                <p className="text-xs font-bold text-[#800020]">Semua tugas dinilai</p>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF] p-5 text-white shadow-md shadow-[#2563EB]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <Layers className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.active_assignments ?? 1}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-blue-100 mt-0.5">Tugas</p>
+                                </div>
                             </div>
-                            <div className="w-12 h-12 rounded-2xl bg-rose-50/90 text-[#800020] border border-rose-100/60 flex items-center justify-center shrink-0">
-                                <FileText className="w-5 h-5 text-[#800020]" />
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Tugas & Asesmen</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    Sedang Berlangsung
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#E11D48] via-[#BE123C] to-[#9F1239] p-5 text-white shadow-md shadow-[#E11D48]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <FileText className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.pending_grades ?? 0}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-rose-100 mt-0.5">Berkas</p>
+                                </div>
+                            </div>
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Perlu Dinilai</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    Pemeriksaan Tugas
+                                </span>
                             </div>
                         </div>
                     </div>
                 )}
 
+                {/* ROLE: GURU BK */}
                 {role === 'bk' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Sesi Konseling</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.total_sessions ?? 2} Sesi
-                                </h3>
-                                <p className="text-xs font-bold text-emerald-600">Individual & Kelompok</p>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#800020] via-[#70001C] to-[#5C0017] p-5 text-white shadow-md shadow-[#800020]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <Users className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.total_sessions ?? 2}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-rose-200 mt-0.5">Sesi</p>
+                                </div>
                             </div>
-                            <div className="w-12 h-12 rounded-2xl bg-emerald-50/90 text-emerald-600 border border-emerald-100/60 flex items-center justify-center shrink-0">
-                                <Users className="w-5 h-5 text-emerald-600" />
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Rekam Pelanggaran</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.active_violations ?? 1} Kasus
-                                </h3>
-                                <p className="text-xs font-bold text-amber-600">Terlibat Poin Tata Tertib</p>
-                            </div>
-                            <div className="w-12 h-12 rounded-2xl bg-amber-50/90 text-amber-600 border border-amber-100/60 flex items-center justify-center shrink-0">
-                                <AlertTriangle className="w-5 h-5 text-amber-600" />
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Sesi Konseling</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    Individual & Kelompok
+                                </span>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Piagam Prestasi</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.total_achievements ?? 2} Siswa
-                                </h3>
-                                <p className="text-xs font-medium text-slate-400">Akademik & Non-Akademik</p>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#D97706] via-[#B45309] to-[#92400E] p-5 text-white shadow-md shadow-[#D97706]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <AlertTriangle className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.active_violations ?? 1}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-amber-100 mt-0.5">Kasus</p>
+                                </div>
                             </div>
-                            <div className="w-12 h-12 rounded-2xl bg-blue-50/90 text-blue-600 border border-blue-100/60 flex items-center justify-center shrink-0">
-                                <Award className="w-5 h-5 text-blue-600" />
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Rekam Pelanggaran</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    Poin Tata Tertib
+                                </span>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Monitoring Siswa</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.monitored_students ?? 5} Siswa
-                                </h3>
-                                <p className="text-xs font-bold text-[#800020]">Seluruh Rombel 1-6</p>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF] p-5 text-white shadow-md shadow-[#2563EB]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <Award className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.total_achievements ?? 2}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-blue-100 mt-0.5">Piagam</p>
+                                </div>
                             </div>
-                            <div className="w-12 h-12 rounded-2xl bg-rose-50/90 text-[#800020] border border-rose-100/60 flex items-center justify-center shrink-0">
-                                <School className="w-5 h-5 text-[#800020]" />
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Piagam Prestasi</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    Akademik & Non
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#E11D48] via-[#BE123C] to-[#9F1239] p-5 text-white shadow-md shadow-[#E11D48]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <School className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.monitored_students ?? 5}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-rose-100 mt-0.5">Siswa</p>
+                                </div>
+                            </div>
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Monitoring Siswa</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    Rombel 1-6
+                                </span>
                             </div>
                         </div>
                     </div>
                 )}
 
+                {/* ROLE: SISWA */}
                 {role === 'siswa' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Rombongan Belajar</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.class_name ?? 'Kelas 6'}
-                                </h3>
-                                <p className="text-xs font-bold text-[#800020]">NISN: {metrics.nisn ?? '0081234567'}</p>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#800020] via-[#70001C] to-[#5C0017] p-5 text-white shadow-md shadow-[#800020]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <School className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.class_name ? metrics.class_name.replace(/^Kelas\s*/i, '') : '6'}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-rose-200 mt-0.5">Kelas Saya</p>
+                                </div>
                             </div>
-                            <div className="w-12 h-12 rounded-2xl bg-rose-50/90 text-[#800020] border border-rose-100/60 flex items-center justify-center shrink-0">
-                                <School className="w-5 h-5 text-[#800020]" />
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Kehadiran Saya</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {attendance.hadir ?? 8} Hari
-                                </h3>
-                                <p className="text-xs font-bold text-emerald-600">Izin: {attendance.izin ?? 1} • Sakit: {attendance.sakit ?? 1}</p>
-                            </div>
-                            <div className="w-12 h-12 rounded-2xl bg-emerald-50/90 text-emerald-600 border border-emerald-100/60 flex items-center justify-center shrink-0">
-                                <CalendarCheck className="w-5 h-5 text-emerald-600" />
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Rombongan Belajar</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    NISN: {metrics.nisn ?? '0081234567'}
+                                </span>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Bahan Ajar</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.total_materials ?? 1} Modul
-                                </h3>
-                                <p className="text-xs font-medium text-slate-400">Siap Dipelajari</p>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#D97706] via-[#B45309] to-[#92400E] p-5 text-white shadow-md shadow-[#D97706]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <CalendarCheck className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {attendance.hadir ?? 8} Hari
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-amber-100 mt-0.5">Hadir</p>
+                                </div>
                             </div>
-                            <div className="w-12 h-12 rounded-2xl bg-blue-50/90 text-blue-600 border border-blue-100/60 flex items-center justify-center shrink-0">
-                                <BookOpen className="w-5 h-5 text-blue-600" />
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Kehadiran Saya</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    Izin: {attendance.izin ?? 1} • Sakit: {attendance.sakit ?? 1}
+                                </span>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Tugas Aktif</p>
-                                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                                    {metrics.active_assignments ?? 1} Tugas
-                                </h3>
-                                <p className="text-xs font-bold text-amber-600">Perlu Dikerjakan</p>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF] p-5 text-white shadow-md shadow-[#2563EB]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <BookOpen className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.total_materials ?? 1}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-blue-100 mt-0.5">Modul</p>
+                                </div>
                             </div>
-                            <div className="w-12 h-12 rounded-2xl bg-amber-50/90 text-amber-600 border border-amber-100/60 flex items-center justify-center shrink-0">
-                                <Layers className="w-5 h-5 text-amber-600" />
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Bahan Ajar LMS</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    Siap Dipelajari
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#E11D48] via-[#BE123C] to-[#9F1239] p-5 text-white shadow-md shadow-[#E11D48]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-start justify-between relative z-10">
+                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                    <Layers className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="text-right">
+                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                        {metrics.active_assignments ?? 1}
+                                    </h3>
+                                    <p className="text-[11px] font-medium text-rose-100 mt-0.5">Tugas</p>
+                                </div>
+                            </div>
+                            <div className="flex items-end justify-between relative z-10 pt-4">
+                                <p className="text-xs font-bold text-white tracking-wide">Tugas Aktif</p>
+                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                    Perlu Dikerjakan
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -647,7 +795,7 @@ export default function DashboardIndex({
                                     <div className="space-y-3">
                                         <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/70 flex items-center justify-between">
                                             <div className="flex items-center space-x-3">
-                                                <div className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                                <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0">
                                                     <CheckCircle2 className="w-5 h-5" />
                                                 </div>
                                                 <div>
@@ -655,14 +803,14 @@ export default function DashboardIndex({
                                                     <p className="text-[11px] text-slate-500">Wali Kelas: Budi Santoso, S.Pd. • 5 Dokumen Rapor Lengkap</p>
                                                 </div>
                                             </div>
-                                            <span className="text-xs font-bold px-3 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
                                                 Siap Sahkan
                                             </span>
                                         </div>
 
                                         <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/70 flex items-center justify-between">
                                             <div className="flex items-center space-x-3">
-                                                <div className="w-9 h-9 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center shrink-0">
+                                                <div className="w-9 h-9 rounded-lg bg-rose-50 text-[#800020] border border-rose-100 flex items-center justify-center shrink-0">
                                                     <Users className="w-5 h-5" />
                                                 </div>
                                                 <div>
@@ -698,7 +846,7 @@ export default function DashboardIndex({
                                             {pending_submissions.map(sub => (
                                                 <div key={sub.id} className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/60 flex items-center justify-between">
                                                     <div>
-                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 uppercase">
+                                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/10 text-amber-700 border border-amber-500/20 uppercase">
                                                             Belum Dinilai
                                                         </span>
                                                         <p className="text-xs font-bold text-slate-900 mt-1">{sub.assignment_title}</p>
@@ -740,7 +888,7 @@ export default function DashboardIndex({
                                             recent_violations.map(v => (
                                                 <div key={v.id} className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/60 flex items-center justify-between">
                                                     <div>
-                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/10 text-amber-700 border border-amber-500/20">
                                                             +{v.penalty_points} Poin
                                                         </span>
                                                         <p className="text-xs font-bold text-slate-900 mt-1">{v.violation_name}</p>
@@ -780,7 +928,7 @@ export default function DashboardIndex({
                                             assignments.map((asg, idx) => (
                                                 <div key={asg.id} className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/60 flex items-center justify-between">
                                                     <div className="space-y-1">
-                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800 uppercase">
+                                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-500/10 text-blue-700 border border-blue-500/20 uppercase">
                                                             {asg.subject_name || 'IPA'}
                                                         </span>
                                                         <p className="text-xs font-bold text-slate-900">{asg.title}</p>
@@ -885,52 +1033,172 @@ export default function DashboardIndex({
 
                                 {role === 'pimpinan' && (
                                     <>
-                                        <Link href={route('presensi.index') + '?type=guru'} className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-800">
-                                            <span>Cek Presensi Guru Hari Ini</span>
-                                            <ArrowRight className="w-4 h-4 text-slate-400" />
+                                        <Link
+                                            href={route('presensi.index') + '?type=guru'}
+                                            className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 hover:border-[#800020]/30 hover:bg-rose-50/30 transition-all duration-200 group"
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-9 h-9 rounded-xl bg-rose-50 text-[#800020] border border-rose-100/80 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-[#800020] group-hover:text-white transition-colors duration-200">
+                                                    <CalendarCheck className="w-4 h-4" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="text-xs font-bold text-slate-900 group-hover:text-[#800020] transition-colors">
+                                                        Cek Presensi Guru Hari Ini
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-500 font-normal">
+                                                        Monitoring kehadiran pendidik
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#800020] group-hover:translate-x-0.5 transition-all shrink-0" />
                                         </Link>
-                                        <Link href={route('erapor.index') + '?tab=cetak'} className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-800">
-                                            <span>Pengesahan Lembar Rapor</span>
-                                            <ArrowRight className="w-4 h-4 text-slate-400" />
+                                        <Link
+                                            href={route('erapor.index') + '?tab=cetak'}
+                                            className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 hover:border-[#800020]/30 hover:bg-rose-50/30 transition-all duration-200 group"
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-9 h-9 rounded-xl bg-rose-50 text-[#800020] border border-rose-100/80 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-[#800020] group-hover:text-white transition-colors duration-200">
+                                                    <FileText className="w-4 h-4" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="text-xs font-bold text-slate-900 group-hover:text-[#800020] transition-colors">
+                                                        Pengesahan Lembar Rapor
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-500 font-normal">
+                                                        Validasi akhir dokumen rapor
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#800020] group-hover:translate-x-0.5 transition-all shrink-0" />
                                         </Link>
                                     </>
                                 )}
 
                                 {role === 'guru' && (
                                     <>
-                                        <Link href={route('presensi.index') + '?type=siswa'} className="w-full flex items-center justify-between p-3.5 rounded-xl bg-[#800020] text-white text-xs font-bold hover:bg-[#5C0017] transition shadow-2xs">
-                                            <span>Input Presensi Hari Ini</span>
-                                            <ArrowRight className="w-4 h-4" />
+                                        <Link
+                                            href={route('presensi.index') + '?type=siswa'}
+                                            className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 hover:border-[#800020]/30 hover:bg-rose-50/30 transition-all duration-200 group"
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-9 h-9 rounded-xl bg-rose-50 text-[#800020] border border-rose-100/80 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-[#800020] group-hover:text-white transition-colors duration-200">
+                                                    <CalendarCheck className="w-4 h-4" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="text-xs font-bold text-slate-900 group-hover:text-[#800020] transition-colors">
+                                                        Input Presensi Hari Ini
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-500 font-normal">
+                                                        Catat kehadiran siswa di kelas
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#800020] group-hover:translate-x-0.5 transition-all shrink-0" />
                                         </Link>
-                                        <Link href={route('elearning.index') + '?tab=materi'} className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-800">
-                                            <span>Unggah Bahan Ajar Baru</span>
-                                            <ArrowRight className="w-4 h-4 text-slate-400" />
+                                        <Link
+                                            href={route('elearning.index') + '?tab=materi'}
+                                            className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 hover:border-[#800020]/30 hover:bg-rose-50/30 transition-all duration-200 group"
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-9 h-9 rounded-xl bg-rose-50 text-[#800020] border border-rose-100/80 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-[#800020] group-hover:text-white transition-colors duration-200">
+                                                    <BookOpen className="w-4 h-4" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="text-xs font-bold text-slate-900 group-hover:text-[#800020] transition-colors">
+                                                        Unggah Bahan Ajar Baru
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-500 font-normal">
+                                                        Tambah modul pembelajaran LMS
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#800020] group-hover:translate-x-0.5 transition-all shrink-0" />
                                         </Link>
                                     </>
                                 )}
 
                                 {role === 'bk' && (
                                     <>
-                                        <Link href={route('bk.index') + '?tab=konseling'} className="w-full flex items-center justify-between p-3.5 rounded-xl bg-[#800020] text-white text-xs font-bold hover:bg-[#5C0017] transition shadow-2xs">
-                                            <span>Catat Sesi Bimbingan</span>
-                                            <ArrowRight className="w-4 h-4" />
+                                        <Link
+                                            href={route('bk.index') + '?tab=konseling'}
+                                            className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 hover:border-[#800020]/30 hover:bg-rose-50/30 transition-all duration-200 group"
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-9 h-9 rounded-xl bg-rose-50 text-[#800020] border border-rose-100/80 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-[#800020] group-hover:text-white transition-colors duration-200">
+                                                    <Users className="w-4 h-4" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="text-xs font-bold text-slate-900 group-hover:text-[#800020] transition-colors">
+                                                        Catat Sesi Bimbingan
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-500 font-normal">
+                                                        Bimbingan konseling siswa
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#800020] group-hover:translate-x-0.5 transition-all shrink-0" />
                                         </Link>
-                                        <Link href={route('bk.index') + '?tab=pelanggaran'} className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-800">
-                                            <span>Pencatatan Poin Pelanggaran</span>
-                                            <ArrowRight className="w-4 h-4 text-slate-400" />
+                                        <Link
+                                            href={route('bk.index') + '?tab=pelanggaran'}
+                                            className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 hover:border-[#800020]/30 hover:bg-rose-50/30 transition-all duration-200 group"
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-9 h-9 rounded-xl bg-rose-50 text-[#800020] border border-rose-100/80 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-[#800020] group-hover:text-white transition-colors duration-200">
+                                                    <AlertTriangle className="w-4 h-4" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="text-xs font-bold text-slate-900 group-hover:text-[#800020] transition-colors">
+                                                        Pencatatan Poin Pelanggaran
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-500 font-normal">
+                                                        Buku poin tata tertib kedisiplinan
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#800020] group-hover:translate-x-0.5 transition-all shrink-0" />
                                         </Link>
                                     </>
                                 )}
 
                                 {role === 'siswa' && (
                                     <>
-                                        <Link href={route('elearning.index') + '?tab=materi'} className="w-full flex items-center justify-between p-3.5 rounded-xl bg-[#800020] text-white text-xs font-bold hover:bg-[#5C0017] transition shadow-2xs">
-                                            <span>Buka Materi Pelajaran</span>
-                                            <ArrowRight className="w-4 h-4" />
+                                        <Link
+                                            href={route('elearning.index') + '?tab=materi'}
+                                            className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 hover:border-[#800020]/30 hover:bg-rose-50/30 transition-all duration-200 group"
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-9 h-9 rounded-xl bg-rose-50 text-[#800020] border border-rose-100/80 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-[#800020] group-hover:text-white transition-colors duration-200">
+                                                    <BookOpen className="w-4 h-4" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="text-xs font-bold text-slate-900 group-hover:text-[#800020] transition-colors">
+                                                        Buka Materi Pelajaran
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-500 font-normal">
+                                                        Akses modul & bahan ajar
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#800020] group-hover:translate-x-0.5 transition-all shrink-0" />
                                         </Link>
-                                        <Link href={route('erapor.index') + '?tab=cetak'} className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-800">
-                                            <span>Lembar Rapor Saya</span>
-                                            <ArrowRight className="w-4 h-4 text-slate-400" />
+                                        <Link
+                                            href={route('erapor.index') + '?tab=cetak'}
+                                            className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 hover:border-[#800020]/30 hover:bg-rose-50/30 transition-all duration-200 group"
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-9 h-9 rounded-xl bg-rose-50 text-[#800020] border border-rose-100/80 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-[#800020] group-hover:text-white transition-colors duration-200">
+                                                    <GraduationCap className="w-4 h-4" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="text-xs font-bold text-slate-900 group-hover:text-[#800020] transition-colors">
+                                                        Lembar Rapor Saya
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-500 font-normal">
+                                                        Lihat hasil capaian belajar
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#800020] group-hover:translate-x-0.5 transition-all shrink-0" />
                                         </Link>
                                     </>
                                 )}
@@ -938,7 +1206,7 @@ export default function DashboardIndex({
                         </div>
 
                         {/* 2. INFORMASI SISTEM CARD */}
-                        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 flex-1 flex flex-col justify-between">
+                        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6">
                             <div>
                                 <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
                                     Informasi Sistem

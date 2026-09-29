@@ -155,11 +155,11 @@ export default function AnnouncementsIndex({ auth, announcements = { data: [] } 
                             >
                                 <div className="p-6 space-y-3">
                                     <div className="flex items-center justify-between gap-2">
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FDF2F4] text-[#800020] border border-[#E8B4B8]">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-rose-500/10 text-[#800020] border border-rose-200">
                                             {getTargetBadge(item.target_role)}
                                         </span>
                                         {Boolean(item.is_popup) && (
-                                            <span className="inline-flex items-center text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                                            <span className="inline-flex items-center text-[10px] font-semibold text-amber-700 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-md">
                                                 <Pin className="w-3 h-3 mr-1" />
                                                 Penting
                                             </span>

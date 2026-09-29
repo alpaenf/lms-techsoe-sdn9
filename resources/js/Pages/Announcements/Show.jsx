@@ -56,11 +56,11 @@ export default function AnnouncementsShow({ auth, announcement }) {
                     {/* Header info */}
                     <div className="space-y-3 pb-6 border-b border-slate-100">
                         <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#FDF2F4] text-[#800020] border border-[#E8B4B8]">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-500/10 text-[#800020] border border-rose-200">
                                 Sasaran: {announcement.target_role === 'all' ? 'Seluruh Warga Sekolah' : announcement.target_role}
                             </span>
                             {Boolean(announcement.is_popup) && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-500/10 text-amber-700 border border-amber-500/20">
                                     <Pin className="w-3.5 h-3.5 mr-1" />
                                     Maklumat Penting
                                 </span>

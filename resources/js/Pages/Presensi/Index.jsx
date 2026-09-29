@@ -563,8 +563,8 @@ export default function PresensiIndex({
                                                         <td className="px-4 py-3.5 text-center text-slate-600">{student.gender === 'L' ? 'L' : 'P'}</td>
                                                         <td className="px-4 py-3.5 text-center">
                                                             {isSiswa ? (
-                                                                <span className={`inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold ${
-                                                                    current.status === 'Hadir' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border ${
+                                                                    current.status === 'Hadir' ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' : 'bg-rose-500/10 text-rose-700 border-rose-500/20'
                                                                 }`}>
                                                                     {current.status || 'Hadir'}
                                                                 </span>
@@ -643,8 +643,8 @@ export default function PresensiIndex({
                                                 <td className="px-4 py-3.5 text-center font-mono font-bold text-blue-600">{rec.sakit}</td>
                                                 <td className="px-4 py-3.5 text-center font-mono font-bold text-rose-600">{rec.alpa}</td>
                                                 <td className="px-4 py-3.5 text-center font-mono font-bold">
-                                                    <span className={`px-2.5 py-1 rounded-full border text-xs ${
-                                                        rec.percentage >= 90 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'
+                                                    <span className={`px-2.5 py-1 rounded-md border text-xs font-semibold ${
+                                                        rec.percentage >= 90 ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' : 'bg-amber-500/10 text-amber-700 border-amber-500/20'
                                                     }`}>
                                                         {rec.percentage}%
                                                     </span>
@@ -699,12 +699,12 @@ export default function PresensiIndex({
                                                 </td>
                                                 <td className="px-4 py-3.5 text-slate-600 leading-relaxed">{p.reason}</td>
                                                 <td className="px-4 py-3.5 text-center">
-                                                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                                                    <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${
                                                         p.status === 'approved' 
-                                                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+                                                            ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' 
                                                             : p.status === 'rejected' 
-                                                            ? 'bg-rose-50 text-rose-800 border-rose-200' 
-                                                            : 'bg-amber-50 text-amber-800 border-amber-200'
+                                                            ? 'bg-rose-500/10 text-rose-700 border-rose-500/20' 
+                                                            : 'bg-amber-500/10 text-amber-700 border-amber-500/20'
                                                     }`}>
                                                         {p.status === 'approved' ? 'Disetujui' : p.status === 'rejected' ? 'Ditolak' : 'Menunggu Approval'}
                                                     </span>
