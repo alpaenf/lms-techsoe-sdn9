@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Exam;
+use App\Models\ExamAccessLog;
 use App\Models\ExamQuestion;
+use App\Models\Student;
 use App\Models\StudentAnswer;
 use App\Models\StudentExamAttempt;
-use App\Models\ExamAccessLog;
-use App\Models\Student;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class StudentExamController extends Controller
 {
@@ -19,19 +19,19 @@ class StudentExamController extends Controller
         $user = auth()->user();
         $student = Student::with('class')->where('user_id', $user->id)->first();
 
-        if (!$student) {
+        if (! $student) {
             return redirect()->route('dashboard');
         }
 
         $exams = Exam::with(['subject', 'teacher.user', 'class'])
-            ->where(function($q) use ($student) {
+            ->where(function ($q) use ($student) {
                 $q->where('class_id', $student->class_id)
-                  ->orWhereNull('class_id');
+                    ->orWhereNull('class_id');
             })
             ->where('status', 'published')
             ->orderBy('start_time', 'desc')
             ->get()
-            ->map(function($exam) use ($student) {
+            ->map(function ($exam) use ($student) {
                 $attempts = StudentExamAttempt::where('exam_id', $exam->id)
                     ->where('student_id', $student->id)
                     ->orderBy('attempt_number', 'desc')
@@ -73,7 +73,7 @@ class StudentExamController extends Controller
         $user = auth()->user();
         $student = Student::where('user_id', $user->id)->first();
 
-        if (!$student) {
+        if (! $student) {
             return redirect()->route('dashboard');
         }
 
@@ -99,11 +99,11 @@ class StudentExamController extends Controller
         $user = auth()->user();
         $student = Student::where('user_id', $user->id)->first();
 
-        if (!$student) {
+        if (! $student) {
             return redirect()->route('dashboard');
         }
 
-        if (!$exam->isAvailable()) {
+        if (! $exam->isAvailable()) {
             return back()->with('error', 'Ujian tidak tersedia saat ini.');
         }
 
@@ -149,7 +149,7 @@ class StudentExamController extends Controller
         $user = auth()->user();
         $student = Student::where('user_id', $user->id)->first();
 
-        if (!$student || $attempt->student_id !== $student->id) {
+        if (! $student || $attempt->student_id !== $student->id) {
             abort(403);
         }
 
@@ -189,7 +189,7 @@ class StudentExamController extends Controller
         $user = auth()->user();
         $student = Student::where('user_id', $user->id)->first();
 
-        if (!$student || $attempt->student_id !== $student->id) {
+        if (! $student || $attempt->student_id !== $student->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -199,6 +199,7 @@ class StudentExamController extends Controller
 
         if ($attempt->isTimeUp()) {
             $this->autoSubmit($attempt);
+
             return response()->json(['error' => 'Time is up', 'auto_submitted' => true], 400);
         }
 
@@ -249,7 +250,7 @@ class StudentExamController extends Controller
         $user = auth()->user();
         $student = Student::where('user_id', $user->id)->first();
 
-        if (!$student || $attempt->student_id !== $student->id) {
+        if (! $student || $attempt->student_id !== $student->id) {
             abort(403);
         }
 
@@ -265,10 +266,10 @@ class StudentExamController extends Controller
         $attempt->calculateScore();
 
         $hasEssay = $attempt->answers()
-            ->whereHas('question', fn($q) => $q->where('question_type', 'essay'))
+            ->whereHas('question', fn ($q) => $q->where('question_type', 'essay'))
             ->exists();
 
-        if (!$hasEssay) {
+        if (! $hasEssay) {
             $attempt->update(['status' => 'graded']);
             $this->syncToRapor($attempt);
         }
@@ -299,10 +300,10 @@ class StudentExamController extends Controller
         $attempt->calculateScore();
 
         $hasEssay = $attempt->answers()
-            ->whereHas('question', fn($q) => $q->where('question_type', 'essay'))
+            ->whereHas('question', fn ($q) => $q->where('question_type', 'essay'))
             ->exists();
 
-        if (!$hasEssay) {
+        if (! $hasEssay) {
             $attempt->update(['status' => 'graded']);
             $this->syncToRapor($attempt);
         }
@@ -322,7 +323,7 @@ class StudentExamController extends Controller
         $user = auth()->user();
         $student = Student::where('user_id', $user->id)->first();
 
-        if (!$student || $attempt->student_id !== $student->id) {
+        if (! $student || $attempt->student_id !== $student->id) {
             abort(403);
         }
 
@@ -333,28 +334,28 @@ class StudentExamController extends Controller
 
         $mcCount = $attempt->exam->questions()->where('question_type', 'multiple_choice')->count();
         $mcCorrect = $attempt->answers()
-            ->whereHas('question', fn($q) => $q->where('question_type', 'multiple_choice'))
+            ->whereHas('question', fn ($q) => $q->where('question_type', 'multiple_choice'))
             ->where('is_correct', true)
             ->count();
 
         $shortCount = $attempt->exam->questions()->where('question_type', 'short_answer')->count();
         $shortCorrect = $attempt->answers()
-            ->whereHas('question', fn($q) => $q->where('question_type', 'short_answer'))
+            ->whereHas('question', fn ($q) => $q->where('question_type', 'short_answer'))
             ->where('is_correct', true)
             ->count();
 
         $essayCount = $attempt->exam->questions()->where('question_type', 'essay')->count();
         $essayGraded = $attempt->answers()
-            ->whereHas('question', fn($q) => $q->where('question_type', 'essay'))
+            ->whereHas('question', fn ($q) => $q->where('question_type', 'essay'))
             ->whereNotNull('is_correct')
             ->count();
 
         $statistics = [
             'total_questions' => $totalQuestions,
             'answered' => $answeredCount,
-            'mc_correct' => $mcCorrect . '/' . $mcCount,
-            'short_correct' => $shortCorrect . '/' . $shortCount,
-            'essay_graded' => $essayGraded . '/' . $essayCount,
+            'mc_correct' => $mcCorrect.'/'.$mcCount,
+            'short_correct' => $shortCorrect.'/'.$shortCount,
+            'essay_graded' => $essayGraded.'/'.$essayCount,
             'is_passed' => $attempt->isPassed(),
         ];
 
@@ -369,11 +370,11 @@ class StudentExamController extends Controller
         $user = auth()->user();
         $student = Student::where('user_id', $user->id)->first();
 
-        if (!$student || $attempt->student_id !== $student->id) {
+        if (! $student || $attempt->student_id !== $student->id) {
             abort(403);
         }
 
-        if (!$attempt->exam->show_review) {
+        if (! $attempt->exam->show_review) {
             return back()->with('error', 'Review jawaban tidak diizinkan untuk ujian ini.');
         }
 
@@ -393,19 +394,55 @@ class StudentExamController extends Controller
         $teacherSubject = DB::table('teacher_subjects')
             ->where('subject_id', $exam->subject_id)
             ->where('academic_year_id', $exam->academic_year_id)
-            ->when($exam->class_id, fn($q) => $q->where('class_id', $exam->class_id))
+            ->when($exam->class_id, fn ($q) => $q->where('class_id', $exam->class_id))
             ->first();
 
         if ($teacherSubject) {
+            $existingGrade = DB::table('student_grades')
+                ->where('student_id', $attempt->student_id)
+                ->where('teacher_subject_id', $teacherSubject->id)
+                ->where('academic_year_id', $exam->academic_year_id)
+                ->first();
+
+            $tugas = $existingGrade->tugas_avg ?? 0.00;
+            $uts = $existingGrade->uts_score ?? 0.00;
+            $uas = $existingGrade->uas_score ?? 0.00;
+
+            $category = $exam->exam_category;
+            if ($category === 'uts') {
+                $uts = $attempt->percentage;
+            } elseif ($category === 'uas') {
+                $uas = $attempt->percentage;
+            } else {
+                $tugas = $attempt->percentage;
+            }
+
+            $finalScore = round(($tugas * 0.30) + ($uts * 0.30) + ($uas * 0.40), 2);
+
+            $letterGrade = 'C';
+            if ($finalScore >= 89.00) {
+                $letterGrade = 'A';
+            } elseif ($finalScore >= 78.00) {
+                $letterGrade = 'B';
+            } elseif ($finalScore >= 65.00) {
+                $letterGrade = 'C';
+            } else {
+                $letterGrade = 'D';
+            }
+
             DB::table('student_grades')->updateOrInsert(
                 [
                     'student_id' => $attempt->student_id,
                     'teacher_subject_id' => $teacherSubject->id,
                     'academic_year_id' => $exam->academic_year_id,
-                    'grade_type' => $exam->exam_category,
                 ],
                 [
-                    'final_score' => $attempt->percentage,
+                    'grade_type' => $category,
+                    'tugas_avg' => $tugas,
+                    'uts_score' => $uts,
+                    'uas_score' => $uas,
+                    'final_score' => $finalScore,
+                    'letter_grade' => $letterGrade,
                     'exam_id' => $exam->id,
                     'updated_at' => now(),
                 ]

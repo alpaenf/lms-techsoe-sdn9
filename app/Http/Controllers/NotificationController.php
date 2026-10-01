@@ -4,28 +4,40 @@ namespace App\Http\Controllers;
 
 use App\Models\AppNotification;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class NotificationController extends Controller
 {
     public function index(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
-            return response()->json(['notifications' => [], 'unread_count' => 0]);
+        if (! $user) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['notifications' => [], 'unread_count' => 0]);
+            }
+
+            return redirect()->route('login');
         }
 
         $notifications = AppNotification::forUser($user)
             ->orderBy('created_at', 'desc')
-            ->limit(15)
+            ->limit(30)
             ->get();
 
         $unreadCount = AppNotification::forUser($user)
             ->unread()
             ->count();
 
-        return response()->json([
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'notifications' => $notifications,
+                'unread_count' => $unreadCount,
+            ]);
+        }
+
+        return Inertia::render('Notifications/Index', [
             'notifications' => $notifications,
-            'unread_count' => $unreadCount,
+            'unreadCount' => $unreadCount,
         ]);
     }
 

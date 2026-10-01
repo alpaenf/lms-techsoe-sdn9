@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import NotificationDropdown from '@/Components/NotificationDropdown';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Home,
@@ -568,13 +569,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         </div>
 
                         {/* Notifications */}
-                        <button
-                            className="relative p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition"
-                            aria-label="Lihat notifikasi"
-                        >
-                            <Bell className="w-4 h-4" />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 border border-white" />
-                        </button>
+                        <NotificationDropdown />
 
                         <div className="h-5 w-px bg-slate-200 mx-0.5" />
 

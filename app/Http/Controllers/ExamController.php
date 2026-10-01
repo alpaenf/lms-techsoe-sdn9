@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppNotification;
+use App\Models\Classes;
 use App\Models\Exam;
 use App\Models\ExamQuestion;
+use App\Models\Student;
 use App\Models\StudentAnswer;
 use App\Models\StudentExamAttempt;
-use App\Models\StudentGrade;
-use App\Models\Teacher;
 use App\Models\Subject;
-use App\Models\Classes;
-use App\Models\Student;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class ExamController extends Controller
 {
@@ -23,7 +23,7 @@ class ExamController extends Controller
         $teacher = Teacher::where('user_id', $user->id)->first();
 
         $exams = Exam::with(['subject', 'class', 'academicYear', 'questions'])
-            ->when($teacher && $user->role !== 'admin' && $user->role !== 'pimpinan', function($q) use ($teacher) {
+            ->when($teacher && $user->role !== 'admin' && $user->role !== 'pimpinan', function ($q) use ($teacher) {
                 $q->where('teacher_id', $teacher->id);
             })
             ->orderBy('created_at', 'desc')
@@ -83,6 +83,7 @@ class ExamController extends Controller
         $validated['academic_year_id'] = $academicYearId;
 
         $exam = Exam::create($validated);
+        $exam->load('subject');
 
         if ($request->has('questions')) {
             foreach ($request->questions as $index => $q) {
@@ -98,6 +99,15 @@ class ExamController extends Controller
                 ]);
             }
         }
+
+        // Notify students
+        AppNotification::create([
+            'role' => 'siswa',
+            'title' => 'Ujian Baru: '.$exam->title,
+            'message' => 'Ujian baru telah diterbitkan untuk mata pelajaran '.($exam->subject?->name ?? 'Mata Pelajaran').'.',
+            'type' => 'exam',
+            'link' => route('student.exams.index'),
+        ]);
 
         return redirect()->route('exams.show', $exam->id)
             ->with('success', 'Ujian berhasil dibuat. Silakan tambahkan butir-butir soal.');
@@ -247,7 +257,7 @@ class ExamController extends Controller
         }
 
         $students = $studentsQuery->get()
-            ->map(function($student) use ($exam) {
+            ->map(function ($student) use ($exam) {
                 $attempt = StudentExamAttempt::where('exam_id', $exam->id)
                     ->where('student_id', $student->id)
                     ->orderBy('attempt_number', 'desc')
@@ -259,7 +269,7 @@ class ExamController extends Controller
                     'full_name' => $student->full_name,
                     'status' => $attempt ? $attempt->status : 'not_started',
                     'attempt_number' => $attempt?->attempt_number,
-                    'progress' => $attempt ? $attempt->getAnsweredCount() . '/' . $exam->questions->count() : '0/' . $exam->questions->count(),
+                    'progress' => $attempt ? $attempt->getAnsweredCount().'/'.$exam->questions->count() : '0/'.$exam->questions->count(),
                     'score' => $attempt?->percentage,
                     'started_at' => $attempt?->started_at,
                     'submitted_at' => $attempt?->submitted_at,
@@ -282,7 +292,7 @@ class ExamController extends Controller
             ->orderBy('percentage', 'desc')
             ->get();
 
-        $studentsCount = $exam->class_id 
+        $studentsCount = $exam->class_id
             ? Student::where('class_id', $exam->class_id)->count()
             : Student::count();
 
@@ -306,7 +316,7 @@ class ExamController extends Controller
     public function gradeEssay(Request $request, StudentAnswer $answer)
     {
         $validated = $request->validate([
-            'points_earned' => 'required|numeric|min:0|max:' . ($answer->question?->points ?? 100),
+            'points_earned' => 'required|numeric|min:0|max:'.($answer->question?->points ?? 100),
             'feedback' => 'nullable|string',
         ]);
 
@@ -326,6 +336,16 @@ class ExamController extends Controller
         if ($attempt->isFullyGraded()) {
             $attempt->update(['status' => 'graded']);
             $this->syncToRapor($attempt);
+
+            if ($attempt->student && $attempt->student->user_id) {
+                AppNotification::create([
+                    'user_id' => $attempt->student->user_id,
+                    'title' => 'Jawaban Essay Ujian Dinilai',
+                    'message' => 'Jawaban essay Anda pada ujian "'.($attempt->exam->title ?? 'Ujian').'" telah dinilai (Nilai Akhir: '.number_format($attempt->percentage, 1).').',
+                    'type' => 'grade',
+                    'link' => route('student.exams.result', $attempt->id),
+                ]);
+            }
         }
 
         return back()->with('success', 'Nilai essay berhasil disimpan.');
@@ -338,19 +358,55 @@ class ExamController extends Controller
         $teacherSubject = DB::table('teacher_subjects')
             ->where('subject_id', $exam->subject_id)
             ->where('academic_year_id', $exam->academic_year_id)
-            ->when($exam->class_id, fn($q) => $q->where('class_id', $exam->class_id))
+            ->when($exam->class_id, fn ($q) => $q->where('class_id', $exam->class_id))
             ->first();
 
         if ($teacherSubject) {
+            $existingGrade = DB::table('student_grades')
+                ->where('student_id', $attempt->student_id)
+                ->where('teacher_subject_id', $teacherSubject->id)
+                ->where('academic_year_id', $exam->academic_year_id)
+                ->first();
+
+            $tugas = $existingGrade->tugas_avg ?? 0.00;
+            $uts = $existingGrade->uts_score ?? 0.00;
+            $uas = $existingGrade->uas_score ?? 0.00;
+
+            $category = $exam->exam_category;
+            if ($category === 'uts') {
+                $uts = $attempt->percentage;
+            } elseif ($category === 'uas') {
+                $uas = $attempt->percentage;
+            } else {
+                $tugas = $attempt->percentage;
+            }
+
+            $finalScore = round(($tugas * 0.30) + ($uts * 0.30) + ($uas * 0.40), 2);
+
+            $letterGrade = 'C';
+            if ($finalScore >= 89.00) {
+                $letterGrade = 'A';
+            } elseif ($finalScore >= 78.00) {
+                $letterGrade = 'B';
+            } elseif ($finalScore >= 65.00) {
+                $letterGrade = 'C';
+            } else {
+                $letterGrade = 'D';
+            }
+
             DB::table('student_grades')->updateOrInsert(
                 [
                     'student_id' => $attempt->student_id,
                     'teacher_subject_id' => $teacherSubject->id,
                     'academic_year_id' => $exam->academic_year_id,
-                    'grade_type' => $exam->exam_category,
                 ],
                 [
-                    'final_score' => $attempt->percentage,
+                    'grade_type' => $category,
+                    'tugas_avg' => $tugas,
+                    'uts_score' => $uts,
+                    'uas_score' => $uas,
+                    'final_score' => $finalScore,
+                    'letter_grade' => $letterGrade,
                     'exam_id' => $exam->id,
                     'updated_at' => now(),
                 ]
