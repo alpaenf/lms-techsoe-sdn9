@@ -1,14 +1,14 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { 
-    GraduationCap, 
-    BookOpen, 
-    Users, 
-    CalendarCheck, 
-    FileText, 
-    Award, 
-    ShieldCheck, 
-    ArrowRight, 
+import {
+    GraduationCap,
+    BookOpen,
+    Users,
+    CalendarCheck,
+    FileText,
+    Award,
+    ShieldCheck,
+    ArrowRight,
     Building2,
     BarChart3,
     Clock,
@@ -130,25 +130,6 @@ export default function Welcome({ auth }) {
                                 >
                                     Pelajari 12 Modul Inti
                                 </a>
-                            </div>
-
-                            <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 text-left border-t border-slate-100">
-                                <div className="p-3 bg-[#F8F9FA] rounded-xl border border-slate-200">
-                                    <span className="text-xs text-slate-500 font-medium block">Jenjang Sekolah</span>
-                                    <span className="text-sm font-bold text-slate-900">Kelas 1 - Kelas 6</span>
-                                </div>
-                                <div className="p-3 bg-[#F8F9FA] rounded-xl border border-slate-200">
-                                    <span className="text-xs text-slate-500 font-medium block">Wilayah Satuan</span>
-                                    <span className="text-sm font-bold text-slate-900">Tana Toraja, Sulsel</span>
-                                </div>
-                                <div className="p-3 bg-[#F8F9FA] rounded-xl border border-slate-200">
-                                    <span className="text-xs text-slate-500 font-medium block">Arsitektur</span>
-                                    <span className="text-sm font-bold text-slate-900">Laravel 13 & React</span>
-                                </div>
-                                <div className="p-3 bg-[#F8F9FA] rounded-xl border border-slate-200">
-                                    <span className="text-xs text-slate-500 font-medium block">Keamanan Data</span>
-                                    <span className="text-sm font-bold text-slate-900">RBAC & SSL TLS 1.3</span>
-                                </div>
                             </div>
                         </div>
                     </div>
