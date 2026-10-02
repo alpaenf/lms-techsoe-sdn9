@@ -395,9 +395,11 @@ export default function AuthenticatedLayout({ header, children }) {
                 {/* School Brand Header in Sidebar */}
                 <div className="h-16 bg-[#800020] px-4 flex items-center justify-between text-white shrink-0">
                     <Link href="/" className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0">
-                            <GraduationCap className="w-5 h-5 text-white" />
-                        </div>
+                        <img 
+                            src="/logo.webp" 
+                            alt="Logo SDN 9 Gandangbatu" 
+                            className="w-8 h-8 rounded-lg object-contain bg-white p-0.5 shadow-sm shrink-0" 
+                        />
                         <div className="min-w-0">
                             <span className="text-xs font-bold block leading-tight truncate tracking-wide text-white">
                                 SDN 9 Gandangbatu

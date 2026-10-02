@@ -87,9 +87,11 @@ export default function Login({ status, canResetPassword }) {
             <div className="min-h-screen bg-[#F8F9FA] text-slate-800 flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 font-sans selection:bg-[#800020] selection:text-white">
                 <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3">
                     <Link href="/" className="inline-flex items-center justify-center space-x-3 group">
-                        <div className="w-12 h-12 rounded-2xl bg-[#800020] flex items-center justify-center text-white shadow-md group-hover:bg-[#5C0017] transition">
-                            <GraduationCap className="w-7 h-7" />
-                        </div>
+                        <img 
+                            src="/logo.webp" 
+                            alt="Logo UPT SDN 9 Gandangbatu Sillanan" 
+                            className="w-16 h-16 object-contain rounded-2xl bg-white p-1.5 shadow-md border border-slate-200 group-hover:scale-105 transition" 
+                        />
                     </Link>
 
                     <div>

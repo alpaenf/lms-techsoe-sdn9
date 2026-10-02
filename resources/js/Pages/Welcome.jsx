@@ -58,9 +58,11 @@ export default function Welcome({ auth }) {
                 <header className="sticky top-0 z-40 bg-white border-b border-slate-200">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 rounded-xl bg-[#800020] flex items-center justify-center text-white shadow-sm">
-                                <GraduationCap className="w-6 h-6" />
-                            </div>
+                            <img 
+                                src="/logo.webp" 
+                                alt="Logo UPT SDN 9 Gandangbatu Sillanan" 
+                                className="w-10 h-10 object-contain rounded-xl bg-white p-1 shadow-sm border border-slate-200 shrink-0" 
+                            />
                             <div>
                                 <span className="text-base font-bold text-slate-900 block leading-tight">
                                     UPT SDN 9 Gandangbatu Sillanan
