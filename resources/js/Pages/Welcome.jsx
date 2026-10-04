@@ -272,34 +272,34 @@ export default function Welcome({ auth }) {
                 </header>
 
                 {/* -------------------------------------------------------------
-                    2. HERO SECTION — VISUAL UTAMA (42% Left, 58% Right)
+                    2. HERO SECTION — VISUAL UTAMA (50% Left, 50% Right)
                 ------------------------------------------------------------- */}
                 <section id="hero" className="py-12 sm:py-20 bg-white border-b border-[#E5EAF0]">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
                             
-                            {/* Left Content (5 Cols ~ 42%) */}
-                            <div className="lg:col-span-5 space-y-6">
+                            {/* Left Content */}
+                            <div className="lg:col-span-6 space-y-6">
                                 
                                 {/* Eyebrow Text */}
-                                <div className="inline-flex items-center text-[#8B001F] text-xs font-bold uppercase tracking-wider">
+                                <div className="inline-flex items-center text-[#8B001F] text-xs sm:text-sm font-bold uppercase tracking-wider">
                                     <span>Sistem Informasi Pembelajaran & Akademik Terpadu</span>
                                 </div>
 
-                                {/* Main Headline */}
-                                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#142033] tracking-tight leading-[1.15]">
-                                    Pembelajaran dan<br />
-                                    Tata Kelola Sekolah<br />
-                                    dalam <span className="text-[#8B001F]">Satu Ekosistem.</span>
+                                {/* Main Headline — Block lines with explicit vertical spacing */}
+                                <h1 className="text-3xl sm:text-4xl lg:text-[44px] xl:text-[48px] font-extrabold text-[#142033] tracking-tight max-w-xl">
+                                    <span className="block">Pembelajaran dan</span>
+                                    <span className="block mt-2 sm:mt-3">Tata Kelola Sekolah</span>
+                                    <span className="block mt-2 sm:mt-3">dalam <span className="text-[#8B001F]">Satu Ekosistem.</span></span>
                                 </h1>
 
-                                {/* Description */}
-                                <p className="text-base text-[#64748B] leading-relaxed">
+                                {/* Description — Clean 3-line paragraph wrap */}
+                                <p className="text-base sm:text-[17px] text-[#64748B] leading-relaxed max-w-xl pt-1">
                                     Ekosistem terintegrasi yang menggabungkan pembelajaran daring modern dengan tata kelola administrasi akademik, buku induk siswa, presensi harian, hingga otomatisasi pencetakan E-Rapor.
                                 </p>
 
                                 {/* Action Buttons */}
-                                <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                <div className="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
                                     <Link
                                         href={auth?.user ? route('dashboard') : route('login')}
                                         className="inline-flex items-center justify-center px-6 py-3.5 bg-[#8B001F] hover:bg-[#650019] text-white text-sm font-bold rounded-xl shadow-md transition duration-150"
@@ -317,12 +317,12 @@ export default function Welcome({ auth }) {
                                 </div>
 
                                 {/* Supporting Information Tags */}
-                                <div className="pt-4 flex flex-wrap items-center gap-4 text-xs font-semibold text-[#64748B] border-t border-[#E5EAF0]">
-                                    <div className="flex items-center space-x-1.5">
+                                <div className="pt-5 flex flex-wrap items-center gap-6 text-xs sm:text-sm font-semibold text-[#64748B] border-t border-[#E5EAF0]">
+                                    <div className="flex items-center space-x-2">
                                         <School className="w-4 h-4 text-[#8B001F]" />
                                         <span>Kelas 1 – Kelas 6</span>
                                     </div>
-                                    <div className="flex items-center space-x-1.5">
+                                    <div className="flex items-center space-x-2">
                                         <MapPin className="w-4 h-4 text-[#8B001F]" />
                                         <span>Gandangbatu Sillanan, Tana Toraja, Sulsel</span>
                                     </div>
@@ -330,13 +330,20 @@ export default function Welcome({ auth }) {
 
                             </div>
 
-                            {/* Right Visual (7 Cols ~ 58%) — Uses /images/dashboard_hero.png */}
-                            <div className="lg:col-span-7 flex justify-center lg:justify-end">
-                                <div className="relative w-full max-w-2xl">
+                            {/* Right Visual — Uses /images/herohiasan.png (Enlarged to Left/Center, Flush Right with Navbar) */}
+                            <div className="lg:col-span-6 flex justify-center lg:justify-end relative">
+                                <div className="relative w-full max-w-2xl lg:max-w-none lg:w-[135%] xl:w-[145%] lg:-ml-16 xl:-ml-28 lg:mr-0">
+                                    
+                                    {/* Soft Ambient Bottom Shadow */}
+                                    <div className="absolute -bottom-4 sm:-bottom-6 left-[5%] right-[2%] h-10 sm:h-14 bg-black/25 blur-2xl rounded-full pointer-events-none transform scale-y-60"></div>
+                                    
+                                    {/* Secondary Subtle Burgundy Glow behind visual */}
+                                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-[75%] h-14 bg-[#8B001F]/15 blur-3xl rounded-full pointer-events-none"></div>
+
                                     <img 
-                                        src="/images/dashboard_hero.png" 
+                                        src="/images/herohiasan.png" 
                                         alt="Smart School LMS UPT SDN 9 Gandangbatu Sillanan Dashboard Mockup" 
-                                        className="w-full h-auto object-contain drop-shadow-xl"
+                                        className="relative z-10 w-full h-auto object-contain filter drop-shadow-[0_20px_25px_rgba(0,0,0,0.18)]"
                                         loading="eager"
                                     />
                                 </div>
