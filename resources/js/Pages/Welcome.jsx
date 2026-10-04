@@ -725,60 +725,48 @@ export default function Welcome({ auth }) {
                             </button>
                         </div>
 
-                        {/* Layout Horizontal Steps + Phone Mockup */}
-                        <div className="bg-[#F7F8FA] p-6 sm:p-8 rounded-3xl border border-[#E5EAF0]">
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                        {/* Layout 2-Column White Step Cards + Half Phone Mockup */}
+                        <div className="bg-[#F7F8FA] p-6 sm:p-8 rounded-3xl border border-[#E5EAF0] overflow-hidden relative">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center min-h-[280px]">
                                 
-                                {/* 6 Numbered Steps Grid (7 Cols) */}
-                                <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {/* 2-Column White Cards Grid (8 Cols) — Strictly determines parent card height */}
+                                <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                                     {roleGuides[activeRoleTab].steps.map((step) => (
-                                        <div key={step.num} className="bg-white p-4 rounded-xl border border-[#E5EAF0] shadow-sm flex items-start space-x-3">
-                                            <div className="w-7 h-7 rounded-full bg-[#FFF0F2] text-[#8B001F] font-bold text-xs flex items-center justify-center shrink-0 border border-[#E5EAF0]">
+                                        <div key={step.num} className="bg-white p-4 sm:p-5 rounded-2xl border border-[#E5EAF0] shadow-sm flex items-start space-x-3.5">
+                                            <div className="w-8 h-8 rounded-full bg-[#FFF0F2] text-[#8B001F] font-extrabold text-xs sm:text-sm flex items-center justify-center shrink-0 border border-[#E5EAF0]">
                                                 {step.num}
                                             </div>
                                             <div>
-                                                <h4 className="text-xs font-bold text-[#142033]">{step.title}</h4>
-                                                <p className="text-[11px] text-[#64748B] leading-snug mt-0.5">{step.desc}</p>
+                                                <h4 className="text-xs sm:text-sm font-bold text-[#142033]">{step.title}</h4>
+                                                <p className="text-[11px] sm:text-xs text-[#64748B] leading-relaxed mt-1">{step.desc}</p>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
 
-                                {/* Smartphone Mockup Visual (5 Cols) */}
-                                <div className="lg:col-span-5 flex justify-center">
-                                    <div className="relative max-w-[260px] bg-slate-900 p-3 rounded-[36px] shadow-2xl border-4 border-slate-800">
-                                        <div className="bg-white rounded-[26px] overflow-hidden text-[#142033] text-xs">
-                                            {/* Screen Header */}
-                                            <div className="bg-slate-50 p-4 border-b border-slate-100 space-y-2 text-center">
-                                                <div className="w-12 h-1 bg-slate-300 rounded-full mx-auto"></div>
-                                                <h5 className="font-bold text-[#142033] text-xs pt-1">Warta & Pengumuman Sekolah</h5>
-                                                <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#8B001F] text-white text-[10px] font-semibold">
-                                                    Sosialisasi LMS
-                                                </span>
-                                            </div>
-
-                                            {/* Screen Body */}
-                                            <div className="p-4 space-y-3 bg-white">
-                                                <div className="p-3 bg-[#FFF0F2] rounded-xl border border-[#E5EAF0] space-y-1">
-                                                    <span className="text-[10px] font-bold text-[#8B001F]">Pengumuman Baru</span>
-                                                    <p className="text-[11px] text-slate-700 leading-tight">
-                                                        Selamat Datang di Smart School LMS UPT SDN 9 Gandangbatu Sillanan.
-                                                    </p>
-                                                </div>
-
-                                                <div className="space-y-1.5 pt-1">
-                                                    <div className="h-2 bg-slate-100 rounded w-full"></div>
-                                                    <div className="h-2 bg-slate-100 rounded w-4/5"></div>
-                                                    <div className="h-2 bg-slate-100 rounded w-2/3"></div>
-                                                </div>
-
-                                                <div className="pt-2 text-center">
-                                                    <button className="px-3 py-1.5 bg-[#8B001F] text-white rounded-lg text-[10px] font-bold w-full">
-                                                        Masuk Portal Aplikasi
-                                                    </button>
-                                                </div>
-                                            </div>
+                                {/* Smartphone Mockup Visual (4 Cols) — Phone image lowered downwards (Card untouched) */}
+                                <div className="lg:col-span-4 relative self-stretch hidden lg:block">
+                                    <div className="absolute -bottom-32 xl:-bottom-36 right-0 left-0 flex justify-center items-end pointer-events-none">
+                                        <div className="w-[310px] xl:w-[340px] max-w-none translate-y-14">
+                                            <img 
+                                                src="/images/mokuphp.png" 
+                                                alt="Smart School LMS UPT SDN 9 Gandangbatu Sillanan Mobile App Mockup" 
+                                                className="w-full h-auto object-contain drop-shadow-2xl"
+                                                loading="lazy"
+                                            />
                                         </div>
+                                    </div>
+                                </div>
+
+                                {/* Mobile Phone Visual Fallback */}
+                                <div className="lg:hidden flex justify-center pt-2">
+                                    <div className="max-w-[240px]">
+                                        <img 
+                                            src="/images/mokuphp.png" 
+                                            alt="Smart School LMS UPT SDN 9 Gandangbatu Sillanan Mobile App Mockup" 
+                                            className="w-full h-auto object-contain drop-shadow-xl"
+                                            loading="lazy"
+                                        />
                                     </div>
                                 </div>
 
