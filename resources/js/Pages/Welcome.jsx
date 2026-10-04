@@ -355,8 +355,8 @@ export default function Welcome({ auth }) {
                         
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
                             
-                            {/* Left Column: Text & Horizontal Metadata Row (5 Cols) */}
-                            <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
+                            {/* Left Column: Text & Horizontal Metadata Row (4 Cols) */}
+                            <div className="lg:col-span-4 flex flex-col justify-between space-y-6">
                                 <div className="space-y-4">
                                     <div className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-[#8B001F]">
                                         <Building2 className="w-4 h-4 mr-1.5" />
@@ -373,7 +373,7 @@ export default function Welcome({ auth }) {
                                 </div>
 
                                 {/* Horizontal Bottom Metadata Items with vertical dividers */}
-                                <div className="pt-4 border-t border-[#E5EAF0] flex flex-wrap items-center gap-4 text-xs">
+                                <div className="pt-4 border-t border-[#E5EAF0] flex flex-wrap items-center gap-3 text-xs">
                                     {/* NPSN */}
                                     <div className="flex items-center space-x-2">
                                         <div className="w-8 h-8 rounded-full bg-[#FFF0F2] text-[#8B001F] flex items-center justify-center shrink-0">
@@ -413,13 +413,13 @@ export default function Welcome({ auth }) {
                                 </div>
                             </div>
 
-                            {/* Middle Column: Real Photo of SD (/images/sdnfoto.png) (3 Cols) */}
-                            <div className="lg:col-span-3 flex items-center">
+                            {/* Middle Column: Real Photo of SD (/images/sdnfoto.png) (4 Cols with object-right) */}
+                            <div className="lg:col-span-4 flex items-center">
                                 <div className="w-full h-full rounded-2xl overflow-hidden shadow-sm border border-[#E5EAF0]">
                                     <img 
                                         src="/images/sdnfoto.png" 
                                         alt="Gedung UPT SDN 9 Gandangbatu Sillanan" 
-                                        className="w-full h-full object-cover min-h-[320px] rounded-2xl"
+                                        className="w-full h-full object-cover object-right min-h-[320px] max-h-[440px] rounded-2xl"
                                     />
                                 </div>
                             </div>
