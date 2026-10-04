@@ -260,7 +260,7 @@ export default function Welcome({ auth }) {
                                     UPT SDN 9 Gandangbatu Sillanan
                                 </span>
                                 <span className="text-xs text-[#64748B] font-medium block">
-                                    Smart School LMS TechSoe
+                                    Smart School LMS
                                 </span>
                             </div>
                         </div>
