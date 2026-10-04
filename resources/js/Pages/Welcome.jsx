@@ -53,18 +53,26 @@ export default function Welcome({ auth }) {
         // Enable smooth scrolling globally
         document.documentElement.style.scrollBehavior = 'smooth';
 
-        const handleScroll = () => {
-            const scrollPosition = window.scrollY + 120;
+        let ticking = false;
 
-            for (let i = navItems.length - 1; i >= 0; i--) {
-                const section = document.getElementById(navItems[i].id);
-                if (section) {
-                    const top = section.offsetTop;
-                    if (scrollPosition >= top) {
-                        setActiveSection(navItems[i].id);
-                        break;
+        const handleScroll = () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    const scrollPosition = window.scrollY + 140;
+
+                    for (let i = navItems.length - 1; i >= 0; i--) {
+                        const section = document.getElementById(navItems[i].id);
+                        if (section) {
+                            const top = section.offsetTop;
+                            if (scrollPosition >= top) {
+                                setActiveSection(navItems[i].id);
+                                break;
+                            }
+                        }
                     }
-                }
+                    ticking = false;
+                });
+                ticking = true;
             }
         };
 
@@ -258,7 +266,7 @@ export default function Welcome({ auth }) {
                         </div>
 
                         {/* Navigation Links (Center) */}
-                        <nav className="hidden lg:flex items-center space-x-7 text-sm">
+                        <nav className="hidden lg:flex items-center space-x-7 text-sm font-semibold">
                             {navItems.map((item) => {
                                 const isActive = activeSection === item.id;
                                 return (
@@ -266,16 +274,18 @@ export default function Welcome({ auth }) {
                                         key={item.id}
                                         href={`#${item.id}`}
                                         onClick={(e) => handleNavClick(e, item.id)}
-                                        className={`transition-colors duration-200 relative py-1.5 ${
+                                        className={`transition-colors duration-300 ease-in-out relative py-1.5 ${
                                             isActive
-                                                ? 'text-[#8B001F] font-bold'
-                                                : 'text-[#64748B] hover:text-[#8B001F] font-medium'
+                                                ? 'text-[#8B001F]'
+                                                : 'text-[#64748B] hover:text-[#8B001F]'
                                         }`}
                                     >
                                         {item.label}
-                                        {isActive && (
-                                            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#8B001F] rounded-full transition-all duration-300" />
-                                        )}
+                                        <span 
+                                            className={`absolute bottom-0 left-0 right-0 h-0.5 bg-[#8B001F] rounded-full transition-all duration-300 ease-in-out origin-left ${
+                                                isActive ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
+                                            }`} 
+                                        />
                                     </a>
                                 );
                             })}
@@ -283,10 +293,9 @@ export default function Welcome({ auth }) {
 
                         {/* Actions (Right) */}
                         <div className="hidden sm:flex items-center space-x-3">
-                            <div className="inline-flex items-center px-3 py-1.5 rounded-lg bg-[#FFF0F2] text-[#8B001F] text-xs font-semibold border border-[#E5EAF0]">
-                                <CalendarCheck className="w-3.5 h-3.5 mr-1 text-[#8B001F]" />
+                            <div className="inline-flex items-center px-3 py-1.5 rounded-lg bg-[#F7F8FA] text-[#64748B] text-xs font-semibold border border-[#E5EAF0]">
+                                <CalendarCheck className="w-3.5 h-3.5 mr-1.5 text-[#64748B]" />
                                 T.A. 2026/2027
-                                <ChevronDown className="w-3.5 h-3.5 ml-1 text-[#8B001F]" />
                             </div>
 
                             <Link
@@ -310,7 +319,7 @@ export default function Welcome({ auth }) {
                     {/* Mobile Drawer */}
                     {mobileMenuOpen && (
                         <div className="lg:hidden bg-white border-b border-[#E5EAF0] px-4 pt-3 pb-6 space-y-3">
-                            <nav className="flex flex-col space-y-1.5 text-sm">
+                            <nav className="flex flex-col space-y-1.5 text-sm font-semibold">
                                 {navItems.map((item) => {
                                     const isActive = activeSection === item.id;
                                     return (
@@ -321,10 +330,10 @@ export default function Welcome({ auth }) {
                                                 setMobileMenuOpen(false);
                                                 handleNavClick(e, item.id);
                                             }}
-                                            className={`py-2 px-3 rounded-xl transition-all ${
+                                            className={`py-2 px-3 rounded-xl transition-all duration-300 ease-in-out ${
                                                 isActive
-                                                    ? 'bg-[#FFF0F2] text-[#8B001F] font-bold'
-                                                    : 'text-[#64748B] font-medium hover:bg-slate-50'
+                                                    ? 'bg-[#FFF0F2] text-[#8B001F]'
+                                                    : 'text-[#64748B] hover:bg-slate-50'
                                             }`}
                                         >
                                             {item.label}
