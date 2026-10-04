@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { 
     GraduationCap, 
@@ -39,6 +39,50 @@ export default function Welcome({ auth }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activeModuleTab, setActiveModuleTab] = useState('all');
     const [activeRoleTab, setActiveRoleTab] = useState('siswa');
+    const [activeSection, setActiveSection] = useState('hero');
+
+    const navItems = [
+        { id: 'hero', label: 'Beranda' },
+        { id: 'profil', label: 'Profil Sekolah' },
+        { id: 'modul', label: 'Modul Fitur' },
+        { id: 'panduan', label: 'Panduan' },
+        { id: 'keamanan', label: 'Pengumuman' },
+    ];
+
+    useEffect(() => {
+        // Enable smooth scrolling globally
+        document.documentElement.style.scrollBehavior = 'smooth';
+
+        const handleScroll = () => {
+            const scrollPosition = window.scrollY + 120;
+
+            for (let i = navItems.length - 1; i >= 0; i--) {
+                const section = document.getElementById(navItems[i].id);
+                if (section) {
+                    const top = section.offsetTop;
+                    if (scrollPosition >= top) {
+                        setActiveSection(navItems[i].id);
+                        break;
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll();
+
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const handleNavClick = (e, id) => {
+        e.preventDefault();
+        setActiveSection(id);
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+        window.history.pushState(null, '', `#${id}`);
+    };
 
     // Color Design System Tokens:
     // Primary Burgundy: #8B001F
@@ -214,12 +258,27 @@ export default function Welcome({ auth }) {
                         </div>
 
                         {/* Navigation Links (Center) */}
-                        <nav className="hidden lg:flex items-center space-x-7 text-sm font-medium text-[#64748B]">
-                            <a href="#hero" className="text-[#8B001F] font-semibold">Beranda</a>
-                            <a href="#profil" className="hover:text-[#8B001F] transition">Profil Sekolah</a>
-                            <a href="#modul" className="hover:text-[#8B001F] transition">Modul Fitur</a>
-                            <a href="#panduan" className="hover:text-[#8B001F] transition">Panduan</a>
-                            <a href="#keamanan" className="hover:text-[#8B001F] transition">Pengumuman</a>
+                        <nav className="hidden lg:flex items-center space-x-7 text-sm">
+                            {navItems.map((item) => {
+                                const isActive = activeSection === item.id;
+                                return (
+                                    <a
+                                        key={item.id}
+                                        href={`#${item.id}`}
+                                        onClick={(e) => handleNavClick(e, item.id)}
+                                        className={`transition-colors duration-200 relative py-1.5 ${
+                                            isActive
+                                                ? 'text-[#8B001F] font-bold'
+                                                : 'text-[#64748B] hover:text-[#8B001F] font-medium'
+                                        }`}
+                                    >
+                                        {item.label}
+                                        {isActive && (
+                                            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#8B001F] rounded-full transition-all duration-300" />
+                                        )}
+                                    </a>
+                                );
+                            })}
                         </nav>
 
                         {/* Actions (Right) */}
@@ -251,12 +310,27 @@ export default function Welcome({ auth }) {
                     {/* Mobile Drawer */}
                     {mobileMenuOpen && (
                         <div className="lg:hidden bg-white border-b border-[#E5EAF0] px-4 pt-3 pb-6 space-y-3">
-                            <nav className="flex flex-col space-y-2 text-sm font-medium text-[#64748B]">
-                                <a href="#hero" onClick={() => setMobileMenuOpen(false)} className="py-2 text-[#8B001F] font-semibold">Beranda</a>
-                                <a href="#profil" onClick={() => setMobileMenuOpen(false)} className="py-2">Profil Sekolah</a>
-                                <a href="#modul" onClick={() => setMobileMenuOpen(false)} className="py-2">Modul Fitur</a>
-                                <a href="#panduan" onClick={() => setMobileMenuOpen(false)} className="py-2">Panduan</a>
-                                <a href="#keamanan" onClick={() => setMobileMenuOpen(false)} className="py-2">Pengumuman</a>
+                            <nav className="flex flex-col space-y-1.5 text-sm">
+                                {navItems.map((item) => {
+                                    const isActive = activeSection === item.id;
+                                    return (
+                                        <a
+                                            key={item.id}
+                                            href={`#${item.id}`}
+                                            onClick={(e) => {
+                                                setMobileMenuOpen(false);
+                                                handleNavClick(e, item.id);
+                                            }}
+                                            className={`py-2 px-3 rounded-xl transition-all ${
+                                                isActive
+                                                    ? 'bg-[#FFF0F2] text-[#8B001F] font-bold'
+                                                    : 'text-[#64748B] font-medium hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            {item.label}
+                                        </a>
+                                    );
+                                })}
                             </nav>
                             <div className="pt-2">
                                 <Link
