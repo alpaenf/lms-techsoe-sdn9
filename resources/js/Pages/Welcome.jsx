@@ -330,15 +330,15 @@ export default function Welcome({ auth }) {
 
                             </div>
 
-                            {/* Right Visual — Uses /images/herohiasan.png (Enlarged to Left/Center, Flush Right with Navbar) */}
+                            {/* Right Visual — Uses /images/herohiasan.png (Enlarged Leftward + Aligned Right) */}
                             <div className="lg:col-span-6 flex justify-center lg:justify-end relative">
-                                <div className="relative w-full max-w-2xl lg:max-w-none lg:w-[135%] xl:w-[145%] lg:-ml-16 xl:-ml-28 lg:mr-0">
+                                <div className="relative w-full max-w-2xl lg:max-w-none lg:w-[138%] xl:w-[148%] lg:-ml-18 xl:-ml-28 lg:mr-0 ml-auto">
                                     
                                     {/* Soft Ambient Bottom Shadow */}
-                                    <div className="absolute -bottom-4 sm:-bottom-6 left-[5%] right-[2%] h-10 sm:h-14 bg-black/25 blur-2xl rounded-full pointer-events-none transform scale-y-60"></div>
+                                    <div className="absolute -bottom-4 sm:-bottom-6 left-[5%] right-[5%] h-10 sm:h-14 bg-black/25 blur-2xl rounded-full pointer-events-none transform scale-y-60"></div>
                                     
                                     {/* Secondary Subtle Burgundy Glow behind visual */}
-                                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-[75%] h-14 bg-[#8B001F]/15 blur-3xl rounded-full pointer-events-none"></div>
+                                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-[70%] h-14 bg-[#8B001F]/15 blur-3xl rounded-full pointer-events-none"></div>
 
                                     <img 
                                         src="/images/herohiasan.png" 

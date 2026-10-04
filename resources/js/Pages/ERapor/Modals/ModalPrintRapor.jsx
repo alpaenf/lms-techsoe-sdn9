@@ -58,9 +58,11 @@ export default function ModalPrintRapor({
                 <div className="p-8 sm:p-10 bg-white text-slate-900 font-sans leading-relaxed print:p-0 print:m-0 print:shadow-none print:w-full">
                     {/* Official Kop Surat Header */}
                     <div className="border-b-4 border-double border-slate-900 pb-4 mb-6 text-center flex items-center justify-between">
-                        <div className="w-16 h-16 shrink-0 hidden sm:flex items-center justify-center bg-slate-100 rounded-2xl font-bold text-[#800020] border border-slate-300 text-xs">
-                            SDN 9
-                        </div>
+                        <img 
+                            src="/logo.webp" 
+                            alt="Logo Sekolah" 
+                            className="w-16 h-16 object-contain shrink-0 hidden sm:block p-1" 
+                        />
                         <div className="flex-1 text-center px-4">
                             <h4 className="text-xs uppercase font-extrabold tracking-widest text-slate-600">
                                 PEMERINTAH KABUPATEN TANA TORAJA
