@@ -350,126 +350,131 @@ export default function Welcome({ auth }) {
                 {/* -------------------------------------------------------------
                     3. SCHOOL PROFILE SECTION (MENGENAL LEBIH DEKAT)
                 ------------------------------------------------------------- */}
-                <section id="profil" className="py-16 sm:py-20 bg-[#F7F8FA] border-b border-[#E5EAF0]">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+                <section id="profil" className="py-16 sm:py-20 bg-white border-b border-[#E5EAF0]">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
                             
-                            {/* Left Text & Identity (5 Cols) */}
-                            <div className="lg:col-span-5 space-y-5">
-                                <div className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-[#8B001F]">
-                                    <Building2 className="w-4 h-4 mr-1.5" />
-                                    MENGENAL LEBIH DEKAT
-                                </div>
-
-                                <h2 className="text-2xl sm:text-4xl font-extrabold text-[#142033] tracking-tight">
-                                    UPT SDN 9 Gandangbatu Sillanan
-                                </h2>
-
-                                <p className="text-sm text-[#64748B] leading-relaxed">
-                                    UPT SDN 9 Gandangbatu Sillanan adalah satuan pendidikan dasar yang berkomitmen mewujudkan generasi peserta didik yang berakhlak mulia, cerdas, berkarakter kebangsaan, serta siap menguasai teknologi informasi di era digital.
-                                </p>
-
-                                {/* Metadata Info Cards */}
-                                <div className="space-y-3 pt-2">
-                                    <div className="p-3.5 bg-white rounded-xl border border-[#E5EAF0] flex items-center space-x-3 shadow-sm">
-                                        <div className="w-9 h-9 rounded-lg bg-[#FFF0F2] text-[#8B001F] flex items-center justify-center shrink-0 border border-[#E5EAF0]">
-                                            <School className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                            <span className="text-[11px] text-[#64748B] font-semibold block uppercase">NPSN</span>
-                                            <span className="text-sm font-bold font-mono text-[#142033]">40307044</span>
-                                        </div>
+                            {/* Left Column: Text & Horizontal Metadata Row (5 Cols) */}
+                            <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
+                                <div className="space-y-4">
+                                    <div className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-[#8B001F]">
+                                        <Building2 className="w-4 h-4 mr-1.5" />
+                                        MENGENAL LEBIH DEKAT
                                     </div>
 
-                                    <div className="p-3.5 bg-white rounded-xl border border-[#E5EAF0] flex items-center space-x-3 shadow-sm">
-                                        <div className="w-9 h-9 rounded-lg bg-[#FFF0F2] text-[#8B001F] flex items-center justify-center shrink-0 border border-[#E5EAF0]">
-                                            <User className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                            <span className="text-[11px] text-[#64748B] font-semibold block uppercase">Kepala Sekolah</span>
-                                            <span className="text-sm font-bold text-[#142033]">Hendrika Genti, S.Pd.SD.</span>
-                                        </div>
-                                    </div>
+                                    <h2 className="text-3xl sm:text-4xl font-extrabold text-[#142033] tracking-tight leading-tight">
+                                        UPT SDN 9<br />Gandangbatu Sillanan
+                                    </h2>
 
-                                    <div className="p-3.5 bg-white rounded-xl border border-[#E5EAF0] flex items-center space-x-3 shadow-sm">
-                                        <div className="w-9 h-9 rounded-lg bg-[#FFF0F2] text-[#8B001F] flex items-center justify-center shrink-0 border border-[#E5EAF0]">
-                                            <MapPin className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                            <span className="text-[11px] text-[#64748B] font-semibold block uppercase">Lokasi</span>
-                                            <span className="text-sm font-bold text-[#142033]">Kec. Gandangbatu Sillanan, Kab. Tana Toraja, Sulawesi Selatan</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Middle School Building Photo (3 Cols) */}
-                            <div className="lg:col-span-3 flex justify-center">
-                                <div className="bg-white p-2.5 rounded-2xl border border-[#E5EAF0] shadow-md w-full">
-                                    <div className="relative rounded-xl overflow-hidden aspect-[3/4] bg-slate-100 flex items-center justify-center">
-                                        <img 
-                                            src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=800&q=80" 
-                                            alt="Gedung UPT SDN 9 Gandangbatu Sillanan" 
-                                            className="w-full h-full object-cover"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
-                                        <div className="absolute bottom-3 left-3 right-3 text-white text-xs font-bold bg-slate-900/80 backdrop-blur-sm p-2 rounded-lg text-center border border-white/20">
-                                            Gedung UPT SDN 9 Gandangbatu Sillanan
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Right Visi & Misi Panel (4 Cols) */}
-                            <div className="lg:col-span-4 space-y-4">
-                                
-                                {/* Visi Card */}
-                                <div className="bg-white p-5 rounded-2xl border border-[#E5EAF0] shadow-sm space-y-2">
-                                    <div className="flex items-center space-x-2 text-[#8B001F]">
-                                        <div className="w-8 h-8 rounded-lg bg-[#FFF0F2] flex items-center justify-center border border-[#E5EAF0]">
-                                            <Award className="w-4 h-4" />
-                                        </div>
-                                        <h3 className="text-base font-bold text-[#142033]">Visi Sekolah</h3>
-                                    </div>
-                                    <p className="text-xs text-[#64748B] italic leading-relaxed pt-1">
-                                        "Mewujudkan Generasi Peserta Didik yang Berakhlak Mulia, Cerdas, Berkarakter Kebangsaan, serta Siap Menguasai Teknologi Informasi di Era Digital."
+                                    <p className="text-sm text-[#64748B] leading-relaxed">
+                                        UPT SDN 9 Gandangbatu Sillanan adalah satuan pendidikan dasar yang berkomitmen mewujudkan generasi peserta didik yang berakhlak mulia, cerdas, berkarakter kebangsaan, serta siap menguasai teknologi informasi di era digital.
                                     </p>
                                 </div>
 
-                                {/* Misi Card */}
-                                <div className="bg-white p-5 rounded-2xl border border-[#E5EAF0] shadow-sm space-y-3">
-                                    <div className="flex items-center space-x-2 text-[#8B001F]">
-                                        <div className="w-8 h-8 rounded-lg bg-[#FFF0F2] flex items-center justify-center border border-[#E5EAF0]">
-                                            <ListCheck className="w-4 h-4" />
+                                {/* Horizontal Bottom Metadata Items with vertical dividers */}
+                                <div className="pt-4 border-t border-[#E5EAF0] flex flex-wrap items-center gap-4 text-xs">
+                                    {/* NPSN */}
+                                    <div className="flex items-center space-x-2">
+                                        <div className="w-8 h-8 rounded-full bg-[#FFF0F2] text-[#8B001F] flex items-center justify-center shrink-0">
+                                            <School className="w-4 h-4" />
                                         </div>
-                                        <h3 className="text-base font-bold text-[#142033]">Misi Sekolah</h3>
+                                        <div>
+                                            <span className="text-[10px] text-[#64748B] font-semibold block uppercase leading-none">NPSN</span>
+                                            <span className="text-xs font-bold text-[#142033]">40307044</span>
+                                        </div>
                                     </div>
 
-                                    <ul className="space-y-2 text-xs text-[#142033]">
-                                        <li className="flex items-start space-x-2">
-                                            <Check className="w-3.5 h-3.5 text-[#8B001F] mt-0.5 shrink-0" />
-                                            <span>Menyelenggarakan pembelajaran yang berkualitas.</span>
-                                        </li>
-                                        <li className="flex items-start space-x-2">
-                                            <Check className="w-3.5 h-3.5 text-[#8B001F] mt-0.5 shrink-0" />
-                                            <span>Membentuk karakter dan akhlak mulia.</span>
-                                        </li>
-                                        <li className="flex items-start space-x-2">
-                                            <Check className="w-3.5 h-3.5 text-[#8B001F] mt-0.5 shrink-0" />
-                                            <span>Mengembangkan potensi peserta didik.</span>
-                                        </li>
-                                        <li className="flex items-start space-x-2">
-                                            <Check className="w-3.5 h-3.5 text-[#8B001F] mt-0.5 shrink-0" />
-                                            <span>Memanfaatkan teknologi informasi dalam pendidikan.</span>
-                                        </li>
-                                        <li className="flex items-start space-x-2">
-                                            <Check className="w-3.5 h-3.5 text-[#8B001F] mt-0.5 shrink-0" />
-                                            <span>Mewujudkan lingkungan sekolah yang aman dan kondusif.</span>
-                                        </li>
-                                    </ul>
-                                </div>
+                                    <div className="hidden sm:block h-7 w-px bg-slate-200"></div>
 
+                                    {/* Kepala Sekolah */}
+                                    <div className="flex items-center space-x-2">
+                                        <div className="w-8 h-8 rounded-full bg-[#FFF0F2] text-[#8B001F] flex items-center justify-center shrink-0">
+                                            <User className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] text-[#64748B] font-semibold block uppercase leading-none">Kepala Sekolah</span>
+                                            <span className="text-xs font-bold text-[#142033]">Hendrika Genti, S.Pd.SD.</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="hidden sm:block h-7 w-px bg-slate-200"></div>
+
+                                    {/* Lokasi */}
+                                    <div className="flex items-center space-x-2">
+                                        <div className="w-8 h-8 rounded-full bg-[#FFF0F2] text-[#8B001F] flex items-center justify-center shrink-0">
+                                            <MapPin className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] text-[#64748B] font-semibold block uppercase leading-none">Lokasi</span>
+                                            <span className="text-xs font-bold text-[#142033] leading-tight block">Kec. Gandangbatu Sillanan,<br />Kab. Tana Toraja, Sulawesi Selatan</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Middle Column: Real Photo of SD (/images/sdnfoto.png) (3 Cols) */}
+                            <div className="lg:col-span-3 flex items-center">
+                                <div className="w-full h-full rounded-2xl overflow-hidden shadow-sm border border-[#E5EAF0]">
+                                    <img 
+                                        src="/images/sdnfoto.png" 
+                                        alt="Gedung UPT SDN 9 Gandangbatu Sillanan" 
+                                        className="w-full h-full object-cover min-h-[320px] rounded-2xl"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Right Column: Integrated Visi & Misi Card Container (4 Cols) */}
+                            <div className="lg:col-span-4 flex items-center">
+                                <div className="bg-white w-full rounded-2xl border border-[#E5EAF0] shadow-sm p-5 sm:p-6 space-y-5 divide-y divide-[#E5EAF0]">
+                                    
+                                    {/* Visi Block */}
+                                    <div className="space-y-2.5">
+                                        <div className="flex items-center space-x-2.5">
+                                            <div className="w-8 h-8 rounded-xl bg-[#FFF0F2] text-[#8B001F] flex items-center justify-center border border-[#E5EAF0] shrink-0">
+                                                <Award className="w-4 h-4" />
+                                            </div>
+                                            <h3 className="text-sm font-bold text-[#142033]">Visi Sekolah</h3>
+                                        </div>
+                                        <p className="text-xs text-[#64748B] italic leading-relaxed pt-1">
+                                            "Mewujudkan Generasi Peserta Didik yang Berakhlak Mulia, Cerdas, Berkarakter Kebangsaan, serta Siap Menguasai Teknologi Informasi di Era Digital."
+                                        </p>
+                                    </div>
+
+                                    {/* Misi Block */}
+                                    <div className="pt-4 space-y-2.5">
+                                        <div className="flex items-center space-x-2.5">
+                                            <div className="w-8 h-8 rounded-xl bg-[#FFF0F2] text-[#8B001F] flex items-center justify-center border border-[#E5EAF0] shrink-0">
+                                                <ListCheck className="w-4 h-4" />
+                                            </div>
+                                            <h3 className="text-sm font-bold text-[#142033]">Misi Sekolah</h3>
+                                        </div>
+
+                                        <ul className="space-y-2 text-xs text-[#142033]">
+                                            <li className="flex items-start space-x-2">
+                                                <Check className="w-3.5 h-3.5 text-[#8B001F] mt-0.5 shrink-0" />
+                                                <span>Menyelenggarakan pembelajaran yang berkualitas.</span>
+                                            </li>
+                                            <li className="flex items-start space-x-2">
+                                                <Check className="w-3.5 h-3.5 text-[#8B001F] mt-0.5 shrink-0" />
+                                                <span>Membentuk karakter dan akhlak mulia.</span>
+                                            </li>
+                                            <li className="flex items-start space-x-2">
+                                                <Check className="w-3.5 h-3.5 text-[#8B001F] mt-0.5 shrink-0" />
+                                                <span>Mengembangkan potensi peserta didik.</span>
+                                            </li>
+                                            <li className="flex items-start space-x-2">
+                                                <Check className="w-3.5 h-3.5 text-[#8B001F] mt-0.5 shrink-0" />
+                                                <span>Memanfaatkan teknologi informasi dalam pendidikan.</span>
+                                            </li>
+                                            <li className="flex items-start space-x-2">
+                                                <Check className="w-3.5 h-3.5 text-[#8B001F] mt-0.5 shrink-0" />
+                                                <span>Mewujudkan lingkungan sekolah yang aman dan kondusif.</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                </div>
                             </div>
 
                         </div>
