@@ -281,10 +281,9 @@ export default function Welcome({ auth }) {
                             {/* Left Content (5 Cols ~ 42%) */}
                             <div className="lg:col-span-5 space-y-6">
                                 
-                                {/* Eyebrow Badge Pill */}
-                                <div className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-[#FFF0F2] border border-[#E5EAF0] text-[#8B001F] text-xs font-semibold">
-                                    <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
-                                    Sistem Informasi Pembelajaran & Akademik Terpadu
+                                {/* Eyebrow Text */}
+                                <div className="inline-flex items-center text-[#8B001F] text-xs font-bold uppercase tracking-wider">
+                                    <span>Sistem Informasi Pembelajaran & Akademik Terpadu</span>
                                 </div>
 
                                 {/* Main Headline */}
