@@ -79,7 +79,7 @@ export default function Login({ status, canResetPassword }) {
         <>
             <Head title="Masuk - Smart School LMS UPT SDN 9 Gandangbatu Sillanan" />
 
-            <div className="min-h-screen w-full relative bg-gradient-to-br from-[#7B0D1E] via-[#650817] to-[#45040F] text-slate-800 font-sans selection:bg-[#800020] selection:text-white flex flex-col justify-between overflow-hidden">
+            <div className="min-h-screen lg:h-screen w-full relative bg-gradient-to-br from-[#7B0D1E] via-[#650817] to-[#45040F] text-slate-800 font-sans selection:bg-[#800020] selection:text-white flex flex-col justify-between overflow-x-hidden lg:overflow-hidden">
                 {/* Background Pattern Grid Overlay */}
                 <div className="absolute inset-0 opacity-10 pointer-events-none">
                     <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -108,93 +108,100 @@ export default function Login({ status, canResetPassword }) {
                 </div>
 
                 {/* Main Interactive Content */}
-                <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-8 lg:py-12 flex-1 flex flex-col justify-between">
+                <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-5 lg:py-8 h-full flex-1 flex flex-col justify-between">
                     
-                    {/* Top Branding Section */}
-                    <header className="flex items-center justify-between">
-                        <Link href="/" className="inline-flex items-center space-x-3.5 group">
-                            <img 
-                                src="/logo.webp" 
-                                alt="Logo UPT SDN 9" 
-                                className="w-14 h-14 sm:w-16 sm:h-16 object-contain drop-shadow-md group-hover:scale-105 transition duration-200" 
-                            />
-                            <div>
-                                <h1 className="text-white font-extrabold text-base sm:text-lg lg:text-xl leading-tight tracking-tight">
-                                    UPT SDN 9
-                                </h1>
-                                <h2 className="text-white font-extrabold text-base sm:text-lg lg:text-xl leading-tight tracking-tight">
-                                    Gandangbatu Sillanan
-                                </h2>
-                                <p className="text-white/70 text-xs sm:text-sm font-normal mt-0.5">
-                                    Smart School LMS
-                                </p>
-                            </div>
-                        </Link>
-                    </header>
-
-                    {/* Middle Main Content Layout Grid */}
-                    <main className="my-8 sm:my-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                    <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-stretch h-full flex-1">
                         
                         {/* Left Hero & Headline (Col 1 to 7) */}
-                        <div className="lg:col-span-7 text-left space-y-6">
-                            <div className="space-y-3">
-                                <h2 className="text-3xl sm:text-4xl lg:text-[44px] xl:text-[50px] font-bold text-white tracking-tight leading-[1.14]">
+                        <div className="lg:col-span-7 flex flex-col justify-between py-2 space-y-6 lg:space-y-0 h-full">
+                            
+                            {/* Top Header Logo */}
+                            <div>
+                                <Link href="/" className="inline-flex items-center space-x-3.5 group">
+                                    <img 
+                                        src="/logo.webp" 
+                                        alt="Logo UPT SDN 9" 
+                                        className="w-13 h-13 sm:w-15 sm:h-15 lg:w-16 lg:h-16 object-contain drop-shadow-md group-hover:scale-105 transition duration-200" 
+                                    />
+                                    <div>
+                                        <h1 className="text-white font-extrabold text-base sm:text-lg lg:text-xl leading-tight tracking-tight">
+                                            UPT SDN 9
+                                        </h1>
+                                        <h2 className="text-white font-extrabold text-base sm:text-lg lg:text-xl leading-tight tracking-tight">
+                                            Gandangbatu Sillanan
+                                        </h2>
+                                        <p className="text-white/70 text-xs sm:text-sm font-normal mt-0.5">
+                                            Smart School LMS
+                                        </p>
+                                    </div>
+                                </Link>
+                            </div>
+
+                            {/* Middle Headline */}
+                            <div className="my-auto py-2">
+                                <h2 className="text-3xl sm:text-4xl lg:text-[42px] xl:text-[48px] font-bold text-white tracking-tight leading-[1.15]">
                                     Satu Portal untuk<br />
                                     Seluruh Aktivitas Sekolah
                                 </h2>
 
-                                <p className="text-white/80 text-base sm:text-lg leading-relaxed max-w-xl font-normal pt-2">
+                                <p className="text-white/80 text-sm sm:text-base lg:text-lg leading-relaxed max-w-xl font-normal mt-4">
                                     Kelola pembelajaran, presensi, penugasan, administrasi,<br className="hidden sm:inline" />
                                     dan aktivitas akademik dalam satu platform<br className="hidden sm:inline" />
                                     Smart School yang terintegrasi.
                                 </p>
                             </div>
 
-                            {/* Tahun Ajaran Card Badge */}
-                            <div className="pt-4">
-                                <div className="inline-flex items-center gap-4 bg-[#580916]/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 sm:p-4.5 shadow-2xl">
-                                    <div className="w-12 h-12 rounded-xl bg-[#800020] border border-white/15 flex items-center justify-center text-white shrink-0 shadow-inner">
-                                        <Calendar className="w-6 h-6 text-white" />
+                            {/* Bottom Badge & Link */}
+                            <div className="space-y-3 pt-1">
+                                <div className="inline-flex items-center gap-4 bg-[#580916]/80 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 sm:p-4 shadow-xl">
+                                    <div className="w-11 h-11 rounded-xl bg-[#800020] border border-white/15 flex items-center justify-center text-white shrink-0 shadow-inner">
+                                        <Calendar className="w-5 h-5 text-white" />
                                     </div>
                                     <div>
-                                        <span className="text-white/70 text-xs sm:text-sm font-medium block">
+                                        <span className="text-white/70 text-xs font-medium block">
                                             Tahun Ajaran
                                         </span>
-                                        <span className="text-white font-bold text-lg sm:text-xl block leading-tight">
+                                        <span className="text-white font-bold text-base sm:text-lg block leading-tight">
                                             2026/2027
                                         </span>
                                     </div>
+                                </div>
+
+                                <div className="pt-1">
+                                    <Link href="/" className="text-white/70 hover:text-white transition text-xs font-medium inline-block">
+                                        ← Kembali ke Halaman Beranda
+                                    </Link>
                                 </div>
                             </div>
                         </div>
 
                         {/* Right Login Card (Col 8 to 12) */}
-                        <div className="lg:col-span-5 flex justify-center lg:justify-end">
-                            <div className="bg-white rounded-[26px] sm:rounded-[30px] p-7 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] w-full max-w-[460px] border border-white/20 relative">
+                        <div className="lg:col-span-5 flex items-center justify-center lg:justify-end h-full">
+                            <div className="bg-white rounded-[24px] sm:rounded-[28px] p-6 sm:p-9 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] w-full max-w-[440px] border border-white/20 relative my-auto">
                                 
                                 {status && (
-                                    <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800">
+                                    <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800">
                                         {status}
                                     </div>
                                 )}
 
                                 <div>
-                                    <h3 className="text-2xl sm:text-3xl font-bold text-[#142033] tracking-tight">
+                                    <h3 className="text-2xl sm:text-[28px] font-bold text-[#142033] tracking-tight">
                                         Selamat Datang Kembali
                                     </h3>
-                                    <p className="text-slate-500 text-xs sm:text-sm mt-2 mb-7 leading-relaxed font-normal">
+                                    <p className="text-slate-500 text-xs sm:text-sm mt-1.5 mb-6 leading-relaxed font-normal">
                                         Masuk ke Smart School LMS untuk melanjutkan aktivitas Anda.
                                     </p>
                                 </div>
 
-                                <form onSubmit={submit} className="space-y-5">
+                                <form onSubmit={submit} className="space-y-4">
                                     {/* Identifier Input */}
                                     <div>
-                                        <label htmlFor="login" className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-2">
+                                        <label htmlFor="login" className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
                                             EMAIL, NIP, NISN, ATAU USERNAME
                                         </label>
                                         <div className="relative flex items-center bg-[#EDF2F7] rounded-xl border border-slate-200/80 focus-within:border-slate-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#740D1E]/20 transition-all">
-                                            <User className="w-5 h-5 text-slate-400 ml-3.5 shrink-0 pointer-events-none" />
+                                            <User className="w-4.5 h-4.5 text-slate-400 ml-3.5 shrink-0 pointer-events-none" />
                                             <input
                                                 id="login"
                                                 type="text"
@@ -202,17 +209,17 @@ export default function Login({ status, canResetPassword }) {
                                                 value={data.login}
                                                 onChange={(e) => setData('login', e.target.value)}
                                                 placeholder="admin@tuksirah.com"
-                                                className="w-full bg-transparent py-3.5 pl-3 pr-4 text-slate-800 placeholder-slate-400 text-sm font-normal focus:outline-none rounded-xl"
+                                                className="w-full bg-transparent py-3 pl-3 pr-4 text-slate-800 placeholder-slate-400 text-sm font-normal focus:outline-none rounded-xl"
                                                 required
                                                 autoComplete="username"
                                             />
                                         </div>
-                                        <InputError message={errors.login || errors.email} className="mt-1.5 text-xs" />
+                                        <InputError message={errors.login || errors.email} className="mt-1 text-xs" />
                                     </div>
 
                                     {/* Password Input */}
                                     <div>
-                                        <div className="flex justify-between items-center mb-2">
+                                        <div className="flex justify-between items-center mb-1.5">
                                             <label htmlFor="password" className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                                                 KATA SANDI
                                             </label>
@@ -226,7 +233,7 @@ export default function Login({ status, canResetPassword }) {
                                             )}
                                         </div>
                                         <div className="relative flex items-center bg-[#EDF2F7] rounded-xl border border-slate-200/80 focus-within:border-slate-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#740D1E]/20 transition-all">
-                                            <Lock className="w-5 h-5 text-slate-400 ml-3.5 shrink-0 pointer-events-none" />
+                                            <Lock className="w-4.5 h-4.5 text-slate-400 ml-3.5 shrink-0 pointer-events-none" />
                                             <input
                                                 id="password"
                                                 type={showPassword ? 'text' : 'password'}
@@ -234,7 +241,7 @@ export default function Login({ status, canResetPassword }) {
                                                 value={data.password}
                                                 onChange={(e) => setData('password', e.target.value)}
                                                 placeholder="••••••••"
-                                                className="w-full bg-transparent py-3.5 pl-3 pr-10 text-slate-800 placeholder-slate-400 text-sm font-normal focus:outline-none rounded-xl"
+                                                className="w-full bg-transparent py-3 pl-3 pr-10 text-slate-800 placeholder-slate-400 text-sm font-normal focus:outline-none rounded-xl"
                                                 required
                                                 autoComplete="current-password"
                                             />
@@ -245,23 +252,23 @@ export default function Login({ status, canResetPassword }) {
                                                 tabIndex={-1}
                                                 aria-label="Tampilkan atau sembunyikan kata sandi"
                                             >
-                                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                                {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                                             </button>
                                         </div>
-                                        <InputError message={errors.password} className="mt-1.5 text-xs" />
+                                        <InputError message={errors.password} className="mt-1 text-xs" />
                                     </div>
 
                                     {/* Remember Me Checkbox */}
-                                    <div className="flex items-center my-6">
+                                    <div className="flex items-center pt-1 pb-1">
                                         <label className="flex items-center cursor-pointer select-none">
                                             <input
                                                 type="checkbox"
                                                 name="remember"
                                                 checked={data.remember}
                                                 onChange={(e) => setData('remember', e.target.checked)}
-                                                className="w-5 h-5 rounded-md border-slate-300 text-[#6a0918] focus:ring-[#6a0918] cursor-pointer"
+                                                className="w-4.5 h-4.5 rounded border-slate-300 text-[#6a0918] focus:ring-[#6a0918] cursor-pointer"
                                             />
-                                            <span className="ml-3 text-xs sm:text-sm text-slate-600 font-medium">
+                                            <span className="ml-2.5 text-xs sm:text-sm text-slate-600 font-medium">
                                                 Ingat sesi masuk di perangkat ini
                                             </span>
                                         </label>
@@ -271,19 +278,19 @@ export default function Login({ status, canResetPassword }) {
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="w-full py-4 px-6 bg-[#6a0918] hover:bg-[#520512] active:bg-[#40030d] text-white font-bold rounded-xl text-base flex items-center justify-center gap-2 shadow-lg shadow-[#6a0918]/30 transition duration-200 cursor-pointer disabled:opacity-75"
+                                        className="w-full py-3.5 px-6 bg-[#6a0918] hover:bg-[#520512] active:bg-[#40030d] text-white font-bold rounded-xl text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-[#6a0918]/30 transition duration-200 cursor-pointer disabled:opacity-75"
                                     >
                                         <span>{processing ? 'Memverifikasi...' : 'Masuk ke Sistem'}</span>
-                                        <ArrowRight className="w-5 h-5" />
+                                        <ArrowRight className="w-4.5 h-4.5" />
                                     </button>
                                 </form>
 
                                 {/* Quick Fill Demo Accounts Toggle */}
-                                <div className="mt-6 pt-4 border-t border-slate-100">
+                                <div className="mt-5 pt-3.5 border-t border-slate-100">
                                     <button
                                         type="button"
                                         onClick={() => setShowDemoAccounts(!showDemoAccounts)}
-                                        className="w-full flex items-center justify-between text-xs font-semibold text-slate-500 hover:text-[#6a0918] transition py-1"
+                                        className="w-full flex items-center justify-between text-xs font-semibold text-slate-500 hover:text-[#6a0918] transition py-0.5"
                                     >
                                         <span className="flex items-center gap-1.5">
                                             <ShieldCheck className="w-4 h-4 text-[#6a0918]" />
@@ -293,8 +300,8 @@ export default function Login({ status, canResetPassword }) {
                                     </button>
 
                                     {showDemoAccounts && (
-                                        <div className="mt-3 space-y-2 pt-1 animate-fadeIn">
-                                            <p className="text-[11px] text-slate-400 mb-2">
+                                        <div className="mt-2.5 space-y-2 pt-1 max-h-[150px] overflow-y-auto pr-1">
+                                            <p className="text-[11px] text-slate-400 mb-1.5">
                                                 Sandi semua akun: <span className="font-mono font-bold text-[#6a0918]">password123</span>
                                             </p>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -303,9 +310,9 @@ export default function Login({ status, canResetPassword }) {
                                                         key={idx}
                                                         type="button"
                                                         onClick={() => fillDemo(acc.identifier)}
-                                                        className="text-left p-2.5 rounded-lg border border-slate-200 hover:border-[#6a0918]/30 hover:bg-[#FFF0F2] transition text-xs"
+                                                        className="text-left p-2 rounded-lg border border-slate-200 hover:border-[#6a0918]/30 hover:bg-[#FFF0F2] transition text-xs"
                                                     >
-                                                        <span className="font-bold text-slate-800 block truncate">{acc.role}</span>
+                                                        <span className="font-bold text-slate-800 block truncate text-[11px]">{acc.role}</span>
                                                         <span className="text-[10px] text-slate-500 font-mono block truncate">{acc.identifier}</span>
                                                     </button>
                                                 ))}
@@ -318,16 +325,10 @@ export default function Login({ status, canResetPassword }) {
 
                     </main>
 
-                    {/* Footer Links */}
-                    <footer className="pt-4 text-left text-xs text-white/60">
-                        <Link href="/" className="hover:text-white transition font-medium">
-                            ← Kembali ke Halaman Beranda
-                        </Link>
-                    </footer>
-
                 </div>
             </div>
         </>
     );
 }
+
 
