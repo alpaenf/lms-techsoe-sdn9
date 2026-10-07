@@ -25,6 +25,11 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/clear-cache', function () {
+    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+    return '<h1>Cache Laravel & View Berhasil Dibersihkan!</h1><p><a href="/login">Kembali ke Halaman Login</a></p>';
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     // 01. Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
