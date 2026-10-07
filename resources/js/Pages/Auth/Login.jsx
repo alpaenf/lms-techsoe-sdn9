@@ -122,6 +122,7 @@ export default function Login({ status, canResetPassword }) {
                                         src="/logo.webp"
                                         alt="Logo UPT SDN 9 Gandangbatu Sillanan"
                                         className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 object-contain drop-shadow-md group-hover:scale-105 transition duration-200 shrink-0"
+                                        style={{ maxWidth: '64px', maxHeight: '64px', width: 'auto', height: 'auto' }}
                                     />
                                     <div>
                                         <h1 className="text-white font-extrabold text-sm sm:text-lg lg:text-xl leading-tight tracking-tight">
