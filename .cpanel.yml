@@ -3,6 +3,7 @@ deployment:
   tasks:
     - /bin/cp -R app bootstrap config database resources routes /home/sdnt7854/lms_sdn9/
     - /bin/cp artisan composer.json composer.lock package.json package-lock.json vite.config.js tailwind.config.js postcss.config.js phpunit.xml /home/sdnt7854/lms_sdn9/
+    - /bin/cp -R public/build /home/sdnt7854/lms_sdn9/public/
     - /bin/cp -R public/build /home/sdnt7854/public_html/
     - /bin/cp -R public/images /home/sdnt7854/public_html/
     - /bin/cp public/logo.webp public/favicon.ico public/robots.txt /home/sdnt7854/public_html/
