@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import InputError from '@/Components/InputError';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { 
-    Lock, 
-    User, 
-    Eye, 
-    EyeOff, 
-    ArrowRight, 
+import {
+    Lock,
+    User,
+    Eye,
+    EyeOff,
+    ArrowRight,
     Calendar,
     ShieldCheck,
     ChevronDown
@@ -98,9 +98,9 @@ export default function Login({ status, canResetPassword }) {
 
                 {/* School Photo Background at Bottom Left with Smooth Maroon Overlay Gradient */}
                 <div className="absolute bottom-0 left-0 w-full lg:w-[58%] h-[40%] lg:h-[58%] pointer-events-none z-0 overflow-hidden">
-                    <img 
-                        src="/images/sdnfoto.png" 
-                        alt="Gedung UPT SDN 9 Gandangbatu Sillanan" 
+                    <img
+                        src="/images/sdnfoto.webp"
+                        alt="Gedung UPT SDN 9 Gandangbatu Sillanan"
                         className="w-full h-full object-cover object-left-bottom opacity-30 mix-blend-overlay filter contrast-125 brightness-90"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#45040F] via-transparent to-[#650817]" />
@@ -109,28 +109,28 @@ export default function Login({ status, canResetPassword }) {
 
                 {/* Main Interactive Content */}
                 <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-5 lg:py-8 h-full flex-1 flex flex-col justify-between">
-                    
+
                     <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-stretch h-full flex-1">
-                        
+
                         {/* Left Hero & Headline (Col 1 to 7) */}
                         <div className="lg:col-span-7 flex flex-col justify-between py-2 space-y-6 lg:space-y-0 h-full">
-                            
+
                             {/* Top Header Logo */}
                             <div>
-                                <Link href="/" className="inline-flex items-center space-x-3.5 group">
-                                    <img 
-                                        src="/logo.webp" 
-                                        alt="Logo UPT SDN 9" 
-                                        className="w-13 h-13 sm:w-15 sm:h-15 lg:w-16 lg:h-16 object-contain drop-shadow-md group-hover:scale-105 transition duration-200" 
+                                <Link href="/" className="inline-flex items-center space-x-2.5 sm:space-x-3.5 group">
+                                    <img
+                                        src="/logo.webp"
+                                        alt="Logo UPT SDN 9 Gandangbatu Sillanan"
+                                        className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 object-contain drop-shadow-md group-hover:scale-105 transition duration-200 shrink-0"
                                     />
                                     <div>
-                                        <h1 className="text-white font-extrabold text-base sm:text-lg lg:text-xl leading-tight tracking-tight">
+                                        <h1 className="text-white font-extrabold text-sm sm:text-lg lg:text-xl leading-tight tracking-tight">
                                             UPT SDN 9
                                         </h1>
-                                        <h2 className="text-white font-extrabold text-base sm:text-lg lg:text-xl leading-tight tracking-tight">
+                                        <h2 className="text-white font-extrabold text-sm sm:text-lg lg:text-xl leading-tight tracking-tight">
                                             Gandangbatu Sillanan
                                         </h2>
-                                        <p className="text-white/70 text-xs sm:text-sm font-normal mt-0.5">
+                                        <p className="text-white/70 text-[11px] sm:text-xs lg:text-sm font-normal mt-0.5">
                                             Smart School LMS
                                         </p>
                                     </div>
@@ -178,7 +178,7 @@ export default function Login({ status, canResetPassword }) {
                         {/* Right Login Card (Col 8 to 12) */}
                         <div className="lg:col-span-5 flex items-center justify-center lg:justify-end h-full">
                             <div className="bg-white rounded-[24px] sm:rounded-[28px] p-6 sm:p-9 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] w-full max-w-[440px] border border-white/20 relative my-auto">
-                                
+
                                 {status && (
                                     <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800">
                                         {status}
@@ -208,7 +208,7 @@ export default function Login({ status, canResetPassword }) {
                                                 name="login"
                                                 value={data.login}
                                                 onChange={(e) => setData('login', e.target.value)}
-                                                placeholder="admin@tuksirah.com"
+                                                placeholder="admin@gandasil.id"
                                                 className="w-full bg-transparent py-3 pl-3 pr-4 text-slate-800 placeholder-slate-400 text-sm font-normal focus:outline-none rounded-xl"
                                                 required
                                                 autoComplete="username"

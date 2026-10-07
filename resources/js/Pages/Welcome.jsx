@@ -252,9 +252,11 @@ export default function Welcome({ auth }) {
                         
                         {/* Brand Identity (Left) */}
                         <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 rounded-xl bg-[#8B001F] flex items-center justify-center text-white shadow-sm shrink-0">
-                                <GraduationCap className="w-6 h-6" />
-                            </div>
+                            <img 
+                                src="/logo.webp" 
+                                alt="Logo UPT SDN 9 Gandangbatu Sillanan" 
+                                className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0" 
+                            />
                             <div>
                                 <span className="text-base font-bold text-[#142033] block leading-tight">
                                     UPT SDN 9 Gandangbatu Sillanan
@@ -413,7 +415,7 @@ export default function Welcome({ auth }) {
 
                             </div>
 
-                            {/* Right Visual — Uses /images/herohiasan.png (Enlarged Leftward + Aligned Right) */}
+                            {/* Right Visual — Uses /images/herohiasan.webp (Enlarged Leftward + Aligned Right) */}
                             <div className="lg:col-span-6 flex justify-center lg:justify-end relative">
                                 <div className="relative w-full max-w-2xl lg:max-w-none lg:w-[138%] xl:w-[148%] lg:-ml-18 xl:-ml-28 lg:mr-0 ml-auto">
                                     
@@ -424,7 +426,7 @@ export default function Welcome({ auth }) {
                                     <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-[70%] h-14 bg-[#8B001F]/15 blur-3xl rounded-full pointer-events-none"></div>
 
                                     <img 
-                                        src="/images/herohiasan.png" 
+                                        src="/images/herohiasan.webp" 
                                         alt="Smart School LMS UPT SDN 9 Gandangbatu Sillanan Dashboard Mockup" 
                                         className="relative z-10 w-full h-auto object-contain filter drop-shadow-[0_20px_25px_rgba(0,0,0,0.18)]"
                                         loading="eager"
@@ -502,11 +504,11 @@ export default function Welcome({ auth }) {
                                 </div>
                             </div>
 
-                            {/* Middle Column: Real Photo of SD (/images/sdnfoto.png) (4 Cols with object-right) */}
+                            {/* Middle Column: Real Photo of SD (/images/sdnfoto.webp) (4 Cols with object-right) */}
                             <div className="lg:col-span-4 flex items-center">
                                 <div className="w-full h-full rounded-2xl overflow-hidden shadow-sm border border-[#E5EAF0]">
                                     <img 
-                                        src="/images/sdnfoto.png" 
+                                        src="/images/sdnfoto.webp" 
                                         alt="Gedung UPT SDN 9 Gandangbatu Sillanan" 
                                         className="w-full h-full object-cover object-right min-h-[320px] max-h-[440px] rounded-2xl"
                                     />
@@ -832,7 +834,7 @@ export default function Welcome({ auth }) {
                                     <div className="absolute -bottom-32 xl:-bottom-36 right-0 left-0 flex justify-center items-end pointer-events-none">
                                         <div className="w-[310px] xl:w-[340px] max-w-none translate-y-14">
                                             <img 
-                                                src="/images/mokuphp.png" 
+                                                src="/images/mokuphp.webp" 
                                                 alt="Smart School LMS UPT SDN 9 Gandangbatu Sillanan Mobile App Mockup" 
                                                 className="w-full h-auto object-contain drop-shadow-2xl"
                                                 loading="lazy"
@@ -845,7 +847,7 @@ export default function Welcome({ auth }) {
                                 <div className="lg:hidden flex justify-center pt-2">
                                     <div className="max-w-[240px]">
                                         <img 
-                                            src="/images/mokuphp.png" 
+                                            src="/images/mokuphp.webp" 
                                             alt="Smart School LMS UPT SDN 9 Gandangbatu Sillanan Mobile App Mockup" 
                                             className="w-full h-auto object-contain drop-shadow-xl"
                                             loading="lazy"
@@ -972,9 +974,11 @@ export default function Welcome({ auth }) {
                             {/* Brand info */}
                             <div className="space-y-2">
                                 <div className="flex items-center space-x-2">
-                                    <div className="w-7 h-7 rounded-lg bg-[#8B001F] flex items-center justify-center text-white shrink-0">
-                                        <GraduationCap className="w-4 h-4" />
-                                    </div>
+                                    <img 
+                                        src="/logo.webp" 
+                                        alt="Logo UPT SDN 9 Gandangbatu Sillanan" 
+                                        className="w-8 h-8 object-contain shrink-0" 
+                                    />
                                     <span className="font-bold text-[#142033] text-sm">
                                         UPT SDN 9 Gandangbatu Sillanan
                                     </span>
