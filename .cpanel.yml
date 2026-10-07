@@ -1,5 +1,4 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/sdnt7854/public_html
-    - /bin/cp -R * $DEPLOYPATH
+    - /bin/cp -R * /home/sdnt7854/public_html
