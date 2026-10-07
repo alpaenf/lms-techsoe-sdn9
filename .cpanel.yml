@@ -1,0 +1,6 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/sdnt7854/public_html
+    - /bin/cp -R * $DEPLOYPATH
+    - chmod -R 775 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache
