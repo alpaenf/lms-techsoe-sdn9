@@ -1,5 +1,4 @@
 ---
 deployment:
   tasks:
-    - /bin/cp -R app bootstrap config database public resources routes storage tests artisan composer.json composer.lock package.json vite.config.js /home/sdnt7854/
-    - /bin/cp -R public/* /home/sdnt7854/public_html/
+    - /bin/cp -R * /home/sdnt7854/public_html
