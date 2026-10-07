@@ -1,0 +1,28 @@
+name: Auto Deploy to cPanel (Rumahweb)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Trigger cPanel Deployment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Trigger cPanel Git Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: sdn9gandangbatu.sch.id
+          port: 2223
+          username: sdnt7854
+          password: ${{ secrets.CPANEL_PASSWORD }}
+          script: |
+            uapi VersionControl update repository_root=/home/sdnt7854/repositories/lms-techsoe-sdn9
+            uapi VersionControl deploy repository_root=/home/sdnt7854/repositories/lms-techsoe-sdn9
+            /opt/cpanel/ea-php83/root/usr/bin/php /home/sdnt7854/lms_sdn9/artisan optimize:clear
+
