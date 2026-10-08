@@ -180,70 +180,37 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                             {teachers.map((t) => (
                                 <div
                                     key={t.id}
-                                    className="bg-white rounded-2xl border border-[#E5EAF0] shadow-sm hover:shadow-md hover:border-[#8B001F]/30 transition duration-200 overflow-hidden flex flex-col justify-between group"
+                                    className="bg-white rounded-2xl border border-[#E5EAF0] shadow-sm hover:shadow-md hover:border-[#8B001F]/30 transition duration-200 overflow-hidden flex flex-col group"
                                 >
-                                    <div>
-                                        {/* Photo Header */}
-                                        <div className="h-56 w-full bg-[#FFF0F2] relative overflow-hidden flex items-center justify-center border-b border-[#E5EAF0]">
-                                            {t.photo ? (
-                                                <img
-                                                    src={t.photo}
-                                                    alt={t.full_name}
-                                                    className="w-full h-full object-cover object-center group-hover:scale-105 transition duration-300"
-                                                />
-                                            ) : (
-                                                <div className="w-24 h-24 rounded-full bg-[#8B001F]/10 border-2 border-[#8B001F]/20 text-[#8B001F] flex items-center justify-center font-extrabold text-3xl shadow-inner">
-                                                    {t.full_name?.charAt(0) || 'G'}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Teacher Info */}
-                                        <div className="p-5 space-y-3">
-                                            <div>
-                                                <h3 className="text-base font-bold text-[#142033] group-hover:text-[#8B001F] transition leading-snug">
-                                                    {t.full_name}
-                                                </h3>
-                                                <p className="text-xs text-[#64748B] font-medium mt-0.5">
-                                                    {t.role === 'pimpinan'
-                                                        ? 'Kepala Sekolah'
-                                                        : t.role === 'bk'
-                                                            ? 'Guru Bimbingan Konseling'
-                                                            : t.homeroom_class
-                                                                ? `Wali Kelas ${t.homeroom_class}`
-                                                                : 'Guru Mata Pelajaran'}
-                                                </p>
+                                    {/* Photo Header */}
+                                    <div className="h-64 w-full bg-[#FFF0F2] relative overflow-hidden flex items-center justify-center border-b border-[#E5EAF0]">
+                                        {t.photo ? (
+                                            <img
+                                                src={t.photo}
+                                                alt={t.full_name}
+                                                className="w-full h-full object-cover object-center group-hover:scale-105 transition duration-300"
+                                            />
+                                        ) : (
+                                            <div className="w-24 h-24 rounded-full bg-[#8B001F]/10 border-2 border-[#8B001F]/20 text-[#8B001F] flex items-center justify-center font-extrabold text-3xl shadow-inner">
+                                                {t.full_name?.charAt(0) || 'G'}
                                             </div>
-
-                                            <div className="space-y-1.5 pt-2 border-t border-[#E5EAF0] text-xs text-[#64748B]">
-                                                {t.nip && (
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-[11px] font-semibold text-slate-400 uppercase">NIP:</span>
-                                                        <span className="font-mono font-bold text-slate-800 text-[11px]">{t.nip}</span>
-                                                    </div>
-                                                )}
-                                                {t.education_level && (
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-[11px] font-semibold text-slate-400 uppercase">Pendidikan:</span>
-                                                        <span className="font-semibold text-slate-700 text-[11px]">{t.education_level}</span>
-                                                    </div>
-                                                )}
-                                                {t.gender && (
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-[11px] font-semibold text-slate-400 uppercase">Jenis Kelamin:</span>
-                                                        <span className="font-semibold text-slate-700 text-[11px]">{t.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
+                                        )}
                                     </div>
 
-                                    {/* Footer Contact */}
-                                    <div className="px-5 py-3 bg-[#F7F8FA] border-t border-[#E5EAF0] flex items-center justify-between text-xs">
-                                        <div className="flex items-center space-x-1.5 text-slate-500 font-mono text-[11px] truncate">
-                                            <Mail className="w-3.5 h-3.5 text-[#8B001F] shrink-0" />
-                                            <span className="truncate">{t.email || '-'}</span>
-                                        </div>
+                                    {/* Teacher Info */}
+                                    <div className="p-5 text-center flex-1 flex flex-col justify-center space-y-1.5">
+                                        <h3 className="text-base font-bold text-[#142033] group-hover:text-[#8B001F] transition leading-snug">
+                                            {t.full_name}
+                                        </h3>
+                                        <p className="text-xs font-semibold text-[#8B001F]">
+                                            {t.role === 'pimpinan'
+                                                ? 'Kepala Sekolah'
+                                                : t.role === 'bk'
+                                                    ? 'Guru Bimbingan Konseling'
+                                                    : t.homeroom_class
+                                                        ? `Wali Kelas ${t.homeroom_class}`
+                                                        : 'Guru Mata Pelajaran'}
+                                        </p>
                                     </div>
                                 </div>
                             ))}
