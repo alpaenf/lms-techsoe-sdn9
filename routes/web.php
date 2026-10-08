@@ -13,6 +13,8 @@ use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentExamController;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -45,6 +47,12 @@ Route::get('/tenaga-pendidik', function () {
         ],
     ]);
 })->name('tenaga-pendidik.index');
+
+Route::get('/clear-cache', function () {
+    Artisan::call('optimize:clear');
+
+    return '<h1>Cache Laravel & View Berhasil Dibersihkan!</h1><p><a href="/login">Kembali ke Halaman Login</a></p>';
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // 01. Dashboard
