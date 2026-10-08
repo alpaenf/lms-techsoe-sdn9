@@ -22,7 +22,7 @@ class DashboardController extends Controller
 
         // Active Academic Year
         $activeYear = DB::table('academic_years')->where('is_active', true)->first();
-        $data['academicYear'] = $activeYear ? "{$activeYear->name} • " . ucfirst($activeYear->semester) : '2026/2027 • Ganjil';
+        $data['academicYear'] = $activeYear ? "{$activeYear->name} • ".ucfirst($activeYear->semester) : '2026/2027 • Ganjil';
 
         // School Profile Info
         $schoolProfile = DB::table('school_profiles')->find(1);
@@ -70,6 +70,7 @@ class DashboardController extends Controller
                 ->get()
                 ->map(function ($cls) {
                     $cls->student_count = DB::table('students')->where('class_id', $cls->id)->count();
+
                     return $cls;
                 });
         } elseif ($role === 'pimpinan') {
@@ -79,7 +80,7 @@ class DashboardController extends Controller
                 ->where('attendance_date', $today)
                 ->where('status', 'Hadir')
                 ->count();
-            
+
             if ($teachersPresent === 0 && $totalTeachers > 0) {
                 $latestDate = DB::table('teacher_attendances')->max('attendance_date');
                 if ($latestDate) {
@@ -92,8 +93,8 @@ class DashboardController extends Controller
 
             $totalAttendances = DB::table('student_attendances')->count();
             $hadirCount = DB::table('student_attendances')->where('status', 'Hadir')->count();
-            $attendancePercentage = $totalAttendances > 0 
-                ? number_format(($hadirCount / $totalAttendances) * 100, 1) . '%' 
+            $attendancePercentage = $totalAttendances > 0
+                ? number_format(($hadirCount / $totalAttendances) * 100, 1).'%'
                 : '100.0%';
 
             $verifiedRaports = DB::table('raport_evaluations')->whereIn('status', ['verified_wali_kelas', 'approved_kepsek'])->count();
@@ -124,7 +125,7 @@ class DashboardController extends Controller
 
             $data['teacher'] = $teacher;
             $data['homeroom_class'] = $homeroomClass;
-            
+
             $teacherSubjectIds = $teacher ? DB::table('teacher_subjects')->where('teacher_id', $teacher->id)->pluck('id') : collect([]);
             $topicIds = DB::table('topics')->whereIn('teacher_subject_id', $teacherSubjectIds)->pluck('id');
 
@@ -141,7 +142,7 @@ class DashboardController extends Controller
                 ->join('students', 'assignment_submissions.student_id', '=', 'students.id')
                 ->whereNull('assignment_submissions.score')
                 ->select(
-                    'assignment_submissions.*', 
+                    'assignment_submissions.*',
                     'assignments.title as assignment_title',
                     'students.full_name as student_name'
                 )
@@ -163,7 +164,7 @@ class DashboardController extends Controller
                 ->join('students', 'discipline_violations.student_id', '=', 'students.id')
                 ->leftJoin('classes', 'students.class_id', '=', 'classes.id')
                 ->select(
-                    'discipline_violations.*', 
+                    'discipline_violations.*',
                     'students.full_name as student_name',
                     'classes.name as class_name'
                 )
@@ -175,7 +176,7 @@ class DashboardController extends Controller
                 ->join('students', 'counseling_sessions.student_id', '=', 'students.id')
                 ->leftJoin('classes', 'students.class_id', '=', 'classes.id')
                 ->select(
-                    'counseling_sessions.*', 
+                    'counseling_sessions.*',
                     'students.full_name as student_name',
                     'classes.name as class_name'
                 )
@@ -192,7 +193,7 @@ class DashboardController extends Controller
                 ->first() : null;
 
             $studentId = $student?->id;
-            
+
             $hadirCount = $studentId ? DB::table('student_attendances')->where('student_id', $studentId)->where('status', 'Hadir')->count() : 18;
             $izinCount = $studentId ? DB::table('student_attendances')->where('student_id', $studentId)->where('status', 'Izin')->count() : 1;
             $sakitCount = $studentId ? DB::table('student_attendances')->where('student_id', $studentId)->where('status', 'Sakit')->count() : 1;
@@ -245,4 +246,3 @@ class DashboardController extends Controller
         };
     }
 }
-

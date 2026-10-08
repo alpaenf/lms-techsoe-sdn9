@@ -1,17 +1,17 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\BKController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ELearningController;
+use App\Http\Controllers\ERaporController;
+use App\Http\Controllers\ExamController;
 use App\Http\Controllers\KelembagaanController;
 use App\Http\Controllers\MasterDataController;
-use App\Http\Controllers\ELearningController;
-use App\Http\Controllers\PresensiController;
-use App\Http\Controllers\ERaporController;
-use App\Http\Controllers\BKController;
-use App\Http\Controllers\ExamController;
-use App\Http\Controllers\StudentExamController;
-use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PresensiController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StudentExamController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -24,6 +24,27 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+Route::get('/tenaga-pendidik', function () {
+    $teachers = DB::table('teachers')
+        ->leftJoin('users', 'teachers.user_id', '=', 'users.id')
+        ->leftJoin('classes', 'classes.homeroom_teacher_id', '=', 'teachers.id')
+        ->select(
+            'teachers.*',
+            'users.email',
+            'users.role',
+            'classes.name as homeroom_class'
+        )
+        ->orderBy('teachers.full_name')
+        ->get();
+
+    return Inertia::render('TenagaPendidik', [
+        'teachers' => $teachers,
+        'auth' => [
+            'user' => auth()->user(),
+        ],
+    ]);
+})->name('tenaga-pendidik.index');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // 01. Dashboard
@@ -99,8 +120,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/bk/achievements', [BKController::class, 'storeAchievement'])->name('bk.achievements.store');
     Route::delete('/bk/achievements/{id}', [BKController::class, 'destroyAchievement'])->name('bk.achievements.destroy');
 
-    // 08. Ujian Online - Guru Routes
-    Route::prefix('exams')->middleware(['role:guru,admin'])->group(function () {
+    // 08. Ujian Online - Guru & Pimpinan (Supervisi) Routes
+    Route::prefix('exams')->middleware(['role:guru,admin,pimpinan'])->group(function () {
         Route::get('/', [ExamController::class, 'index'])->name('exams.index');
         Route::get('/create', [ExamController::class, 'create'])->name('exams.create');
         Route::post('/', [ExamController::class, 'store'])->name('exams.store');
@@ -108,19 +129,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{exam}/edit', [ExamController::class, 'edit'])->name('exams.edit');
         Route::put('/{exam}', [ExamController::class, 'update'])->name('exams.update');
         Route::delete('/{exam}', [ExamController::class, 'destroy'])->name('exams.destroy');
-        
+
         // Questions management
         Route::post('/{exam}/questions', [ExamController::class, 'addQuestion'])->name('exams.questions.add');
         Route::put('/questions/{question}', [ExamController::class, 'updateQuestion'])->name('exams.questions.update');
         Route::delete('/questions/{question}', [ExamController::class, 'deleteQuestion'])->name('exams.questions.delete');
         Route::post('/questions/{question}/upload-image', [ExamController::class, 'uploadQuestionImage'])->name('exams.questions.image');
-        
+
         // Monitoring & Grading
         Route::get('/{exam}/monitor', [ExamController::class, 'monitor'])->name('exams.monitor');
         Route::get('/{exam}/results', [ExamController::class, 'results'])->name('exams.results');
         Route::get('/{exam}/export', [ExamController::class, 'exportResults'])->name('exams.export');
         Route::post('/answers/{answer}/grade', [ExamController::class, 'gradeEssay'])->name('exams.grade');
-        
+
         // Publish/Close
         Route::post('/{exam}/publish', [ExamController::class, 'publish'])->name('exams.publish');
         Route::post('/{exam}/close', [ExamController::class, 'close'])->name('exams.close');
@@ -141,7 +162,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // 10. Pengumuman & Berita Sekolah
     Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
     Route::get('/announcements/{id}', [AnnouncementController::class, 'show'])->name('announcements.show');
-    
+
     // Admin only - manage announcements
     Route::middleware(['role:admin,pimpinan'])->group(function () {
         Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');

@@ -18,8 +18,8 @@ class ERaporController extends Controller
         // Check if user is student - only show their own rapor
         if ($user->role === 'siswa') {
             $student = DB::table('students')->where('user_id', $user->id)->first();
-            
-            if (!$student) {
+
+            if (! $student) {
                 return Inertia::render('ERapor/Index', [
                     'error' => 'Data siswa tidak ditemukan',
                 ]);
@@ -74,7 +74,7 @@ class ERaporController extends Controller
         // For teachers/admin - show class selection
         $classes = DB::table('classes')->orderBy('grade_level')->get();
         $defaultClassId = $classes->first()?->id ?? 1;
-        $selectedClassId = (int)$request->query('class_id', $defaultClassId);
+        $selectedClassId = (int) $request->query('class_id', $defaultClassId);
 
         $selectedClass = DB::table('classes')
             ->leftJoin('teachers', 'classes.homeroom_teacher_id', '=', 'teachers.id')
@@ -148,7 +148,7 @@ class ERaporController extends Controller
         $academicYearId = $academicYear?->id ?? 1;
 
         $student = DB::table('students')->where('id', $request->student_id)->first();
-        if (!$student) {
+        if (! $student) {
             return back()->withErrors(['student_id' => 'Siswa tidak ditemukan.']);
         }
 
@@ -159,7 +159,7 @@ class ERaporController extends Controller
             ->where('academic_year_id', $academicYearId)
             ->first();
 
-        if (!$ts) {
+        if (! $ts) {
             $defaultTeacher = DB::table('teachers')->first();
             $tsId = DB::table('teacher_subjects')->insertGetId([
                 'teacher_id' => $defaultTeacher?->id ?? 1,
@@ -173,9 +173,9 @@ class ERaporController extends Controller
             $tsId = $ts->id;
         }
 
-        $tugas = (float)$request->tugas_avg;
-        $uts = (float)$request->uts_score;
-        $uas = (float)$request->uas_score;
+        $tugas = (float) $request->tugas_avg;
+        $uts = (float) $request->uts_score;
+        $uas = (float) $request->uas_score;
         $finalScore = round(($tugas * 0.30) + ($uts * 0.30) + ($uas * 0.40), 2);
 
         $letterGrade = 'C';
@@ -279,4 +279,3 @@ class ERaporController extends Controller
         return back()->with('message', 'Seluruh rapor rombel berhasil disahkan secara digital oleh Kepala Sekolah.');
     }
 }
-

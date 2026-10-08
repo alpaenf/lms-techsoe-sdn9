@@ -89,7 +89,7 @@ class BKController extends Controller
             'student_id' => $request->student_id,
             'violation_date' => $request->violation_date,
             'violation_name' => $request->violation_name,
-            'penalty_points' => (int)$request->penalty_points,
+            'penalty_points' => (int) $request->penalty_points,
             'sanction_action' => $request->sanction_action,
             'call_letter_sent' => $request->boolean('call_letter_sent', false),
             'created_at' => now(),
@@ -125,19 +125,21 @@ class BKController extends Controller
     public function destroySession($id)
     {
         DB::table('counseling_sessions')->where('id', $id)->delete();
+
         return back()->with('message', 'Catatan sesi konseling berhasil dihapus.');
     }
 
     public function destroyViolation($id)
     {
         DB::table('discipline_violations')->where('id', $id)->delete();
+
         return back()->with('message', 'Catatan pelanggaran berhasil dihapus.');
     }
 
     public function destroyAchievement($id)
     {
         DB::table('student_achievements')->where('id', $id)->delete();
+
         return back()->with('message', 'Catatan prestasi berhasil dihapus.');
     }
 }
-

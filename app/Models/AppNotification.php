@@ -37,19 +37,19 @@ class AppNotification extends Model
 
     public function scopeForUser($query, $user)
     {
-        if (!$user) {
+        if (! $user) {
             return $query->whereRaw('1 = 0');
         }
 
         return $query->where(function ($q) use ($user) {
             $q->where('user_id', $user->id)
-              ->orWhere(function ($q2) use ($user) {
-                  $q2->whereNull('user_id')
-                     ->where(function ($q3) use ($user) {
-                         $q3->whereNull('role')
-                            ->orWhere('role', $user->role);
-                     });
-              });
+                ->orWhere(function ($q2) use ($user) {
+                    $q2->whereNull('user_id')
+                        ->where(function ($q3) use ($user) {
+                            $q3->whereNull('role')
+                                ->orWhere('role', $user->role);
+                        });
+                });
         });
     }
 

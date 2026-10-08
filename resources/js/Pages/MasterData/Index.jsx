@@ -178,7 +178,7 @@ export default function MasterDataIndex({
         setEditingTeacher(null);
         setTeacherForm({
             full_name: '', nip: '', gender: 'L', employment_status: 'PNS',
-            education_level: 'S1', email: '', role: 'guru'
+            education_level: 'S1', email: '', role: 'guru', photo: null
         });
         setIsTeacherModalOpen(true);
     };
@@ -192,7 +192,8 @@ export default function MasterDataIndex({
             employment_status: tc.employment_status || 'PNS',
             education_level: tc.education_level || 'S1',
             email: tc.email || '',
-            role: tc.role || 'guru'
+            role: tc.role || 'guru',
+            photo: null
         });
         setIsTeacherModalOpen(true);
     };
@@ -200,15 +201,34 @@ export default function MasterDataIndex({
     const handleSaveTeacher = (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-        const routeName = editingTeacher ? 'master-data.teachers.update' : 'master-data.teachers.store';
-        const routeParam = editingTeacher ? editingTeacher.id : undefined;
 
-        router[editingTeacher ? 'put' : 'post'](route(routeName, routeParam), teacherForm, {
+        const formData = new FormData();
+        formData.append('full_name', teacherForm.full_name || '');
+        formData.append('nip', teacherForm.nip || '');
+        formData.append('gender', teacherForm.gender || 'L');
+        formData.append('employment_status', teacherForm.employment_status || 'PNS');
+        formData.append('education_level', teacherForm.education_level || 'S1');
+        formData.append('email', teacherForm.email || '');
+        formData.append('role', teacherForm.role || 'guru');
+        if (teacherForm.photo instanceof File) {
+            formData.append('photo', teacherForm.photo);
+        }
+
+        const isEdit = !!editingTeacher;
+        if (isEdit) {
+            formData.append('_method', 'PUT');
+        }
+
+        const routeUrl = isEdit
+            ? route('master-data.teachers.update', editingTeacher.id)
+            : route('master-data.teachers.store');
+
+        router.post(routeUrl, formData, {
             preserveScroll: true,
             onSuccess: () => {
                 setIsSubmitting(false);
                 setIsTeacherModalOpen(false);
-                setNotification(editingTeacher ? 'Data pendidik berhasil diperbarui.' : 'Pendidik baru berhasil ditambahkan.');
+                setNotification(isEdit ? 'Data pendidik berhasil diperbarui.' : 'Pendidik baru berhasil ditambahkan.');
                 setTimeout(() => setNotification(null), 4000);
             },
             onError: () => setIsSubmitting(false)

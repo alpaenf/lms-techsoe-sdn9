@@ -139,7 +139,7 @@ class MasterDataController extends Controller
             $userId = DB::table('users')->insertGetId([
                 'name' => $validated['full_name'],
                 'username' => $validated['nisn'],
-                'email' => $validated['nisn'] . '@sdn9gandangbatu.sch.id',
+                'email' => $validated['nisn'].'@sdn9gandangbatu.sch.id',
                 'password' => Hash::make('password123'),
                 'role' => 'siswa',
                 'is_active' => true,
@@ -167,7 +167,7 @@ class MasterDataController extends Controller
             ]);
 
             // 3. Create Guardian record if specified
-            if (!empty($validated['guardian_name'])) {
+            if (! empty($validated['guardian_name'])) {
                 DB::table('guardians')->insert([
                     'student_id' => $studentId,
                     'relation_type' => $validated['guardian_relation'] ?? 'ayah',
@@ -187,14 +187,14 @@ class MasterDataController extends Controller
     public function updateStudent(Request $request, $id)
     {
         $student = DB::table('students')->where('id', $id)->first();
-        if (!$student) {
+        if (! $student) {
             return back()->withErrors(['error' => 'Data siswa tidak ditemukan.']);
         }
 
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'nisn' => 'required|string|size:10|unique:students,nisn,' . $id,
-            'nis' => 'required|string|max:20|unique:students,nis,' . $id,
+            'nisn' => 'required|string|size:10|unique:students,nisn,'.$id,
+            'nis' => 'required|string|max:20|unique:students,nis,'.$id,
             'nik' => 'nullable|string|max:20',
             'class_id' => 'required|exists:classes,id',
             'gender' => 'required|in:L,P',
@@ -232,7 +232,7 @@ class MasterDataController extends Controller
             ]);
 
             // Update/Insert Guardian
-            if (!empty($validated['guardian_name'])) {
+            if (! empty($validated['guardian_name'])) {
                 DB::table('guardians')->updateOrInsert(
                     ['student_id' => $student->id],
                     [
@@ -253,7 +253,7 @@ class MasterDataController extends Controller
     public function destroyStudent($id)
     {
         $student = DB::table('students')->where('id', $id)->first();
-        if (!$student) {
+        if (! $student) {
             return back()->withErrors(['error' => 'Data siswa tidak ditemukan.']);
         }
 
@@ -278,11 +278,18 @@ class MasterDataController extends Controller
             'education_level' => 'required|string|max:50',
             'email' => 'nullable|email|unique:users,email',
             'role' => 'required|in:guru,bk,pimpinan',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
-        DB::transaction(function () use ($validated) {
-            $username = !empty($validated['nip']) ? $validated['nip'] : 'guru_' . time();
-            $email = !empty($validated['email']) ? $validated['email'] : $username . '@sdn9gandangbatu.sch.id';
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('teachers', 'public');
+            $photoPath = '/storage/'.$path;
+        }
+
+        DB::transaction(function () use ($validated, $photoPath) {
+            $username = ! empty($validated['nip']) ? $validated['nip'] : 'guru_'.time();
+            $email = ! empty($validated['email']) ? $validated['email'] : $username.'@sdn9gandangbatu.sch.id';
 
             $userId = DB::table('users')->insertGetId([
                 'name' => $validated['full_name'],
@@ -302,6 +309,7 @@ class MasterDataController extends Controller
                 'gender' => $validated['gender'],
                 'employment_status' => $validated['employment_status'],
                 'education_level' => $validated['education_level'],
+                'photo' => $photoPath,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -313,27 +321,35 @@ class MasterDataController extends Controller
     public function updateTeacher(Request $request, $id)
     {
         $teacher = DB::table('teachers')->where('id', $id)->first();
-        if (!$teacher) {
+        if (! $teacher) {
             return back()->withErrors(['error' => 'Data pendidik tidak ditemukan.']);
         }
 
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'nip' => 'nullable|string|max:30|unique:teachers,nip,' . $id,
+            'nip' => 'nullable|string|max:30|unique:teachers,nip,'.$id,
             'gender' => 'required|in:L,P',
             'employment_status' => 'required|in:PNS,PPPK,GTT,Honorer',
             'education_level' => 'required|string|max:50',
-            'email' => 'nullable|email|unique:users,email,' . $teacher->user_id,
+            'email' => 'nullable|email|unique:users,email,'.$teacher->user_id,
             'role' => 'required|in:guru,bk,pimpinan',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
-        DB::transaction(function () use ($teacher, $validated) {
+        $photoPath = $teacher->photo;
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('teachers', 'public');
+            $photoPath = '/storage/'.$path;
+        }
+
+        DB::transaction(function () use ($teacher, $validated, $photoPath) {
             DB::table('teachers')->where('id', $teacher->id)->update([
                 'full_name' => $validated['full_name'],
                 'nip' => $validated['nip'] ?: null,
                 'gender' => $validated['gender'],
                 'employment_status' => $validated['employment_status'],
                 'education_level' => $validated['education_level'],
+                'photo' => $photoPath,
                 'updated_at' => now(),
             ]);
 
@@ -342,10 +358,10 @@ class MasterDataController extends Controller
                 'role' => $validated['role'],
                 'updated_at' => now(),
             ];
-            if (!empty($validated['email'])) {
+            if (! empty($validated['email'])) {
                 $userData['email'] = $validated['email'];
             }
-            if (!empty($validated['nip'])) {
+            if (! empty($validated['nip'])) {
                 $userData['username'] = $validated['nip'];
             }
 
@@ -358,7 +374,7 @@ class MasterDataController extends Controller
     public function destroyTeacher($id)
     {
         $teacher = DB::table('teachers')->where('id', $id)->first();
-        if (!$teacher) {
+        if (! $teacher) {
             return back()->withErrors(['error' => 'Data pendidik tidak ditemukan.']);
         }
 
@@ -401,7 +417,7 @@ class MasterDataController extends Controller
     public function updateSubject(Request $request, $id)
     {
         $validated = $request->validate([
-            'code' => 'required|string|max:20|unique:subjects,code,' . $id,
+            'code' => 'required|string|max:20|unique:subjects,code,'.$id,
             'name' => 'required|string|max:150',
             'category' => 'required|in:wajib,muatan_lokal,pilihan',
             'kkm' => 'required|numeric|min:0|max:100',
@@ -421,6 +437,7 @@ class MasterDataController extends Controller
     public function destroySubject($id)
     {
         DB::table('subjects')->where('id', $id)->delete();
+
         return back()->with('message', 'Mata pelajaran berhasil dihapus.');
     }
 }

@@ -82,7 +82,7 @@ class ELearningController extends Controller
                     ->first();
             }
 
-            return array_merge((array)$assignment, [
+            return array_merge((array) $assignment, [
                 'total_students' => $classStudentCount,
                 'submissions_count' => $submissionCount,
                 'my_submission' => $mySubmission,
@@ -114,7 +114,7 @@ class ELearningController extends Controller
             ->where('class_id', $classId)
             ->first();
 
-        if (!$teacherSubject) {
+        if (! $teacherSubject) {
             $tsId = DB::table('teacher_subjects')->insertGetId([
                 'teacher_id' => $teacherId,
                 'subject_id' => $subjectId,
@@ -133,7 +133,7 @@ class ELearningController extends Controller
             ->where('title', $title)
             ->first();
 
-        if (!$topic) {
+        if (! $topic) {
             $topicId = DB::table('topics')->insertGetId([
                 'teacher_subject_id' => $tsId,
                 'title' => $title,
@@ -187,7 +187,7 @@ class ELearningController extends Controller
     public function updateMaterial(Request $request, $id)
     {
         $material = DB::table('materials')->where('id', $id)->first();
-        if (!$material) {
+        if (! $material) {
             return back()->withErrors(['error' => 'Materi tidak ditemukan.']);
         }
 
@@ -275,7 +275,7 @@ class ELearningController extends Controller
     public function updateAssignment(Request $request, $id)
     {
         $assignment = DB::table('assignments')->where('id', $id)->first();
-        if (!$assignment) {
+        if (! $assignment) {
             return back()->withErrors(['error' => 'Tugas tidak ditemukan.']);
         }
 
@@ -332,7 +332,7 @@ class ELearningController extends Controller
         $user = auth()->user();
         $student = DB::table('students')->where('user_id', $user->id)->first();
 
-        if (!$student) {
+        if (! $student) {
             return back()->withErrors(['error' => 'Akun Anda tidak terdaftar sebagai peserta didik aktif.']);
         }
 
@@ -387,7 +387,7 @@ class ELearningController extends Controller
             ->where('assignments.id', $id)
             ->first();
 
-        if (!$assignment) {
+        if (! $assignment) {
             return response()->json(['error' => 'Penugasan tidak ditemukan.'], 404);
         }
 
@@ -405,6 +405,7 @@ class ELearningController extends Controller
 
         $studentList = $students->map(function ($st) use ($submissions) {
             $sub = $submissions->get($st->id);
+
             return [
                 'student_id' => $st->id,
                 'full_name' => $st->full_name,
@@ -416,7 +417,7 @@ class ELearningController extends Controller
                 'score' => $sub?->score,
                 'teacher_feedback' => $sub?->teacher_feedback,
                 'graded_at' => $sub?->graded_at,
-                'status' => $sub ? ($sub->score !== null ? 'graded' : 'submitted') : 'missing'
+                'status' => $sub ? ($sub->score !== null ? 'graded' : 'submitted') : 'missing',
             ];
         });
 

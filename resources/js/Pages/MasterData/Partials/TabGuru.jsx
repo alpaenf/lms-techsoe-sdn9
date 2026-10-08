@@ -27,7 +27,18 @@ export default function TabGuru({
                             teachers.map((t) => (
                                 <tr key={t.id} className="hover:bg-[#FDF2F4]/50 transition">
                                     <td className="px-4 py-3.5 font-mono font-bold text-slate-900">{t.nip || '-'}</td>
-                                    <td className="px-4 py-3.5 font-semibold text-slate-900">{t.full_name}</td>
+                                    <td className="px-4 py-3.5 font-semibold text-slate-900">
+                                        <div className="flex items-center space-x-3">
+                                            {t.photo ? (
+                                                <img src={t.photo} alt={t.full_name} className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0" />
+                                            ) : (
+                                                <div className="w-8 h-8 rounded-full bg-[#800020]/10 text-[#800020] flex items-center justify-center font-bold text-xs shrink-0">
+                                                    {t.full_name?.charAt(0) || 'G'}
+                                                </div>
+                                            )}
+                                            <span>{t.full_name}</span>
+                                        </div>
+                                    </td>
                                     <td className="px-4 py-3.5">{t.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</td>
                                     <td className="px-4 py-3.5">
                                         <span className="px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-700 border border-blue-500/20 font-semibold text-[11px]">

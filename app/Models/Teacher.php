@@ -19,6 +19,7 @@ class Teacher extends Model
         'gender',
         'employment_status',
         'education_level',
+        'photo',
     ];
 
     public function user(): BelongsTo

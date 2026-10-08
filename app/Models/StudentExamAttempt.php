@@ -63,8 +63,8 @@ class StudentExamAttempt extends Model
 
     public function isFullyGraded(): bool
     {
-        return !$this->answers()
-            ->whereHas('question', fn($q) => $q->where('question_type', 'essay'))
+        return ! $this->answers()
+            ->whereHas('question', fn ($q) => $q->where('question_type', 'essay'))
             ->whereNull('is_correct')
             ->exists();
     }

@@ -177,11 +177,11 @@ class DatabaseSeeder extends Seeder
         $studentIds = [];
         foreach ($studentsData as $st) {
             $uId = $st['user_id'];
-            if (!$uId) {
+            if (! $uId) {
                 $uId = DB::table('users')->insertGetId([
                     'name' => $st['name'],
                     'username' => $st['nisn'],
-                    'email' => strtolower(str_replace(' ', '', $st['name'])) . '@sdn9gandangbatu.sch.id',
+                    'email' => strtolower(str_replace(' ', '', $st['name'])).'@sdn9gandangbatu.sch.id',
                     'password' => $defaultPassword,
                     'role' => 'siswa',
                     'is_active' => true,
@@ -194,7 +194,7 @@ class DatabaseSeeder extends Seeder
                 'user_id' => $uId,
                 'nis' => $st['nis'],
                 'nisn' => $st['nisn'],
-                'nik' => '73180123456' . rand(1000, 9999),
+                'nik' => '73180123456'.rand(1000, 9999),
                 'full_name' => $st['name'],
                 'class_id' => $class6Id,
                 'gender' => $st['gender'],
@@ -213,9 +213,9 @@ class DatabaseSeeder extends Seeder
             DB::table('guardians')->insert([
                 'student_id' => $stId,
                 'relation_type' => 'ayah',
-                'name' => 'Orang Tua ' . $st['name'],
+                'name' => 'Orang Tua '.$st['name'],
                 'occupation' => 'Petani',
-                'phone_number' => '08219876' . rand(1000, 9999),
+                'phone_number' => '08219876'.rand(1000, 9999),
                 'address' => 'Dusun Gandangbatu',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -349,7 +349,9 @@ class DatabaseSeeder extends Seeder
             $date = date('Y-m-d', strtotime("-{$d} days"));
             // Skip weekends
             $dayOfWeek = date('N', strtotime($date));
-            if ($dayOfWeek >= 6) continue;
+            if ($dayOfWeek >= 6) {
+                continue;
+            }
 
             foreach ($studentIds as $sIdx => $sId) {
                 $status = $statuses[($d + $sIdx) % count($statuses)];

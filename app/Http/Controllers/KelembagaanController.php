@@ -122,7 +122,7 @@ class KelembagaanController extends Controller
         }
 
         DB::table('academic_years')->where('id', $id)->delete();
+
         return back()->with('message', 'Data tahun ajaran berhasil dihapus.');
     }
 }
-

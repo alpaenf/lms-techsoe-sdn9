@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { 
-    GraduationCap, 
-    BookOpen, 
-    Users, 
-    CalendarCheck, 
-    FileText, 
-    Award, 
-    ShieldCheck, 
-    ArrowRight, 
-    Building2, 
-    BarChart3, 
+import {
+    GraduationCap,
+    BookOpen,
+    Users,
+    CalendarCheck,
+    FileText,
+    Award,
+    ShieldCheck,
+    ArrowRight,
+    Building2,
+    BarChart3,
     CheckCircle2,
     MapPin,
     School,
@@ -32,7 +32,10 @@ import {
     X,
     User,
     ListCheck,
-    LockKeyhole
+    LockKeyhole,
+    Mail,
+    Phone,
+    ExternalLink
 } from 'lucide-react';
 
 export default function Welcome({ auth }) {
@@ -243,19 +246,19 @@ export default function Welcome({ auth }) {
             <Head title="UPT SDN 9 Gandangbatu Sillanan — Smart School LMS" />
 
             <div className="min-h-screen bg-white text-[#142033] font-sans selection:bg-[#8B001F] selection:text-white">
-                
+
                 {/* -------------------------------------------------------------
                     1. HEADER / NAVIGATION BAR
                 ------------------------------------------------------------- */}
                 <header className="sticky top-0 z-50 bg-white border-b border-[#E5EAF0]">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-                        
+
                         {/* Brand Identity (Left) */}
                         <div className="flex items-center space-x-3">
-                            <img 
-                                src="/logo.webp" 
-                                alt="Logo UPT SDN 9 Gandangbatu Sillanan" 
-                                className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0" 
+                            <img
+                                src="/logo.webp"
+                                alt="Logo UPT SDN 9 Gandangbatu Sillanan"
+                                className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0"
                             />
                             <div>
                                 <span className="text-base font-bold text-[#142033] block leading-tight">
@@ -265,32 +268,59 @@ export default function Welcome({ auth }) {
                                     Smart School LMS
                                 </span>
                             </div>
-                        </div>
-
-                        {/* Navigation Links (Center) */}
+                        </div>                        {/* Navigation Links (Center) */}
                         <nav className="hidden lg:flex items-center space-x-7 text-sm font-semibold">
-                            {navItems.map((item) => {
-                                const isActive = activeSection === item.id;
-                                return (
-                                    <a
-                                        key={item.id}
-                                        href={`#${item.id}`}
-                                        onClick={(e) => handleNavClick(e, item.id)}
-                                        className={`transition-colors duration-300 ease-in-out relative py-1.5 ${
-                                            isActive
-                                                ? 'text-[#8B001F]'
-                                                : 'text-[#64748B] hover:text-[#8B001F]'
+                            <a
+                                href="#hero"
+                                onClick={(e) => handleNavClick(e, 'hero')}
+                                className={`transition-colors duration-300 ease-in-out relative py-1.5 ${activeSection === 'hero' ? 'text-[#8B001F]' : 'text-[#64748B] hover:text-[#8B001F]'
+                                    }`}
+                            >
+                                Beranda
+                                <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-[#8B001F] rounded-full transition-all duration-300 ${activeSection === 'hero' ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'}`} />
+                            </a>
+
+                            {/* Profil Sekolah Dropdown */}
+                            <div className="relative group">
+                                <button
+                                    onClick={(e) => handleNavClick(e, 'profil')}
+                                    className={`flex items-center space-x-1 transition-colors duration-300 relative py-1.5 ${activeSection === 'profil' ? 'text-[#8B001F]' : 'text-[#64748B] hover:text-[#8B001F]'
                                         }`}
-                                    >
-                                        {item.label}
-                                        <span 
-                                            className={`absolute bottom-0 left-0 right-0 h-0.5 bg-[#8B001F] rounded-full transition-all duration-300 ease-in-out origin-left ${
-                                                isActive ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
-                                            }`} 
-                                        />
-                                    </a>
-                                );
-                            })}
+                                >
+                                    <span>Profil Sekolah</span>
+                                    <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
+                                    <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-[#8B001F] rounded-full transition-all duration-300 ${activeSection === 'profil' ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'}`} />
+                                </button>
+                                <div className="absolute left-0 top-full pt-2 w-52 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                    <div className="bg-white rounded-2xl shadow-xl border border-[#E5EAF0] p-2 space-y-1">
+                                        <a
+                                            href="#profil"
+                                            onClick={(e) => handleNavClick(e, 'profil')}
+                                            className="flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-[#FFF0F2] hover:text-[#8B001F] transition"
+                                        >
+                                            <Building2 className="w-4 h-4 text-[#8B001F]" />
+                                            <span>Tentang Sekolah</span>
+                                        </a>
+                                        <Link
+                                            href={route('tenaga-pendidik.index')}
+                                            className="flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-[#FFF0F2] hover:text-[#8B001F] transition"
+                                        >
+                                            <Users className="w-4 h-4 text-[#8B001F]" />
+                                            <span>Tenaga Pendidik</span>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <a
+                                href="#keamanan"
+                                onClick={(e) => handleNavClick(e, 'keamanan')}
+                                className={`transition-colors duration-300 ease-in-out relative py-1.5 ${activeSection === 'keamanan' ? 'text-[#8B001F]' : 'text-[#64748B] hover:text-[#8B001F]'
+                                    }`}
+                            >
+                                Pengumuman
+                                <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-[#8B001F] rounded-full transition-all duration-300 ${activeSection === 'keamanan' ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'}`} />
+                            </a>
                         </nav>
 
                         {/* Actions (Right) */}
@@ -322,26 +352,52 @@ export default function Welcome({ auth }) {
                     {mobileMenuOpen && (
                         <div className="lg:hidden bg-white border-b border-[#E5EAF0] px-4 pt-3 pb-6 space-y-3">
                             <nav className="flex flex-col space-y-1.5 text-sm font-semibold">
-                                {navItems.map((item) => {
-                                    const isActive = activeSection === item.id;
-                                    return (
-                                        <a
-                                            key={item.id}
-                                            href={`#${item.id}`}
-                                            onClick={(e) => {
-                                                setMobileMenuOpen(false);
-                                                handleNavClick(e, item.id);
-                                            }}
-                                            className={`py-2 px-3 rounded-xl transition-all duration-300 ease-in-out ${
-                                                isActive
-                                                    ? 'bg-[#FFF0F2] text-[#8B001F]'
-                                                    : 'text-[#64748B] hover:bg-slate-50'
-                                            }`}
-                                        >
-                                            {item.label}
-                                        </a>
-                                    );
-                                })}
+                                <a
+                                    href="#hero"
+                                    onClick={(e) => {
+                                        setMobileMenuOpen(false);
+                                        handleNavClick(e, 'hero');
+                                    }}
+                                    className={`py-2 px-3 rounded-xl transition-all ${activeSection === 'hero' ? 'bg-[#FFF0F2] text-[#8B001F]' : 'text-[#64748B] hover:bg-slate-50'
+                                        }`}
+                                >
+                                    Beranda
+                                </a>
+
+                                <div className="space-y-1 pl-2">
+                                    <div className="py-1 px-3 text-xs font-bold text-[#8B001F] uppercase tracking-wider">
+                                        Profil Sekolah
+                                    </div>
+                                    <a
+                                        href="#profil"
+                                        onClick={(e) => {
+                                            setMobileMenuOpen(false);
+                                            handleNavClick(e, 'profil');
+                                        }}
+                                        className="block py-1.5 pl-5 rounded-xl text-xs text-[#64748B] hover:text-[#8B001F]"
+                                    >
+                                        • Tentang Sekolah
+                                    </a>
+                                    <Link
+                                        href={route('tenaga-pendidik.index')}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block py-1.5 pl-5 rounded-xl text-xs text-[#64748B] hover:text-[#8B001F]"
+                                    >
+                                        • Tenaga Pendidik
+                                    </Link>
+                                </div>
+
+                                <a
+                                    href="#keamanan"
+                                    onClick={(e) => {
+                                        setMobileMenuOpen(false);
+                                        handleNavClick(e, 'keamanan');
+                                    }}
+                                    className={`py-2 px-3 rounded-xl transition-all ${activeSection === 'keamanan' ? 'bg-[#FFF0F2] text-[#8B001F]' : 'text-[#64748B] hover:bg-slate-50'
+                                        }`}
+                                >
+                                    Pengumuman
+                                </a>
                             </nav>
                             <div className="pt-2">
                                 <Link
@@ -362,10 +418,10 @@ export default function Welcome({ auth }) {
                 <section id="hero" className="py-12 sm:py-20 bg-white border-b border-[#E5EAF0]">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-                            
+
                             {/* Left Content */}
                             <div className="lg:col-span-6 space-y-6">
-                                
+
                                 {/* Eyebrow Text */}
                                 <div className="inline-flex items-center text-[#8B001F] text-xs sm:text-sm font-bold uppercase tracking-wider">
                                     <span>Sistem Informasi Pembelajaran & Akademik Terpadu</span>
@@ -405,11 +461,11 @@ export default function Welcome({ auth }) {
                                 <div className="pt-5 flex flex-wrap items-center gap-6 text-xs sm:text-sm font-semibold text-[#64748B] border-t border-[#E5EAF0]">
                                     <div className="flex items-center space-x-2">
                                         <School className="w-4 h-4 text-[#8B001F]" />
-                                        <span>Kelas 1 – Kelas 6</span>
+                                        <span>NPSN: 40306406</span>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <MapPin className="w-4 h-4 text-[#8B001F]" />
-                                        <span>Gandangbatu Sillanan, Tana Toraja, Sulsel</span>
+                                        <span>Buntu, Kel. Benteng Ambeso, Kec. Gandangbatu Sillanan, Tana Toraja</span>
                                     </div>
                                 </div>
 
@@ -418,16 +474,16 @@ export default function Welcome({ auth }) {
                             {/* Right Visual — Uses /images/herohiasan.webp (Enlarged Leftward + Aligned Right) */}
                             <div className="lg:col-span-6 flex justify-center lg:justify-end relative">
                                 <div className="relative w-full max-w-2xl lg:max-w-none lg:w-[138%] xl:w-[148%] lg:-ml-18 xl:-ml-28 lg:mr-0 ml-auto">
-                                    
+
                                     {/* Soft Ambient Bottom Shadow */}
                                     <div className="absolute -bottom-4 sm:-bottom-6 left-[5%] right-[5%] h-10 sm:h-14 bg-black/25 blur-2xl rounded-full pointer-events-none transform scale-y-60"></div>
-                                    
+
                                     {/* Secondary Subtle Burgundy Glow behind visual */}
                                     <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-[70%] h-14 bg-[#8B001F]/15 blur-3xl rounded-full pointer-events-none"></div>
 
-                                    <img 
-                                        src="/images/herohiasan.webp" 
-                                        alt="Smart School LMS UPT SDN 9 Gandangbatu Sillanan Dashboard Mockup" 
+                                    <img
+                                        src="/images/herohiasan.webp"
+                                        alt="Smart School LMS UPT SDN 9 Gandangbatu Sillanan Dashboard Mockup"
                                         className="relative z-10 w-full h-auto object-contain filter drop-shadow-[0_20px_25px_rgba(0,0,0,0.18)]"
                                         loading="eager"
                                     />
@@ -443,9 +499,9 @@ export default function Welcome({ auth }) {
                 ------------------------------------------------------------- */}
                 <section id="profil" className="py-16 sm:py-20 bg-white border-b border-[#E5EAF0]">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        
+
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
-                            
+
                             {/* Left Column: Text & Horizontal Metadata Row (4 Cols) */}
                             <div className="lg:col-span-4 flex flex-col justify-between space-y-6">
                                 <div className="space-y-4">
@@ -472,7 +528,7 @@ export default function Welcome({ auth }) {
                                         </div>
                                         <div>
                                             <span className="text-[10px] text-[#64748B] font-semibold block uppercase leading-none">NPSN</span>
-                                            <span className="text-xs font-bold text-[#142033]">40307044</span>
+                                            <span className="text-xs font-bold text-[#142033]">40306406</span>
                                         </div>
                                     </div>
 
@@ -498,19 +554,19 @@ export default function Welcome({ auth }) {
                                         </div>
                                         <div>
                                             <span className="text-[10px] text-[#64748B] font-semibold block uppercase leading-none">Lokasi</span>
-                                            <span className="text-xs font-bold text-[#142033] leading-tight block">Kec. Gandangbatu Sillanan,<br />Kab. Tana Toraja, Sulawesi Selatan</span>
+                                            <span className="text-xs font-bold text-[#142033] leading-tight block">Buntu, Kel. Benteng Ambeso,<br />Kec. Gandangbatu Sillanan, Kab. Tana Toraja</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Middle Column: Real Photo of SD (/images/sdnfoto.webp) (4 Cols with object-right) */}
+                            {/* Middle Column: Real Photo of SD (/images/profile-gandasil.webp) (4 Cols with object position shifted to the right) */}
                             <div className="lg:col-span-4 flex items-center">
                                 <div className="w-full h-full rounded-2xl overflow-hidden shadow-sm border border-[#E5EAF0]">
-                                    <img 
-                                        src="/images/sdnfoto.webp" 
-                                        alt="Gedung UPT SDN 9 Gandangbatu Sillanan" 
-                                        className="w-full h-full object-cover object-right min-h-[320px] max-h-[440px] rounded-2xl"
+                                    <img
+                                        src="/images/profile-gandasil.webp"
+                                        alt="Gedung UPT SDN 9 Gandangbatu Sillanan"
+                                        className="w-full h-full object-cover object-[35%_center] min-h-[320px] max-h-[440px] rounded-2xl transition-transform duration-300"
                                     />
                                 </div>
                             </div>
@@ -518,7 +574,7 @@ export default function Welcome({ auth }) {
                             {/* Right Column: Integrated Visi & Misi Card Container (4 Cols) */}
                             <div className="lg:col-span-4 flex items-center">
                                 <div className="bg-white w-full rounded-2xl border border-[#E5EAF0] shadow-sm p-5 sm:p-6 space-y-5 divide-y divide-[#E5EAF0]">
-                                    
+
                                     {/* Visi Block */}
                                     <div className="space-y-2.5">
                                         <div className="flex items-center space-x-2.5">
@@ -578,20 +634,20 @@ export default function Welcome({ auth }) {
                 ------------------------------------------------------------- */}
                 <section className="py-16 bg-white border-b border-[#E5EAF0]">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-                        
+
                         <div className="text-center max-w-2xl mx-auto space-y-2">
                             <span className="text-xs font-bold uppercase tracking-wider text-[#8B001F]">INTEGRASI DALAM SATU PLATFORM</span>
                             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#142033]">
                                 Solusi Komprehensif untuk Ekosistem Sekolah
                             </h2>
                             <p className="text-xs sm:text-sm text-[#64748B]">
-                                Menghubungkan seluruh aktivitas pembelajaran dan administrasi dalam satu basis data terpusat MySQL 8.0.
+                                Menghubungkan seluruh aktivitas pembelajaran dan administrasi dalam satu basis data
                             </p>
                         </div>
 
                         {/* 4 Feature List Columns */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            
+
                             <div className="bg-[#F7F8FA] p-6 rounded-2xl border border-[#E5EAF0] space-y-3 hover:border-[#8B001F]/30 transition">
                                 <div className="w-10 h-10 rounded-xl bg-[#FFF0F2] text-[#8B001F] flex items-center justify-center border border-[#E5EAF0]">
                                     <BookOpen className="w-5 h-5" />
@@ -642,7 +698,7 @@ export default function Welcome({ auth }) {
                 ------------------------------------------------------------- */}
                 <section id="modul" className="py-16 sm:py-20 bg-[#F7F8FA] border-b border-[#E5EAF0]">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-                        
+
                         <div className="text-center max-w-2xl mx-auto space-y-2">
                             <span className="text-xs font-bold uppercase tracking-wider text-[#8B001F]">FITUR UTAMA SISTEM</span>
                             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#142033]">
@@ -657,55 +713,50 @@ export default function Welcome({ auth }) {
                         <div className="flex flex-wrap items-center justify-center gap-2">
                             <button
                                 onClick={() => setActiveModuleTab('all')}
-                                className={`px-4 py-2 rounded-full text-xs font-semibold transition ${
-                                    activeModuleTab === 'all'
-                                        ? 'bg-[#8B001F] text-white shadow-sm'
-                                        : 'bg-white text-[#64748B] hover:bg-slate-100 border border-[#E5EAF0]'
-                                }`}
+                                className={`px-4 py-2 rounded-full text-xs font-semibold transition ${activeModuleTab === 'all'
+                                    ? 'bg-[#8B001F] text-white shadow-sm'
+                                    : 'bg-white text-[#64748B] hover:bg-slate-100 border border-[#E5EAF0]'
+                                    }`}
                             >
                                 Semua Modul
                             </button>
 
                             <button
                                 onClick={() => setActiveModuleTab('learning')}
-                                className={`px-4 py-2 rounded-full text-xs font-semibold transition ${
-                                    activeModuleTab === 'learning'
-                                        ? 'bg-[#8B001F] text-white shadow-sm'
-                                        : 'bg-white text-[#64748B] hover:bg-slate-100 border border-[#E5EAF0]'
-                                }`}
+                                className={`px-4 py-2 rounded-full text-xs font-semibold transition ${activeModuleTab === 'learning'
+                                    ? 'bg-[#8B001F] text-white shadow-sm'
+                                    : 'bg-white text-[#64748B] hover:bg-slate-100 border border-[#E5EAF0]'
+                                    }`}
                             >
                                 Pembelajaran Digital
                             </button>
 
                             <button
                                 onClick={() => setActiveModuleTab('admin')}
-                                className={`px-4 py-2 rounded-full text-xs font-semibold transition ${
-                                    activeModuleTab === 'admin'
-                                        ? 'bg-[#8B001F] text-white shadow-sm'
-                                        : 'bg-white text-[#64748B] hover:bg-slate-100 border border-[#E5EAF0]'
-                                }`}
+                                className={`px-4 py-2 rounded-full text-xs font-semibold transition ${activeModuleTab === 'admin'
+                                    ? 'bg-[#8B001F] text-white shadow-sm'
+                                    : 'bg-white text-[#64748B] hover:bg-slate-100 border border-[#E5EAF0]'
+                                    }`}
                             >
                                 Administrasi Akademik
                             </button>
 
                             <button
                                 onClick={() => setActiveModuleTab('eval')}
-                                className={`px-4 py-2 rounded-full text-xs font-semibold transition ${
-                                    activeModuleTab === 'eval'
-                                        ? 'bg-[#8B001F] text-white shadow-sm'
-                                        : 'bg-white text-[#64748B] hover:bg-slate-100 border border-[#E5EAF0]'
-                                }`}
+                                className={`px-4 py-2 rounded-full text-xs font-semibold transition ${activeModuleTab === 'eval'
+                                    ? 'bg-[#8B001F] text-white shadow-sm'
+                                    : 'bg-white text-[#64748B] hover:bg-slate-100 border border-[#E5EAF0]'
+                                    }`}
                             >
                                 Monitoring & Evaluasi
                             </button>
 
                             <button
                                 onClick={() => setActiveModuleTab('supervisi')}
-                                className={`px-4 py-2 rounded-full text-xs font-semibold transition ${
-                                    activeModuleTab === 'supervisi'
-                                        ? 'bg-[#8B001F] text-white shadow-sm'
-                                        : 'bg-white text-[#64748B] hover:bg-slate-100 border border-[#E5EAF0]'
-                                }`}
+                                className={`px-4 py-2 rounded-full text-xs font-semibold transition ${activeModuleTab === 'supervisi'
+                                    ? 'bg-[#8B001F] text-white shadow-sm'
+                                    : 'bg-white text-[#64748B] hover:bg-slate-100 border border-[#E5EAF0]'
+                                    }`}
                             >
                                 Supervisi & Laporan
                             </button>
@@ -752,7 +803,7 @@ export default function Welcome({ auth }) {
                 ------------------------------------------------------------- */}
                 <section id="panduan" className="py-16 sm:py-20 bg-white border-b border-[#E5EAF0]">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-                        
+
                         <div className="text-center max-w-2xl mx-auto space-y-2">
                             <span className="text-xs font-bold uppercase tracking-wider text-[#8B001F]">AKSES MUDAH UNTUK SEMUA</span>
                             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#142033]">
@@ -767,44 +818,40 @@ export default function Welcome({ auth }) {
                         <div className="flex flex-wrap items-center justify-center gap-2">
                             <button
                                 onClick={() => setActiveRoleTab('siswa')}
-                                className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${
-                                    activeRoleTab === 'siswa'
-                                        ? 'bg-[#8B001F] text-white shadow-sm'
-                                        : 'bg-slate-100 text-[#64748B] hover:bg-slate-200'
-                                }`}
+                                className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${activeRoleTab === 'siswa'
+                                    ? 'bg-[#8B001F] text-white shadow-sm'
+                                    : 'bg-slate-100 text-[#64748B] hover:bg-slate-200'
+                                    }`}
                             >
                                 Peserta Didik (Siswa)
                             </button>
 
                             <button
                                 onClick={() => setActiveRoleTab('guru')}
-                                className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${
-                                    activeRoleTab === 'guru'
-                                        ? 'bg-[#8B001F] text-white shadow-sm'
-                                        : 'bg-slate-100 text-[#64748B] hover:bg-slate-200'
-                                }`}
+                                className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${activeRoleTab === 'guru'
+                                    ? 'bg-[#8B001F] text-white shadow-sm'
+                                    : 'bg-slate-100 text-[#64748B] hover:bg-slate-200'
+                                    }`}
                             >
                                 Guru
                             </button>
 
                             <button
                                 onClick={() => setActiveRoleTab('ortu')}
-                                className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${
-                                    activeRoleTab === 'ortu'
-                                        ? 'bg-[#8B001F] text-white shadow-sm'
-                                        : 'bg-slate-100 text-[#64748B] hover:bg-slate-200'
-                                }`}
+                                className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${activeRoleTab === 'ortu'
+                                    ? 'bg-[#8B001F] text-white shadow-sm'
+                                    : 'bg-slate-100 text-[#64748B] hover:bg-slate-200'
+                                    }`}
                             >
                                 Orang Tua
                             </button>
 
                             <button
                                 onClick={() => setActiveRoleTab('admin')}
-                                className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${
-                                    activeRoleTab === 'admin'
-                                        ? 'bg-[#8B001F] text-white shadow-sm'
-                                        : 'bg-slate-100 text-[#64748B] hover:bg-slate-200'
-                                }`}
+                                className={`px-5 py-2.5 rounded-full text-xs font-bold transition ${activeRoleTab === 'admin'
+                                    ? 'bg-[#8B001F] text-white shadow-sm'
+                                    : 'bg-slate-100 text-[#64748B] hover:bg-slate-200'
+                                    }`}
                             >
                                 Admin & Kepala Sekolah
                             </button>
@@ -813,7 +860,7 @@ export default function Welcome({ auth }) {
                         {/* Layout 2-Column White Step Cards + Half Phone Mockup */}
                         <div className="bg-[#F7F8FA] p-6 sm:p-8 rounded-3xl border border-[#E5EAF0] overflow-hidden relative">
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center min-h-[280px]">
-                                
+
                                 {/* 2-Column White Cards Grid (8 Cols) — Strictly determines parent card height */}
                                 <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                                     {roleGuides[activeRoleTab].steps.map((step) => (
@@ -833,9 +880,9 @@ export default function Welcome({ auth }) {
                                 <div className="lg:col-span-4 relative self-stretch hidden lg:block">
                                     <div className="absolute -bottom-32 xl:-bottom-36 right-0 left-0 flex justify-center items-end pointer-events-none">
                                         <div className="w-[310px] xl:w-[340px] max-w-none translate-y-14">
-                                            <img 
-                                                src="/images/mokuphp.webp" 
-                                                alt="Smart School LMS UPT SDN 9 Gandangbatu Sillanan Mobile App Mockup" 
+                                            <img
+                                                src="/images/mokuphp.webp"
+                                                alt="Smart School LMS UPT SDN 9 Gandangbatu Sillanan Mobile App Mockup"
                                                 className="w-full h-auto object-contain drop-shadow-2xl"
                                                 loading="lazy"
                                             />
@@ -846,9 +893,9 @@ export default function Welcome({ auth }) {
                                 {/* Mobile Phone Visual Fallback */}
                                 <div className="lg:hidden flex justify-center pt-2">
                                     <div className="max-w-[240px]">
-                                        <img 
-                                            src="/images/mokuphp.webp" 
-                                            alt="Smart School LMS UPT SDN 9 Gandangbatu Sillanan Mobile App Mockup" 
+                                        <img
+                                            src="/images/mokuphp.webp"
+                                            alt="Smart School LMS UPT SDN 9 Gandangbatu Sillanan Mobile App Mockup"
                                             className="w-full h-auto object-contain drop-shadow-xl"
                                             loading="lazy"
                                         />
@@ -866,7 +913,7 @@ export default function Welcome({ auth }) {
                 ------------------------------------------------------------- */}
                 <section id="keamanan" className="py-16 sm:py-20 bg-[#F7F8FA] border-b border-[#E5EAF0]">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-                        
+
                         <div className="text-center max-w-2xl mx-auto space-y-2">
                             <span className="text-xs font-bold uppercase tracking-wider text-[#8B001F]">KEPERCAYAAN UNTUK MASA DEPAN</span>
                             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#142033]">
@@ -879,7 +926,7 @@ export default function Welcome({ auth }) {
 
                         {/* 5 Points Horizontal Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                            
+
                             <div className="bg-white p-4 rounded-xl border border-[#E5EAF0] shadow-sm space-y-2">
                                 <div className="w-8 h-8 rounded-lg bg-[#ECFDF5] text-[#059669] flex items-center justify-center border border-emerald-200">
                                     <LockKeyhole className="w-4 h-4" />
@@ -941,7 +988,7 @@ export default function Welcome({ auth }) {
                 <section className="bg-white py-12">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="bg-[#8B001F] rounded-2xl p-8 sm:p-10 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-md">
-                            
+
                             <div className="space-y-2 max-w-2xl">
                                 <h2 className="text-xl sm:text-2xl font-bold">
                                     Siap Mengakses Layanan Akademik Digital Sekolah?
@@ -968,16 +1015,16 @@ export default function Welcome({ auth }) {
                 ------------------------------------------------------------- */}
                 <footer className="bg-white border-t border-[#E5EAF0] py-10 text-[#64748B] text-xs">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-slate-100">
-                            
+
                             {/* Brand info */}
                             <div className="space-y-2">
                                 <div className="flex items-center space-x-2">
-                                    <img 
-                                        src="/logo.webp" 
-                                        alt="Logo UPT SDN 9 Gandangbatu Sillanan" 
-                                        className="w-8 h-8 object-contain shrink-0" 
+                                    <img
+                                        src="/logo.webp"
+                                        alt="Logo UPT SDN 9 Gandangbatu Sillanan"
+                                        className="w-8 h-8 object-contain shrink-0"
                                     />
                                     <span className="font-bold text-[#142033] text-sm">
                                         UPT SDN 9 Gandangbatu Sillanan
@@ -1000,12 +1047,52 @@ export default function Welcome({ auth }) {
                                 </ul>
                             </div>
 
-                            {/* Kontak */}
-                            <div className="space-y-2">
-                                <h4 className="font-bold text-[#142033] text-xs">Kontak</h4>
-                                <div className="flex items-start space-x-1.5 text-[#64748B]">
-                                    <MapPin className="w-3.5 h-3.5 text-[#8B001F] shrink-0 mt-0.5" />
-                                    <span>Gandangbatu Sillanan, Tana Toraja, Sulawesi Selatan.</span>
+                            {/* Kontak & Lokasi */}
+                            <div className="space-y-2.5">
+                                <h4 className="font-bold text-[#142033] text-xs">Kontak & Lokasi</h4>
+                                <div className="space-y-2 text-[11px] text-[#64748B]">
+                                    <a
+                                        href="https://maps.google.com/?q=QR57%2BFHC,+Betteng+Deata,+Kec.+Gandang+Batu+Sillanan,+Kabupaten+Tana+Toraja,+Sulawesi+Selatan+91871"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-start space-x-1.5 hover:text-[#8B001F] transition group"
+                                    >
+                                        <MapPin className="w-3.5 h-3.5 text-[#8B001F] shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                                        <span>
+                                            <strong className="text-[#142033] block text-[11px]">QR57+FHC, Betteng Deata</strong>
+                                            Buntu, Kel. Benteng Ambeso, Kec. Gandangbatu Sillanan, Kab. Tana Toraja, Sulsel 91871
+                                        </span>
+                                    </a>
+                                    <a
+                                        href="mailto:sdn9gandasil@gmail.com"
+                                        className="flex items-center space-x-1.5 hover:text-[#8B001F] transition"
+                                    >
+                                        <Mail className="w-3.5 h-3.5 text-[#8B001F] shrink-0" />
+                                        <span>sdn9gandasil@gmail.com</span>
+                                    </a>
+                                    <a
+                                        href="https://wa.me/6282236847240"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center space-x-1.5 hover:text-[#8B001F] transition"
+                                    >
+                                        <Phone className="w-3.5 h-3.5 text-[#8B001F] shrink-0" />
+                                        <span>082236847240 (WhatsApp)</span>
+                                    </a>
+                                </div>
+
+                                {/* Google Maps Embed Frame */}
+                                <div className="pt-1.5">
+                                    <div className="w-full h-32 rounded-xl overflow-hidden border border-[#E5EAF0] shadow-sm relative group">
+                                        <iframe
+                                            title="Lokasi Google Maps SDN 9 Gandangbatu Sillanan"
+                                            src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d11221.925190437056!2d119.81175191582878!3d-3.241002576641695!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2d93f5005400dd8d%3A0x2b8a64a6a0d6e386!2sSDN%209%20Gandangbatu%20Sillanan!5e0!3m2!1sid!2sus!4v1791451957121!5m2!1sid!2sus"
+                                            className="w-full h-full border-0"
+                                            allowFullScreen=""
+                                            loading="lazy"
+                                            referrerPolicy="strict-origin-when-cross-origin"
+                                        ></iframe>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1013,7 +1100,15 @@ export default function Welcome({ auth }) {
                             <div className="space-y-2">
                                 <h4 className="font-bold text-[#142033] text-xs">Dikembangkan oleh</h4>
                                 <div className="space-y-1">
-                                    <span className="font-bold text-[#142033] text-sm block">TechSoe</span>
+                                    <a
+                                        href="https://www.techsoe.com/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center space-x-1 font-bold text-[#8B001F] hover:text-[#650019] text-sm group"
+                                    >
+                                        <span>TechSoe</span>
+                                        <ExternalLink className="w-3.5 h-3.5 opacity-75 group-hover:opacity-100 group-hover:translate-x-0.5 transition" />
+                                    </a>
                                     <span className="text-[11px] text-[#64748B] block">Teknologi Inovasi Soedirman.</span>
                                 </div>
                             </div>

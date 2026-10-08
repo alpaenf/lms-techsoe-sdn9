@@ -18,7 +18,7 @@ class PresensiController extends Controller
 
         $classes = DB::table('classes')->orderBy('grade_level')->get();
         $defaultClassId = $classes->first()?->id ?? 1;
-        $selectedClassId = (int)$request->query('class_id', $defaultClassId);
+        $selectedClassId = (int) $request->query('class_id', $defaultClassId);
 
         $students = [];
         $teachers = [];
@@ -28,7 +28,7 @@ class PresensiController extends Controller
             $teachers = DB::table('teachers')
                 ->leftJoin('teacher_attendances', function ($join) use ($selectedDate) {
                     $join->on('teachers.id', '=', 'teacher_attendances.teacher_id')
-                         ->where('teacher_attendances.attendance_date', '=', $selectedDate);
+                        ->where('teacher_attendances.attendance_date', '=', $selectedDate);
                 })
                 ->select(
                     'teachers.*',
@@ -50,7 +50,7 @@ class PresensiController extends Controller
                     DB::raw("SUM(CASE WHEN status = 'Izin' THEN 1 ELSE 0 END) as total_izin"),
                     DB::raw("SUM(CASE WHEN status = 'Sakit' THEN 1 ELSE 0 END) as total_sakit"),
                     DB::raw("SUM(CASE WHEN status = 'Alpa' THEN 1 ELSE 0 END) as total_alpa"),
-                    DB::raw("COUNT(*) as total_days")
+                    DB::raw('COUNT(*) as total_days')
                 )
                 ->groupBy('teacher_id')
                 ->get()
@@ -68,7 +68,7 @@ class PresensiController extends Controller
                     'izin' => $rec?->total_izin ?? 0,
                     'sakit' => $rec?->total_sakit ?? 0,
                     'alpa' => $rec?->total_alpa ?? 0,
-                    'percentage' => $pct
+                    'percentage' => $pct,
                 ];
             }
         } else {
@@ -76,7 +76,7 @@ class PresensiController extends Controller
                 ->where('students.class_id', $selectedClassId)
                 ->leftJoin('student_attendances', function ($join) use ($selectedDate) {
                     $join->on('students.id', '=', 'student_attendances.student_id')
-                         ->where('student_attendances.attendance_date', '=', $selectedDate);
+                        ->where('student_attendances.attendance_date', '=', $selectedDate);
                 })
                 ->select(
                     'students.*',
@@ -99,7 +99,7 @@ class PresensiController extends Controller
                     DB::raw("SUM(CASE WHEN status = 'Izin' THEN 1 ELSE 0 END) as total_izin"),
                     DB::raw("SUM(CASE WHEN status = 'Sakit' THEN 1 ELSE 0 END) as total_sakit"),
                     DB::raw("SUM(CASE WHEN status = 'Alpa' THEN 1 ELSE 0 END) as total_alpa"),
-                    DB::raw("COUNT(*) as total_days")
+                    DB::raw('COUNT(*) as total_days')
                 )
                 ->groupBy('student_id')
                 ->get()
@@ -116,7 +116,7 @@ class PresensiController extends Controller
                     'izin' => $rec?->total_izin ?? 0,
                     'sakit' => $rec?->total_sakit ?? 0,
                     'alpa' => $rec?->total_alpa ?? 0,
-                    'percentage' => $pct
+                    'percentage' => $pct,
                 ];
             }
         }
@@ -140,8 +140,8 @@ class PresensiController extends Controller
             'classes' => $classes,
             'selectedClassId' => $selectedClassId,
             'selectedDate' => $selectedDate,
-            'selectedMonth' => (int)$selectedMonth,
-            'selectedYear' => (int)$selectedYear,
+            'selectedMonth' => (int) $selectedMonth,
+            'selectedYear' => (int) $selectedYear,
             'students' => $students,
             'teachers' => $teachers,
             'monthlyRecap' => $monthlyRecap,
@@ -242,12 +242,12 @@ class PresensiController extends Controller
     public function updatePermissionStatus(Request $request, $id)
     {
         $status = $request->input('status'); // 'approved' or 'rejected'
-        if (!in_array($status, ['approved', 'rejected'])) {
+        if (! in_array($status, ['approved', 'rejected'])) {
             return back()->withErrors(['status' => 'Status tidak valid.']);
         }
 
         $perm = DB::table('attendance_permissions')->where('id', $id)->first();
-        if (!$perm) {
+        if (! $perm) {
             return back()->withErrors(['id' => 'Data permohonan tidak ditemukan.']);
         }
 
@@ -280,7 +280,7 @@ class PresensiController extends Controller
                             'class_id' => $student?->class_id ?? 1,
                             'academic_year_id' => $academicYear?->id ?? 1,
                             'status' => $perm->permission_type,
-                            'notes' => 'Disetujui Surat Izin/Sakit: ' . $perm->reason,
+                            'notes' => 'Disetujui Surat Izin/Sakit: '.$perm->reason,
                             'recorded_by' => auth()->id() ?? 1,
                             'updated_at' => now(),
                         ]
@@ -293,7 +293,7 @@ class PresensiController extends Controller
                         ],
                         [
                             'status' => $perm->permission_type,
-                            'notes' => 'Disetujui Surat Izin/Sakit: ' . $perm->reason,
+                            'notes' => 'Disetujui Surat Izin/Sakit: '.$perm->reason,
                             'updated_at' => now(),
                         ]
                     );
@@ -304,5 +304,3 @@ class PresensiController extends Controller
         return back()->with('message', 'Status permohonan izin berhasil diperbarui.');
     }
 }
-
-

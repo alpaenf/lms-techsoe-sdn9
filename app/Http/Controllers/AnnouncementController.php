@@ -36,7 +36,7 @@ class AnnouncementController extends Controller
             )
             ->first();
 
-        if (!$announcement) {
+        if (! $announcement) {
             abort(404);
         }
 

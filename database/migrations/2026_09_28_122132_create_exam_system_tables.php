@@ -28,7 +28,7 @@ return new class extends Migration
             $table->enum('exam_category', ['uts', 'uas', 'ulangan_harian', 'ujian_sekolah', 'kuis'])->default('ulangan_harian');
             $table->enum('status', ['draft', 'published', 'closed'])->default('draft');
             $table->timestamps();
-            
+
             $table->index(['class_id', 'subject_id']);
             $table->index(['status', 'start_time', 'end_time']);
         });
@@ -45,7 +45,7 @@ return new class extends Migration
             $table->integer('points')->default(1);
             $table->integer('order_number');
             $table->timestamps();
-            
+
             $table->index(['exam_id', 'order_number']);
         });
 
@@ -63,7 +63,7 @@ return new class extends Migration
             $table->decimal('percentage', 5, 2)->nullable();
             $table->enum('status', ['in_progress', 'submitted', 'graded'])->default('in_progress');
             $table->timestamps();
-            
+
             $table->unique(['exam_id', 'student_id', 'attempt_number']);
             $table->index(['student_id', 'status']);
             $table->index(['exam_id', 'status']);
@@ -82,7 +82,7 @@ return new class extends Migration
             $table->foreignId('graded_by')->nullable()->constrained('users')->onDelete('set null');
             $table->text('feedback')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['attempt_id', 'question_id']);
             $table->index(['is_correct', 'graded_at']);
         });
@@ -96,7 +96,7 @@ return new class extends Migration
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->timestamp('created_at');
-            
+
             $table->index(['attempt_id', 'event_type', 'created_at']);
         });
 

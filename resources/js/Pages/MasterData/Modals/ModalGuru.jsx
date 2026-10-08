@@ -130,6 +130,28 @@ export default function ModalGuru({
                                 className="w-full h-10 px-3.5 rounded-xl border border-slate-300 text-xs font-mono text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
                             />
                         </div>
+
+                        <div className="sm:col-span-2">
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                Foto Profil / Pass Foto (Opsional)
+                            </label>
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/jpg,image/webp"
+                                onChange={(e) => {
+                                    if (e.target.files && e.target.files[0]) {
+                                        setTeacherForm({ ...teacherForm, photo: e.target.files[0] });
+                                    }
+                                }}
+                                className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-[#800020] hover:file:bg-rose-100"
+                            />
+                            {editingTeacher?.photo && !(teacherForm.photo instanceof File) && (
+                                <div className="mt-2 flex items-center space-x-2">
+                                    <img src={editingTeacher.photo} alt="Foto Pendidik" className="w-9 h-9 rounded-full object-cover border border-slate-200" />
+                                    <span className="text-[11px] text-slate-500 font-medium">Foto saat ini terpasang</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
