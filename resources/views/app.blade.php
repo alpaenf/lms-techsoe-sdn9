@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title inertia>{{ config('app.name', 'UPT SDN 9 Gandangbatu Sillanan') }}</title>
         <link rel="icon" type="image/webp" href="/logo.webp">
 
         <!-- Fonts -->
