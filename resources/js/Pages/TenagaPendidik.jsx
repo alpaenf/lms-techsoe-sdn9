@@ -2,10 +2,6 @@ import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import {
     Users,
-    Search,
-    GraduationCap,
-    Award,
-    School,
     Mail,
     MapPin,
     Phone,
@@ -15,37 +11,11 @@ import {
     Menu,
     X,
     Building2,
-    CheckCircle2,
-    ExternalLink,
-    UserCheck,
-    BookOpen
+    ExternalLink
 } from 'lucide-react';
 
 export default function TenagaPendidik({ auth, teachers = [] }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
-
-    // Filter teachers
-    const filteredTeachers = teachers.filter((t) => {
-        const matchesSearch =
-            (t.full_name && t.full_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (t.nip && t.nip.includes(searchQuery));
-
-        const matchesStatus =
-            statusFilter === 'all' ||
-            (statusFilter === 'pns' && t.employment_status === 'PNS') ||
-            (statusFilter === 'pppk' && t.employment_status === 'PPPK') ||
-            (statusFilter === 'gtt' && (t.employment_status === 'GTT' || t.employment_status === 'Honorer')) ||
-            (statusFilter === 'pimpinan' && (t.role === 'pimpinan' || t.role === 'bk'));
-
-        return matchesSearch && matchesStatus;
-    });
-
-    const totalTeachers = teachers.length;
-    const totalPNS = teachers.filter(t => t.employment_status === 'PNS').length;
-    const totalPPPK = teachers.filter(t => t.employment_status === 'PPPK').length;
-    const totalGTT = teachers.filter(t => t.employment_status === 'GTT' || t.employment_status === 'Honorer').length;
 
     return (
         <>
@@ -112,7 +82,7 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                                 Panduan
                             </Link>
 
-                            <Link href="/#pengumuman" className="text-[#64748B] hover:text-[#8B001F] transition">
+                            <Link href="/#keamanan" className="text-[#64748B] hover:text-[#8B001F] transition">
                                 Pengumuman
                             </Link>
                         </nav>
@@ -161,7 +131,7 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                                 <Link href="/#panduan" className="py-2 px-3 rounded-xl text-[#64748B]">
                                     Panduan
                                 </Link>
-                                <Link href="/#pengumuman" className="py-2 px-3 rounded-xl text-[#64748B]">
+                                <Link href="/#keamanan" className="py-2 px-3 rounded-xl text-[#64748B]">
                                     Pengumuman
                                 </Link>
                             </nav>
@@ -194,104 +164,27 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                         </h1>
 
                         <p className="text-sm sm:text-base text-[#64748B] max-w-2xl mx-auto leading-relaxed">
-                            Mengenal jajaran guru dan staf kependidikan yang berdedikasi tinggi dalam membimbing, mendidik, serta memajukan generasi muda di UPT SDN 9 Gandangbatu Sillanan.
+                            Mengenal jajaran dewan guru dan staf kependidikan yang berdedikasi tinggi dalam membimbing, mendidik, serta memajukan generasi muda di UPT SDN 9 Gandangbatu Sillanan.
                         </p>
-
-                        {/* Quick Stats Summary */}
-                        <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto">
-                            <div className="bg-white p-4 rounded-2xl border border-[#E5EAF0] shadow-sm text-center">
-                                <span className="text-2xl sm:text-3xl font-extrabold text-[#142033] block">{totalTeachers}</span>
-                                <span className="text-xs font-semibold text-[#64748B]">Total Pendidik</span>
-                            </div>
-                            <div className="bg-white p-4 rounded-2xl border border-[#E5EAF0] shadow-sm text-center">
-                                <span className="text-2xl sm:text-3xl font-extrabold text-[#8B001F] block">{totalPNS}</span>
-                                <span className="text-xs font-semibold text-[#64748B]">Guru PNS</span>
-                            </div>
-                            <div className="bg-white p-4 rounded-2xl border border-[#E5EAF0] shadow-sm text-center">
-                                <span className="text-2xl sm:text-3xl font-extrabold text-blue-700 block">{totalPPPK}</span>
-                                <span className="text-xs font-semibold text-[#64748B]">Guru PPPK</span>
-                            </div>
-                            <div className="bg-white p-4 rounded-2xl border border-[#E5EAF0] shadow-sm text-center">
-                                <span className="text-2xl sm:text-3xl font-extrabold text-amber-600 block">{totalGTT}</span>
-                                <span className="text-xs font-semibold text-[#64748B]">GTT / Honorer</span>
-                            </div>
-                        </div>
                     </div>
                 </section>
 
                 {/* -------------------------------------------------------------
-                    3. FILTER & TEACHERS GRID
+                    3. TEACHERS GRID
                 ------------------------------------------------------------- */}
                 <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-8 flex-1 w-full">
 
-                    {/* Controls: Search & Category Filter */}
-                    <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-[#E5EAF0] shadow-sm">
-
-                        {/* Search Input */}
-                        <div className="relative flex-1">
-                            <Search className="w-4.5 h-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Cari nama guru atau NIP..."
-                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:border-[#8B001F] focus:ring-[#8B001F]"
-                            />
-                        </div>
-
-                        {/* Filter Tabs */}
-                        <div className="flex flex-wrap items-center gap-1.5">
-                            <button
-                                onClick={() => setStatusFilter('all')}
-                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${statusFilter === 'all'
-                                        ? 'bg-[#8B001F] text-white shadow-sm'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                    }`}
-                            >
-                                Semua ({totalTeachers})
-                            </button>
-                            <button
-                                onClick={() => setStatusFilter('pns')}
-                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${statusFilter === 'pns'
-                                        ? 'bg-[#8B001F] text-white shadow-sm'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                    }`}
-                            >
-                                PNS ({totalPNS})
-                            </button>
-                            <button
-                                onClick={() => setStatusFilter('pppk')}
-                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${statusFilter === 'pppk'
-                                        ? 'bg-[#8B001F] text-white shadow-sm'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                    }`}
-                            >
-                                PPPK ({totalPPPK})
-                            </button>
-                            <button
-                                onClick={() => setStatusFilter('gtt')}
-                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${statusFilter === 'gtt'
-                                        ? 'bg-[#8B001F] text-white shadow-sm'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                    }`}
-                            >
-                                GTT / Honorer ({totalGTT})
-                            </button>
-                        </div>
-
-                    </div>
-
                     {/* Teacher Cards Grid */}
-                    {filteredTeachers.length > 0 ? (
+                    {teachers.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                            {filteredTeachers.map((t) => (
+                            {teachers.map((t) => (
                                 <div
                                     key={t.id}
                                     className="bg-white rounded-2xl border border-[#E5EAF0] shadow-sm hover:shadow-md hover:border-[#8B001F]/30 transition duration-200 overflow-hidden flex flex-col justify-between group"
                                 >
                                     <div>
                                         {/* Photo Header */}
-                                        <div className="h-52 w-full bg-[#FFF0F2] relative overflow-hidden flex items-center justify-center border-b border-[#E5EAF0]">
+                                        <div className="h-56 w-full bg-[#FFF0F2] relative overflow-hidden flex items-center justify-center border-b border-[#E5EAF0]">
                                             {t.photo ? (
                                                 <img
                                                     src={t.photo}
@@ -303,18 +196,6 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                                                     {t.full_name?.charAt(0) || 'G'}
                                                 </div>
                                             )}
-
-                                            {/* Status Badge */}
-                                            <div className="absolute top-3 right-3">
-                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold shadow-sm ${t.employment_status === 'PNS'
-                                                        ? 'bg-emerald-600 text-white'
-                                                        : t.employment_status === 'PPPK'
-                                                            ? 'bg-blue-600 text-white'
-                                                            : 'bg-amber-500 text-white'
-                                                    }`}>
-                                                    {t.employment_status}
-                                                </span>
-                                            </div>
                                         </div>
 
                                         {/* Teacher Info */}
@@ -335,18 +216,24 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                                             </div>
 
                                             <div className="space-y-1.5 pt-2 border-t border-[#E5EAF0] text-xs text-[#64748B]">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-[11px] font-semibold text-slate-400 uppercase">NIP:</span>
-                                                    <span className="font-mono font-bold text-slate-800 text-[11px]">{t.nip || 'Belum diisi'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-[11px] font-semibold text-slate-400 uppercase">Pendidikan:</span>
-                                                    <span className="font-semibold text-slate-700 text-[11px]">{t.education_level || 'S1'}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-[11px] font-semibold text-slate-400 uppercase">Jenis Kelamin:</span>
-                                                    <span className="font-semibold text-slate-700 text-[11px]">{t.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</span>
-                                                </div>
+                                                {t.nip && (
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[11px] font-semibold text-slate-400 uppercase">NIP:</span>
+                                                        <span className="font-mono font-bold text-slate-800 text-[11px]">{t.nip}</span>
+                                                    </div>
+                                                )}
+                                                {t.education_level && (
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[11px] font-semibold text-slate-400 uppercase">Pendidikan:</span>
+                                                        <span className="font-semibold text-slate-700 text-[11px]">{t.education_level}</span>
+                                                    </div>
+                                                )}
+                                                {t.gender && (
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[11px] font-semibold text-slate-400 uppercase">Jenis Kelamin:</span>
+                                                        <span className="font-semibold text-slate-700 text-[11px]">{t.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -364,9 +251,9 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                     ) : (
                         <div className="bg-white rounded-2xl border border-[#E5EAF0] p-12 text-center space-y-3">
                             <Users className="w-12 h-12 text-slate-300 mx-auto" />
-                            <h3 className="text-base font-bold text-slate-700">Tenaga Pendidik Tidak Ditemukan</h3>
+                            <h3 className="text-base font-bold text-slate-700">Belum Ada Data Tenaga Pendidik</h3>
                             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                                Coba ubah kata kunci pencarian atau pilih kategori filter kepegawaian yang lain.
+                                Data tenaga pendidik akan ditampilkan di sini setelah ditambahkan oleh pihak sekolah.
                             </p>
                         </div>
                     )}
