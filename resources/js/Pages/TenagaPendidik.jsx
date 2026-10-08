@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { 
-    Users, 
-    Search, 
-    GraduationCap, 
-    Award, 
-    School, 
-    Mail, 
-    MapPin, 
-    Phone, 
-    ArrowRight, 
-    CalendarCheck, 
-    ChevronDown, 
-    Menu, 
-    X, 
+import {
+    Users,
+    Search,
+    GraduationCap,
+    Award,
+    School,
+    Mail,
+    MapPin,
+    Phone,
+    ArrowRight,
+    CalendarCheck,
+    ChevronDown,
+    Menu,
+    X,
     Building2,
     CheckCircle2,
     ExternalLink,
@@ -28,12 +28,12 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
 
     // Filter teachers
     const filteredTeachers = teachers.filter((t) => {
-        const matchesSearch = 
+        const matchesSearch =
             (t.full_name && t.full_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
             (t.nip && t.nip.includes(searchQuery));
-        
-        const matchesStatus = 
-            statusFilter === 'all' || 
+
+        const matchesStatus =
+            statusFilter === 'all' ||
             (statusFilter === 'pns' && t.employment_status === 'PNS') ||
             (statusFilter === 'pppk' && t.employment_status === 'PPPK') ||
             (statusFilter === 'gtt' && (t.employment_status === 'GTT' || t.employment_status === 'Honorer')) ||
@@ -52,19 +52,19 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
             <Head title="Tenaga Pendidik & Kependidikan - UPT SDN 9 Gandangbatu Sillanan" />
 
             <div className="min-h-screen bg-[#F7F8FA] text-[#142033] font-sans selection:bg-[#8B001F] selection:text-white flex flex-col justify-between">
-                
+
                 {/* -------------------------------------------------------------
                     1. HEADER / NAVIGATION BAR
                 ------------------------------------------------------------- */}
                 <header className="sticky top-0 z-50 bg-white border-b border-[#E5EAF0]">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-                        
+
                         {/* Brand Identity */}
                         <Link href="/" className="flex items-center space-x-3 group">
-                            <img 
-                                src="/logo.webp" 
-                                alt="Logo UPT SDN 9 Gandangbatu Sillanan" 
-                                className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0 group-hover:scale-105 transition duration-200" 
+                            <img
+                                src="/logo.webp"
+                                alt="Logo UPT SDN 9 Gandangbatu Sillanan"
+                                className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0 group-hover:scale-105 transition duration-200"
                             />
                             <div>
                                 <span className="text-base font-bold text-[#142033] block leading-tight">
@@ -108,7 +108,11 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                                 </div>
                             </div>
 
-                            <Link href="/#keamanan" className="text-[#64748B] hover:text-[#8B001F] transition">
+                            <Link href="/#panduan" className="text-[#64748B] hover:text-[#8B001F] transition">
+                                Panduan
+                            </Link>
+
+                            <Link href="/#pengumuman" className="text-[#64748B] hover:text-[#8B001F] transition">
                                 Pengumuman
                             </Link>
                         </nav>
@@ -154,7 +158,10 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                                 <Link href={route('tenaga-pendidik.index')} className="py-1.5 pl-6 rounded-xl bg-[#FFF0F2] text-[#8B001F] text-xs font-bold">
                                     • Tenaga Pendidik
                                 </Link>
-                                <Link href="/#keamanan" className="py-2 px-3 rounded-xl text-[#64748B]">
+                                <Link href="/#panduan" className="py-2 px-3 rounded-xl text-[#64748B]">
+                                    Panduan
+                                </Link>
+                                <Link href="/#pengumuman" className="py-2 px-3 rounded-xl text-[#64748B]">
                                     Pengumuman
                                 </Link>
                             </nav>
@@ -216,10 +223,10 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                     3. FILTER & TEACHERS GRID
                 ------------------------------------------------------------- */}
                 <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-8 flex-1 w-full">
-                    
+
                     {/* Controls: Search & Category Filter */}
                     <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-[#E5EAF0] shadow-sm">
-                        
+
                         {/* Search Input */}
                         <div className="relative flex-1">
                             <Search className="w-4.5 h-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -236,41 +243,37 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                         <div className="flex flex-wrap items-center gap-1.5">
                             <button
                                 onClick={() => setStatusFilter('all')}
-                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${
-                                    statusFilter === 'all'
+                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${statusFilter === 'all'
                                         ? 'bg-[#8B001F] text-white shadow-sm'
                                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                }`}
+                                    }`}
                             >
                                 Semua ({totalTeachers})
                             </button>
                             <button
                                 onClick={() => setStatusFilter('pns')}
-                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${
-                                    statusFilter === 'pns'
+                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${statusFilter === 'pns'
                                         ? 'bg-[#8B001F] text-white shadow-sm'
                                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                }`}
+                                    }`}
                             >
                                 PNS ({totalPNS})
                             </button>
                             <button
                                 onClick={() => setStatusFilter('pppk')}
-                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${
-                                    statusFilter === 'pppk'
+                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${statusFilter === 'pppk'
                                         ? 'bg-[#8B001F] text-white shadow-sm'
                                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                }`}
+                                    }`}
                             >
                                 PPPK ({totalPPPK})
                             </button>
                             <button
                                 onClick={() => setStatusFilter('gtt')}
-                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${
-                                    statusFilter === 'gtt'
+                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition ${statusFilter === 'gtt'
                                         ? 'bg-[#8B001F] text-white shadow-sm'
                                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                }`}
+                                    }`}
                             >
                                 GTT / Honorer ({totalGTT})
                             </button>
@@ -282,18 +285,18 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                     {filteredTeachers.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {filteredTeachers.map((t) => (
-                                <div 
-                                    key={t.id} 
+                                <div
+                                    key={t.id}
                                     className="bg-white rounded-2xl border border-[#E5EAF0] shadow-sm hover:shadow-md hover:border-[#8B001F]/30 transition duration-200 overflow-hidden flex flex-col justify-between group"
                                 >
                                     <div>
                                         {/* Photo Header */}
                                         <div className="h-52 w-full bg-[#FFF0F2] relative overflow-hidden flex items-center justify-center border-b border-[#E5EAF0]">
                                             {t.photo ? (
-                                                <img 
-                                                    src={t.photo} 
-                                                    alt={t.full_name} 
-                                                    className="w-full h-full object-cover object-center group-hover:scale-105 transition duration-300" 
+                                                <img
+                                                    src={t.photo}
+                                                    alt={t.full_name}
+                                                    className="w-full h-full object-cover object-center group-hover:scale-105 transition duration-300"
                                                 />
                                             ) : (
                                                 <div className="w-24 h-24 rounded-full bg-[#8B001F]/10 border-2 border-[#8B001F]/20 text-[#8B001F] flex items-center justify-center font-extrabold text-3xl shadow-inner">
@@ -303,13 +306,12 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
 
                                             {/* Status Badge */}
                                             <div className="absolute top-3 right-3">
-                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold shadow-sm ${
-                                                    t.employment_status === 'PNS' 
-                                                        ? 'bg-emerald-600 text-white' 
+                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold shadow-sm ${t.employment_status === 'PNS'
+                                                        ? 'bg-emerald-600 text-white'
                                                         : t.employment_status === 'PPPK'
-                                                        ? 'bg-blue-600 text-white'
-                                                        : 'bg-amber-500 text-white'
-                                                }`}>
+                                                            ? 'bg-blue-600 text-white'
+                                                            : 'bg-amber-500 text-white'
+                                                    }`}>
                                                     {t.employment_status}
                                                 </span>
                                             </div>
@@ -322,13 +324,13 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                                                     {t.full_name}
                                                 </h3>
                                                 <p className="text-xs text-[#64748B] font-medium mt-0.5">
-                                                    {t.role === 'pimpinan' 
-                                                        ? 'Kepala Sekolah' 
-                                                        : t.role === 'bk' 
-                                                        ? 'Guru Bimbingan Konseling' 
-                                                        : t.homeroom_class 
-                                                        ? `Wali Kelas ${t.homeroom_class}` 
-                                                        : 'Guru Mata Pelajaran'}
+                                                    {t.role === 'pimpinan'
+                                                        ? 'Kepala Sekolah'
+                                                        : t.role === 'bk'
+                                                            ? 'Guru Bimbingan Konseling'
+                                                            : t.homeroom_class
+                                                                ? `Wali Kelas ${t.homeroom_class}`
+                                                                : 'Guru Mata Pelajaran'}
                                                 </p>
                                             </div>
 
@@ -376,16 +378,16 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                 ------------------------------------------------------------- */}
                 <footer className="bg-white border-t border-[#E5EAF0] py-10 text-[#64748B] text-xs">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-slate-100">
-                            
+
                             {/* Brand info */}
                             <div className="space-y-2">
                                 <div className="flex items-center space-x-2">
-                                    <img 
-                                        src="/logo.webp" 
-                                        alt="Logo UPT SDN 9 Gandangbatu Sillanan" 
-                                        className="w-8 h-8 object-contain shrink-0" 
+                                    <img
+                                        src="/logo.webp"
+                                        alt="Logo UPT SDN 9 Gandangbatu Sillanan"
+                                        className="w-8 h-8 object-contain shrink-0"
                                     />
                                     <span className="font-bold text-[#142033] text-sm">
                                         UPT SDN 9 Gandangbatu Sillanan
@@ -403,7 +405,7 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                                     <li><Link href="/" className="hover:text-[#8B001F]">Beranda</Link></li>
                                     <li><Link href="/#profil" className="hover:text-[#8B001F]">Profil Sekolah</Link></li>
                                     <li><Link href={route('tenaga-pendidik.index')} className="hover:text-[#8B001F] text-[#8B001F] font-semibold">Tenaga Pendidik</Link></li>
-                                    <li><Link href="/#keamanan" className="hover:text-[#8B001F]">Pengumuman</Link></li>
+                                    <li><Link href="/#pengumuman" className="hover:text-[#8B001F]">Pengumuman</Link></li>
                                 </ul>
                             </div>
 
@@ -411,7 +413,7 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                             <div className="space-y-2.5">
                                 <h4 className="font-bold text-[#142033] text-xs">Kontak & Lokasi</h4>
                                 <div className="space-y-2 text-[11px] text-[#64748B]">
-                                    <a 
+                                    <a
                                         href="https://maps.google.com/?q=QR57%2BFHC,+Betteng+Deata,+Kec.+Gandang+Batu+Sillanan,+Kabupaten+Tana+Toraja,+Sulawesi+Selatan+91871"
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -423,14 +425,14 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                                             Buntu, Kel. Benteng Ambeso, Kec. Gandangbatu Sillanan, Kab. Tana Toraja, Sulsel 91871
                                         </span>
                                     </a>
-                                    <a 
+                                    <a
                                         href="mailto:sdn9gandasil@gmail.com"
                                         className="flex items-center space-x-1.5 hover:text-[#8B001F] transition"
                                     >
                                         <Mail className="w-3.5 h-3.5 text-[#8B001F] shrink-0" />
                                         <span>sdn9gandasil@gmail.com</span>
                                     </a>
-                                    <a 
+                                    <a
                                         href="https://wa.me/6282236847240"
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -460,9 +462,9 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                             <div className="space-y-2">
                                 <h4 className="font-bold text-[#142033] text-xs">Dikembangkan oleh</h4>
                                 <div className="space-y-1">
-                                    <a 
-                                        href="https://www.techsoe.com/" 
-                                        target="_blank" 
+                                    <a
+                                        href="https://www.techsoe.com/"
+                                        target="_blank"
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center space-x-1 font-bold text-[#8B001F] hover:text-[#650019] text-sm group"
                                     >
