@@ -9,6 +9,7 @@ export default function ModalGuru({
     teacherForm,
     setTeacherForm,
     handleSaveTeacher,
+    subjects = [],
     isSubmitting
 }) {
     const [rawImageForCrop, setRawImageForCrop] = useState(null);
@@ -156,15 +157,21 @@ export default function ModalGuru({
                                     <label className="block text-xs font-semibold text-slate-700 mb-1">
                                         Mata Pelajaran yang Diampu (Opsional)
                                     </label>
-                                    <input
-                                        type="text"
-                                        placeholder="Contoh: Pendidikan Agama Islam, PJOK, Bahasa Inggris, dll. (Kosongkan jika Guru Kelas)"
+                                    <select
                                         value={teacherForm.subject_specialization || ''}
                                         onChange={(e) => setTeacherForm({ ...teacherForm, subject_specialization: e.target.value })}
-                                        className="w-full h-10 px-3.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:border-[#8B001F] focus:ring-[#8B001F]"
-                                    />
+                                        className="w-full h-10 px-3.5 bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:border-[#8B001F] focus:ring-[#8B001F]"
+                                    >
+                                        <option value="">-- Pilih Mata Pelajaran (Kosongkan jika Guru / Wali Kelas) --</option>
+                                        {subjects && subjects.map(s => (
+                                            <option key={s.id} value={s.name}>{s.name}</option>
+                                        ))}
+                                        {teacherForm.subject_specialization && subjects && !subjects.some(s => s.name === teacherForm.subject_specialization) && (
+                                            <option value={teacherForm.subject_specialization}>{teacherForm.subject_specialization}</option>
+                                        )}
+                                    </select>
                                     <p className="text-[11px] text-slate-500 mt-1">
-                                        Jika diisi (misal: Pendidikan Agama Islam), status guru akan tampil sebagai Guru Mata Pelajaran di sistem.
+                                        Jika dipilih (misal: Pendidikan Agama Islam), status guru akan tampil sebagai Guru Mata Pelajaran di sistem.
                                     </p>
                                 </div>
                             )}

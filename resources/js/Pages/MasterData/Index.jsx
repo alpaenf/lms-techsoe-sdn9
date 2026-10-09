@@ -563,6 +563,7 @@ export default function MasterDataIndex({
                 teacherForm={teacherForm} 
                 setTeacherForm={setTeacherForm} 
                 handleSaveTeacher={handleSaveTeacher} 
+                subjects={subjects}
                 isSubmitting={isSubmitting} 
             />
 
