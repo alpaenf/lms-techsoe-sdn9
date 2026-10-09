@@ -47,8 +47,8 @@ export default function ModalGuru({
     return (
         <>
             <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-                <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-scale-up">
-                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col animate-scale-up">
+                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
                         <h3 className="text-base font-bold text-slate-900">
                             {editingTeacher ? 'Edit Data Tenaga Pendidik' : 'Tambah Tenaga Pendidik Baru'}
                         </h3>
@@ -61,7 +61,7 @@ export default function ModalGuru({
                         </button>
                     </div>
 
-                    <form onSubmit={handleSaveTeacher} className="p-6 space-y-4">
+                    <form onSubmit={handleSaveTeacher} className="p-6 space-y-4 overflow-y-auto flex-1">
                         <div>
                             <label className="block text-xs font-semibold text-slate-700 mb-1">
                                 Nama Lengkap & Gelar *

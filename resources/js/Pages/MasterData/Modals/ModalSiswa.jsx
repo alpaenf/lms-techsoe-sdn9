@@ -15,8 +15,8 @@ export default function ModalSiswa({
 
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-            <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-scale-up">
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col animate-scale-up">
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
                     <h3 className="text-base font-bold text-slate-900">
                         {editingStudent ? 'Edit Data Peserta Didik' : 'Tambah Peserta Didik Baru'}
                     </h3>
@@ -29,7 +29,7 @@ export default function ModalSiswa({
                     </button>
                 </div>
 
-                <form onSubmit={handleSaveStudent} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+                <form onSubmit={handleSaveStudent} className="p-6 space-y-4 overflow-y-auto flex-1">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="sm:col-span-2">
                             <label className="block text-xs font-semibold text-slate-700 mb-1">
