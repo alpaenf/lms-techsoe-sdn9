@@ -54,7 +54,6 @@ export default function Welcome({ auth, announcements = [] }) {
         { id: 'profil', label: 'Profil Sekolah' },
         { id: 'modul', label: 'Modul Fitur' },
         { id: 'panduan', label: 'Panduan' },
-        { id: 'keamanan', label: 'Keamanan' },
         { id: 'pengumuman', label: 'Pengumuman' },
     ];
 
@@ -351,16 +350,6 @@ export default function Welcome({ auth, announcements = [] }) {
                             </a>
 
                             <a
-                                href="#keamanan"
-                                onClick={(e) => handleNavClick(e, 'keamanan')}
-                                className={`transition-colors duration-300 ease-in-out relative py-1.5 ${activeSection === 'keamanan' ? 'text-[#8B001F]' : 'text-[#64748B] hover:text-[#8B001F]'
-                                    }`}
-                            >
-                                Keamanan
-                                <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-[#8B001F] rounded-full transition-all duration-300 ${activeSection === 'keamanan' ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'}`} />
-                            </a>
-
-                            <a
                                 href="#pengumuman"
                                 onClick={(e) => handleNavClick(e, 'pengumuman')}
                                 className={`transition-colors duration-300 ease-in-out relative py-1.5 ${activeSection === 'pengumuman' ? 'text-[#8B001F]' : 'text-[#64748B] hover:text-[#8B001F]'
@@ -445,18 +434,6 @@ export default function Welcome({ auth, announcements = [] }) {
                                         }`}
                                 >
                                     Panduan
-                                </a>
-
-                                <a
-                                    href="#keamanan"
-                                    onClick={(e) => {
-                                        setMobileMenuOpen(false);
-                                        handleNavClick(e, 'keamanan');
-                                    }}
-                                    className={`py-2 px-3 rounded-xl transition-all ${activeSection === 'keamanan' ? 'bg-[#FFF0F2] text-[#8B001F]' : 'text-[#64748B] hover:bg-slate-50'
-                                        }`}
-                                >
-                                    Keamanan
                                 </a>
 
                                 <a
