@@ -38,7 +38,24 @@ Route::get('/tenaga-pendidik', function () {
             'classes.name as homeroom_class'
         )
         ->orderBy('teachers.full_name')
-        ->get();
+        ->get()
+        ->map(function ($teacher) {
+            $claimedSubjects = DB::table('teacher_subjects')
+                ->join('subjects', 'teacher_subjects.subject_id', '=', 'subjects.id')
+                ->where('teacher_subjects.teacher_id', $teacher->id)
+                ->pluck('subjects.name')
+                ->unique()
+                ->values()
+                ->toArray();
+
+            if (!empty($claimedSubjects)) {
+                $teacher->assigned_subjects = implode(', ', $claimedSubjects);
+            } else {
+                $teacher->assigned_subjects = $teacher->subject_specialization;
+            }
+
+            return $teacher;
+        });
 
     return Inertia::render('TenagaPendidik', [
         'teachers' => $teachers,

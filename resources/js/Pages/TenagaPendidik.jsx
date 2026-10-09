@@ -16,6 +16,34 @@ import {
 
 export default function TenagaPendidik({ auth, teachers = [] }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [imageErrors, setImageErrors] = useState({});
+
+    const isValidPhotoUrl = (photo) => {
+        if (!photo || typeof photo !== 'string') return false;
+        return photo.startsWith('/') || photo.startsWith('http://') || photo.startsWith('https://') || photo.startsWith('data:');
+    };
+
+    const getTeacherSubtitle = (t) => {
+        if (t.role === 'pimpinan') return 'Kepala Sekolah (Pimpinan)';
+        if (t.role === 'tendik') return 'Tenaga Kependidikan (Tendik)';
+        if (t.role === 'bk') return 'Guru Bimbingan Konseling (BK)';
+
+        const subjectStr = t.assigned_subjects || t.subject_specialization;
+
+        if (subjectStr && subjectStr.trim() !== '' && !['guru kelas', 'wali kelas'].includes(subjectStr.trim().toLowerCase())) {
+            return `Guru Mata Pelajaran ${subjectStr}`;
+        }
+
+        if (t.homeroom_class) {
+            return `Wali Kelas ${t.homeroom_class}`;
+        }
+
+        if (t.teacher_type === 'guru_mapel' || t.role === 'guru_mapel') {
+            return 'Guru Mata Pelajaran';
+        }
+
+        return 'Guru / Wali Kelas';
+    };
 
     return (
         <>
@@ -184,10 +212,11 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                                 >
                                     {/* Photo Header */}
                                     <div className="h-64 w-full bg-[#FFF0F2] relative overflow-hidden flex items-center justify-center border-b border-[#E5EAF0]">
-                                        {t.photo ? (
+                                        {isValidPhotoUrl(t.photo) && !imageErrors[t.id] ? (
                                             <img
                                                 src={t.photo}
                                                 alt={t.full_name}
+                                                onError={() => setImageErrors((prev) => ({ ...prev, [t.id]: true }))}
                                                 className="w-full h-full object-cover object-center group-hover:scale-105 transition duration-300"
                                             />
                                         ) : (
@@ -203,13 +232,7 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
                                             {t.full_name}
                                         </h3>
                                         <p className="text-xs font-semibold text-[#8B001F]">
-                                            {t.role === 'pimpinan'
-                                                ? 'Kepala Sekolah'
-                                                : t.role === 'bk'
-                                                    ? 'Guru Bimbingan Konseling'
-                                                    : t.homeroom_class
-                                                        ? `Wali Kelas ${t.homeroom_class}`
-                                                        : 'Guru Mata Pelajaran'}
+                                            {getTeacherSubtitle(t)}
                                         </p>
                                     </div>
                                 </div>
