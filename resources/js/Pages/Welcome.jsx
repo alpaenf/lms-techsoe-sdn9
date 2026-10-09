@@ -35,21 +35,27 @@ import {
     LockKeyhole,
     Mail,
     Phone,
-    ExternalLink
+    ExternalLink,
+    Calendar,
+    Megaphone,
+    Eye,
+    Sparkles
 } from 'lucide-react';
 
-export default function Welcome({ auth }) {
+export default function Welcome({ auth, announcements = [] }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activeModuleTab, setActiveModuleTab] = useState('all');
     const [activeRoleTab, setActiveRoleTab] = useState('siswa');
     const [activeSection, setActiveSection] = useState('hero');
+    const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
 
     const navItems = [
         { id: 'hero', label: 'Beranda' },
         { id: 'profil', label: 'Profil Sekolah' },
         { id: 'modul', label: 'Modul Fitur' },
         { id: 'panduan', label: 'Panduan' },
-        { id: 'keamanan', label: 'Pengumuman' },
+        { id: 'keamanan', label: 'Keamanan' },
+        { id: 'pengumuman', label: 'Pengumuman' },
     ];
 
     useEffect(() => {
@@ -241,6 +247,28 @@ export default function Welcome({ auth }) {
         }
     };
 
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    };
+
+    const getTargetBadge = (target) => {
+        const badges = {
+            all: { label: 'Semua Warga', bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200' },
+            siswa: { label: 'Peserta Didik', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+            guru: { label: 'Guru & Tendik', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+            admin: { label: 'Administrator', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+            pimpinan: { label: 'Pimpinan', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+            bk: { label: 'Bimbingan Konseling', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
+        };
+        return badges[target] || badges.all;
+    };
+
     return (
         <>
             <Head title="UPT SDN 9 Gandangbatu Sillanan — Smart School LMS" />
@@ -328,8 +356,18 @@ export default function Welcome({ auth }) {
                                 className={`transition-colors duration-300 ease-in-out relative py-1.5 ${activeSection === 'keamanan' ? 'text-[#8B001F]' : 'text-[#64748B] hover:text-[#8B001F]'
                                     }`}
                             >
-                                Pengumuman
+                                Keamanan
                                 <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-[#8B001F] rounded-full transition-all duration-300 ${activeSection === 'keamanan' ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'}`} />
+                            </a>
+
+                            <a
+                                href="#pengumuman"
+                                onClick={(e) => handleNavClick(e, 'pengumuman')}
+                                className={`transition-colors duration-300 ease-in-out relative py-1.5 ${activeSection === 'pengumuman' ? 'text-[#8B001F]' : 'text-[#64748B] hover:text-[#8B001F]'
+                                    }`}
+                            >
+                                Pengumuman
+                                <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-[#8B001F] rounded-full transition-all duration-300 ${activeSection === 'pengumuman' ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'}`} />
                             </a>
                         </nav>
 
@@ -416,6 +454,18 @@ export default function Welcome({ auth }) {
                                         handleNavClick(e, 'keamanan');
                                     }}
                                     className={`py-2 px-3 rounded-xl transition-all ${activeSection === 'keamanan' ? 'bg-[#FFF0F2] text-[#8B001F]' : 'text-[#64748B] hover:bg-slate-50'
+                                        }`}
+                                >
+                                    Keamanan
+                                </a>
+
+                                <a
+                                    href="#pengumuman"
+                                    onClick={(e) => {
+                                        setMobileMenuOpen(false);
+                                        handleNavClick(e, 'pengumuman');
+                                    }}
+                                    className={`py-2 px-3 rounded-xl transition-all ${activeSection === 'pengumuman' ? 'bg-[#FFF0F2] text-[#8B001F]' : 'text-[#64748B] hover:bg-slate-50'
                                         }`}
                                 >
                                     Pengumuman
@@ -1005,7 +1055,114 @@ export default function Welcome({ auth }) {
                 </section>
 
                 {/* -------------------------------------------------------------
-                    8. FINAL CTA BANNER (BURGUNDY SOLID)
+                    8. INFORMASI & PENGUMUMAN RESMI SEKOLAH (ARTIKEL STYLE)
+                ------------------------------------------------------------- */}
+                <section id="pengumuman" className="py-16 sm:py-20 bg-white border-b border-[#E5EAF0]">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                            <div className="space-y-2 max-w-2xl">
+                                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FFF0F2] text-[#8B001F] border border-[#8B001F]/20">
+                                    <Megaphone className="w-3.5 h-3.5" />
+                                    <span>INFORMASI & BERITA TERKINI</span>
+                                </span>
+                                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#142033]">
+                                    Pengumuman & Berita Sekolah
+                                </h2>
+                                <p className="text-xs sm:text-sm text-[#64748B]">
+                                    Informasi resmi, agenda kegiatan, dan kabar akademik terbaru di lingkungan UPT SDN 9 Gandangbatu Sillanan.
+                                </p>
+                            </div>
+
+                            {announcements && announcements.length > 0 && (
+                                <Link
+                                    href={auth?.user ? route('announcements.index') : route('login')}
+                                    className="inline-flex items-center text-xs font-bold text-[#8B001F] hover:text-[#650019] transition group shrink-0"
+                                >
+                                    <span>Pusat Pengumuman Lengkap</span>
+                                    <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                            )}
+                        </div>
+
+                        {/* Article Cards Grid */}
+                        {announcements && announcements.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                                {announcements.map((item) => {
+                                    const badge = getTargetBadge(item.target_role);
+                                    // Strip HTML tags for clean excerpt
+                                    const cleanText = item.content ? item.content.replace(/<[^>]*>?/gm, '') : '';
+                                    return (
+                                        <article
+                                            key={item.id}
+                                            className="bg-white rounded-2xl border border-[#E5EAF0] shadow-sm hover:shadow-md hover:border-[#8B001F]/30 transition duration-200 flex flex-col justify-between overflow-hidden group"
+                                        >
+                                            <div className="p-6 space-y-4">
+                                                {/* Meta: Target Badge & Date */}
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${badge.bg} ${badge.text} ${badge.border}`}>
+                                                        {badge.label}
+                                                    </span>
+                                                    <span className="inline-flex items-center text-[11px] text-[#64748B]">
+                                                        <Calendar className="w-3.5 h-3.5 mr-1 text-[#8B001F]/70" />
+                                                        {formatDate(item.published_at || item.created_at)}
+                                                    </span>
+                                                </div>
+
+                                                {/* Title */}
+                                                <h3
+                                                    onClick={() => setSelectedAnnouncement(item)}
+                                                    className="text-base sm:text-lg font-bold text-[#142033] group-hover:text-[#8B001F] transition cursor-pointer line-clamp-2 leading-snug"
+                                                >
+                                                    {item.title}
+                                                </h3>
+
+                                                {/* Excerpt */}
+                                                <p className="text-xs text-[#64748B] line-clamp-3 leading-relaxed">
+                                                    {cleanText}
+                                                </p>
+                                            </div>
+
+                                            {/* Footer */}
+                                            <div className="px-6 py-4 bg-[#F7F8FA] border-t border-[#E5EAF0] flex items-center justify-between text-xs">
+                                                <div className="flex items-center space-x-2 text-[#64748B]">
+                                                    <div className="w-6 h-6 rounded-full bg-[#FFF0F2] text-[#8B001F] flex items-center justify-center font-bold text-[10px]">
+                                                        <User className="w-3 h-3" />
+                                                    </div>
+                                                    <span className="text-[11px] font-medium truncate max-w-[120px]">
+                                                        {item.author_name || 'Admin Sekolah'}
+                                                    </span>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => setSelectedAnnouncement(item)}
+                                                    className="inline-flex items-center font-bold text-[#8B001F] hover:text-[#650019] text-xs group-hover:translate-x-0.5 transition-transform"
+                                                >
+                                                    <span>Baca Selengkapnya</span>
+                                                    <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                                                </button>
+                                            </div>
+                                        </article>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="bg-[#F7F8FA] border border-[#E5EAF0] rounded-2xl p-10 text-center space-y-3">
+                                <div className="w-12 h-12 bg-[#FFF0F2] text-[#8B001F] rounded-full flex items-center justify-center mx-auto border border-[#8B001F]/20">
+                                    <Bell className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-base font-bold text-[#142033]">Belum Ada Pengumuman Terbaru</h3>
+                                <p className="text-xs text-[#64748B] max-w-md mx-auto">
+                                    Pengumuman resmi dan artikel informasi sekolah akan segera dipublikasikan di halaman ini.
+                                </p>
+                            </div>
+                        )}
+
+                    </div>
+                </section>
+
+                {/* -------------------------------------------------------------
+                    9. FINAL CTA BANNER (BURGUNDY SOLID)
                 ------------------------------------------------------------- */}
                 <section className="bg-white py-12">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1033,7 +1190,7 @@ export default function Welcome({ auth }) {
                 </section>
 
                 {/* -------------------------------------------------------------
-                    9. FOOTER SECTION
+                    10. FOOTER SECTION
                 ------------------------------------------------------------- */}
                 <footer className="bg-white border-t border-[#E5EAF0] py-10 text-[#64748B] text-xs">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -1063,9 +1220,11 @@ export default function Welcome({ auth }) {
                                 <ul className="space-y-1 text-[#64748B]">
                                     <li><a href="#hero" className="hover:text-[#8B001F]">Beranda</a></li>
                                     <li><a href="#profil" className="hover:text-[#8B001F]">Profil Sekolah</a></li>
+                                    <li><Link href={route('tenaga-pendidik.index')} className="hover:text-[#8B001F]">Tenaga Pendidik</Link></li>
                                     <li><a href="#modul" className="hover:text-[#8B001F]">Modul Fitur</a></li>
                                     <li><a href="#panduan" className="hover:text-[#8B001F]">Panduan Pengguna</a></li>
-                                    <li><a href="#keamanan" className="hover:text-[#8B001F]">Pengumuman</a></li>
+                                    <li><a href="#keamanan" className="hover:text-[#8B001F]">Keamanan Sistem</a></li>
+                                    <li><a href="#pengumuman" className="hover:text-[#8B001F]">Pengumuman & Berita</a></li>
                                 </ul>
                             </div>
 
@@ -1153,6 +1312,70 @@ export default function Welcome({ auth }) {
                 </footer>
 
             </div>
+
+            {/* Modal Detail Pengumuman Interaktif */}
+            {selectedAnnouncement && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+                    onClick={() => setSelectedAnnouncement(null)}
+                >
+                    <div
+                        className="bg-white rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-[#E5EAF0] overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Modal Header */}
+                        <div className="p-6 sm:p-8 border-b border-[#E5EAF0] relative bg-[#F7F8FA]">
+                            <button
+                                onClick={() => setSelectedAnnouncement(null)}
+                                className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+
+                            <div className="flex flex-wrap items-center gap-2 mb-3">
+                                {(() => {
+                                    const b = getTargetBadge(selectedAnnouncement.target_role);
+                                    return (
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold border ${b.bg} ${b.text} ${b.border}`}>
+                                            {b.label}
+                                        </span>
+                                    );
+                                })()}
+                                <span className="inline-flex items-center text-xs text-[#64748B]">
+                                    <Calendar className="w-3.5 h-3.5 mr-1 text-[#8B001F]" />
+                                    {formatDate(selectedAnnouncement.published_at || selectedAnnouncement.created_at)}
+                                </span>
+                            </div>
+
+                            <h3 className="text-xl sm:text-2xl font-extrabold text-[#142033] leading-snug">
+                                {selectedAnnouncement.title}
+                            </h3>
+
+                            <div className="flex items-center space-x-2 mt-3 text-xs text-[#64748B]">
+                                <div className="w-6 h-6 rounded-full bg-[#FFF0F2] text-[#8B001F] flex items-center justify-center font-bold text-[10px]">
+                                    <User className="w-3.5 h-3.5" />
+                                </div>
+                                <span>Diterbitkan oleh: <strong className="text-[#142033]">{selectedAnnouncement.author_name || 'Admin Sekolah'}</strong></span>
+                            </div>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-6 sm:p-8 overflow-y-auto space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                            {selectedAnnouncement.content}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-4 sm:p-6 bg-[#F7F8FA] border-t border-[#E5EAF0] flex justify-end">
+                            <button
+                                onClick={() => setSelectedAnnouncement(null)}
+                                className="px-5 py-2.5 bg-[#8B001F] hover:bg-[#650019] text-white text-xs font-bold rounded-xl shadow-sm transition"
+                            >
+                                Tutup Pengumuman
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

@@ -19,11 +19,26 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
+    $announcements = DB::table('announcements')
+        ->leftJoin('users', 'announcements.created_by', '=', 'users.id')
+        ->select(
+            'announcements.*',
+            'users.name as author_name'
+        )
+        ->whereNotNull('announcements.published_at')
+        ->orderBy('announcements.published_at', 'desc')
+        ->take(6)
+        ->get();
+
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'announcements' => $announcements,
+        'auth' => [
+            'user' => auth()->user(),
+        ],
     ]);
 });
 
