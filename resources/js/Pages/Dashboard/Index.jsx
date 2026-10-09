@@ -107,7 +107,7 @@ export default function DashboardIndex({
 
     return (
         <AuthenticatedLayout>
-            <Head title={`Dashboard ${displayTitle} - Smart School LMS`} />
+            <Head title={`Dashboard ${displayTitle}`} />
 
             <div className="space-y-6 max-w-7xl mx-auto">
                 {/* 1. CLEAN & MODERN DASHBOARD HEADER */}

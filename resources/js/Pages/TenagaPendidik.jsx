@@ -49,7 +49,7 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
 
     return (
         <>
-            <Head title="Tenaga Pendidik & Kependidikan - UPT SDN 9 Gandangbatu Sillanan" />
+            <Head title="Tenaga Pendidik & Kependidikan" />
 
             <div className="min-h-screen bg-[#F7F8FA] text-[#142033] font-sans selection:bg-[#8B001F] selection:text-white flex flex-col justify-between">
 

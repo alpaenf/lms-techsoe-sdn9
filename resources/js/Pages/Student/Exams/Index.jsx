@@ -107,7 +107,7 @@ export default function StudentExamsIndex({ auth, exams = [], student }) {
                 </div>
             }
         >
-            <Head title="Ujian Online - Smart School LMS" />
+            <Head title="Ujian Online" />
 
             <div className="space-y-6 max-w-7xl mx-auto">
                 {/* Statistics Cards */}

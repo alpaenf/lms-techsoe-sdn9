@@ -411,7 +411,7 @@ export default function MasterDataIndex({
                 </div>
             }
         >
-            <Head title="Master Data - Smart School LMS" />
+            <Head title="Master Data" />
 
             <div className="space-y-6 max-w-7xl mx-auto">
                 {/* Notification toast */}

@@ -125,7 +125,7 @@ export default function AnnouncementsIndex({ auth, announcements = { data: [] } 
                 </div>
             }
         >
-            <Head title="Warta & Pengumuman - Smart School LMS" />
+            <Head title="Warta & Pengumuman" />
 
             <div className="space-y-6 max-w-7xl mx-auto">
                 {/* Search Bar */}

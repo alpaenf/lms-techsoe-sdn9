@@ -49,7 +49,7 @@ export default function AnnouncementsShow({ auth, announcement }) {
                 </div>
             }
         >
-            <Head title={`${announcement.title} - Smart School LMS`} />
+            <Head title={announcement.title} />
 
             <div className="max-w-4xl mx-auto space-y-6">
                 <article className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">

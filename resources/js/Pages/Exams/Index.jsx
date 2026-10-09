@@ -124,7 +124,7 @@ export default function ExamsIndex({ auth, exams = [] }) {
                 </div>
             }
         >
-            <Head title="Manajemen Ujian Online - Smart School LMS" />
+            <Head title="Manajemen Ujian Online" />
 
             <div className="space-y-6 max-w-7xl mx-auto">
                 {/* Filter and Search */}

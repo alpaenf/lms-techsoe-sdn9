@@ -330,7 +330,7 @@ export default function ELearningIndex({
                 </div>
             }
         >
-            <Head title={`${isSiswa ? 'E-Learning Siswa' : 'E-Learning'} - Smart School LMS`} />
+            <Head title={isSiswa ? 'E-Learning Siswa' : 'E-Learning'} />
 
             <div className="space-y-6 max-w-7xl mx-auto">
                 {/* Notification toast */}

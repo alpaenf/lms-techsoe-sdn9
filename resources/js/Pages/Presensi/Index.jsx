@@ -295,7 +295,7 @@ export default function PresensiIndex({
                 </div>
             }
         >
-            <Head title={`Presensi ${isGuru ? 'Pendidik' : 'Siswa'} - Smart School LMS`} />
+            <Head title={`Presensi ${isGuru ? 'Pendidik' : 'Siswa'}`} />
 
             <div className="space-y-6 max-w-6xl mx-auto">
                 {/* Notification toast */}
