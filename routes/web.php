@@ -48,10 +48,26 @@ Route::get('/tenaga-pendidik', function () {
                 ->values()
                 ->toArray();
 
-            if (!empty($claimedSubjects)) {
+            $claimedClasses = DB::table('teacher_subjects')
+                ->join('classes', 'teacher_subjects.class_id', '=', 'classes.id')
+                ->where('teacher_subjects.teacher_id', $teacher->id)
+                ->pluck('classes.name')
+                ->unique()
+                ->values()
+                ->toArray();
+
+            if (!empty($teacher->subject_specialization)) {
+                $teacher->assigned_subjects = $teacher->subject_specialization;
+            } elseif (!empty($claimedSubjects)) {
                 $teacher->assigned_subjects = implode(', ', $claimedSubjects);
             } else {
-                $teacher->assigned_subjects = $teacher->subject_specialization;
+                $teacher->assigned_subjects = null;
+            }
+
+            if (!empty($claimedClasses)) {
+                $teacher->assigned_classes = implode(', ', $claimedClasses);
+            } else {
+                $teacher->assigned_classes = $teacher->homeroom_class;
             }
 
             return $teacher;

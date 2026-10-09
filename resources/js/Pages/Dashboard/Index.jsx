@@ -67,9 +67,9 @@ export default function DashboardIndex({
     const toggleSubject = (id) => {
         const current = claimForm.subject_ids || [];
         if (current.includes(id)) {
-            setClaimForm('subject_ids', current.filter(item => item !== id));
+            setClaimForm('subject_ids', []);
         } else {
-            setClaimForm('subject_ids', [...current, id]);
+            setClaimForm('subject_ids', [id]);
         }
     };
 
@@ -91,14 +91,16 @@ export default function DashboardIndex({
         });
     };
 
-    const displaySubjectTitle = specialization || (claimed_subjects && claimed_subjects.length > 0 ? claimed_subjects.map(s => s.name).join(', ') : '');
+    const displaySubjectTitle = (claimed_subjects && claimed_subjects.length > 0)
+        ? claimed_subjects[0].name
+        : (specialization && !['guru kelas', 'wali kelas'].includes(specialization.toLowerCase()) ? specialization : '');
 
     const card1MapelTitle = displaySubjectTitle || 'Belum Set Mapel';
 
     const displayTitle = (role === 'guru_mapel' || teacher?.teacher_type === 'guru_mapel')
         ? (displaySubjectTitle ? `Guru Mata Pelajaran ${displaySubjectTitle}` : 'Guru Mata Pelajaran')
         : role === 'guru'
-            ? (displaySubjectTitle && displaySubjectTitle !== 'Wali Kelas' ? `Guru Mata Pelajaran ${displaySubjectTitle}` : 'Guru / Wali Kelas')
+            ? (displaySubjectTitle ? `Guru Mata Pelajaran ${displaySubjectTitle}` : (claimed_classes && claimed_classes.length > 0 ? `Wali Kelas ${claimed_classes[0].name.replace(/^Kelas\s+/i, '')}` : 'Guru / Wali Kelas'))
             : role === 'tendik'
                 ? 'Tenaga Kependidikan'
                 : roleLabel;
@@ -1631,14 +1633,14 @@ export default function DashboardIndex({
                                 />
                             </div>
 
-                            {/* Checkbox Mata Pelajaran */}
+                            {/* Selection Mata Pelajaran (Max 1) */}
                             <div>
                                 <div className="flex items-center justify-between mb-1.5">
                                     <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                                        Pilih Mata Pelajaran yang Diampu
+                                        Pilih Mata Pelajaran yang Diampu (Pilih 1)
                                     </label>
                                     <span className="text-[10px] font-bold text-[#800020]">
-                                        {claimForm.subject_ids?.length || 0} Terpilih
+                                        {claimForm.subject_ids?.length || 0} / 1 Terpilih
                                     </span>
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[150px] overflow-y-auto p-2.5 bg-slate-50 rounded-xl border border-slate-200">
@@ -1655,10 +1657,11 @@ export default function DashboardIndex({
                                                 }`}
                                             >
                                                 <input
-                                                    type="checkbox"
+                                                    type="radio"
+                                                    name="claim_subject_choice"
                                                     checked={isChecked}
                                                     onChange={() => {}}
-                                                    className="rounded text-[#800020] focus:ring-[#800020] w-3.5 h-3.5 cursor-pointer"
+                                                    className="rounded-full text-[#800020] focus:ring-[#800020] w-3.5 h-3.5 cursor-pointer"
                                                 />
                                                 <span className="text-[11px] truncate">{sbj.name}</span>
                                             </div>

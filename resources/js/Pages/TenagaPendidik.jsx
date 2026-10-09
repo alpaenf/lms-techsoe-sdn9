@@ -29,13 +29,15 @@ export default function TenagaPendidik({ auth, teachers = [] }) {
         if (t.role === 'bk') return 'Guru Bimbingan Konseling (BK)';
 
         const subjectStr = t.assigned_subjects || t.subject_specialization;
+        const classStr = t.assigned_classes || t.homeroom_class;
 
         if (subjectStr && subjectStr.trim() !== '' && !['guru kelas', 'wali kelas'].includes(subjectStr.trim().toLowerCase())) {
             return `Guru Mata Pelajaran ${subjectStr}`;
         }
 
-        if (t.homeroom_class) {
-            return `Wali Kelas ${t.homeroom_class}`;
+        if (classStr && classStr.trim() !== '') {
+            const cleanClassName = classStr.replace(/^Kelas\s+/i, '');
+            return `Wali Kelas ${cleanClassName}`;
         }
 
         if (t.teacher_type === 'guru_mapel' || t.role === 'guru_mapel') {

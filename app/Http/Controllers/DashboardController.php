@@ -334,12 +334,15 @@ class DashboardController extends Controller
 
         $teacher = DB::table('teachers')->where('user_id', $user->id)->first();
 
-        $subjectIds = $request->subject_ids ?? [];
-        $claimedSubjectNames = count($subjectIds) > 0 
+        // Enforce maximum 1 subject selected
+        $subjectIds = array_slice($request->subject_ids ?? [], 0, 1);
+        $classIds = $request->class_ids ?? [];
+
+        $claimedSubjectNames = count($subjectIds) > 0
             ? DB::table('subjects')->whereIn('id', $subjectIds)->pluck('name')->join(', ')
             : null;
 
-        $newSpecialization = $claimedSubjectNames ?: ($request->subject_specialization ?: ($teacher?->subject_specialization ?? null));
+        $newSpecialization = $claimedSubjectNames ?: null;
 
         if (! $teacher) {
             $teacherId = DB::table('teachers')->insertGetId([
@@ -369,23 +372,28 @@ class DashboardController extends Controller
         $activeYear = DB::table('academic_years')->where('is_active', true)->first();
         $academicYearId = $activeYear ? $activeYear->id : 1;
 
-        $subjectIds = $request->subject_ids ?? [];
-        $classIds = $request->class_ids ?? [];
-
         // Clear existing mappings
         DB::table('teacher_subjects')->where('teacher_id', $teacher->id)->delete();
 
-        // Re-insert selected mappings
-        foreach ($subjectIds as $subjectId) {
-            foreach ($classIds as $classId) {
-                DB::table('teacher_subjects')->insert([
-                    'teacher_id' => $teacher->id,
-                    'subject_id' => $subjectId,
-                    'class_id' => $classId,
-                    'academic_year_id' => $academicYearId,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+        // Update homeroom assignment in classes
+        if (! empty($classIds)) {
+            DB::table('classes')->where('homeroom_teacher_id', $teacher->id)->update(['homeroom_teacher_id' => null]);
+            DB::table('classes')->whereIn('id', $classIds)->update(['homeroom_teacher_id' => $teacher->id]);
+        }
+
+        // Re-insert selected subject-class mappings if subject selected
+        if (! empty($subjectIds)) {
+            foreach ($subjectIds as $subjectId) {
+                foreach ($classIds as $classId) {
+                    DB::table('teacher_subjects')->insert([
+                        'teacher_id' => $teacher->id,
+                        'subject_id' => $subjectId,
+                        'class_id' => $classId,
+                        'academic_year_id' => $academicYearId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
         }
 
