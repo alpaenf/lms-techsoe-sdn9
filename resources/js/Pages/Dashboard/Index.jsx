@@ -1087,10 +1087,107 @@ export default function DashboardIndex({
                             </div>
                         )}
 
-                        {role === 'guru' && (
-                            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 flex-1 flex flex-col justify-between">
-                                <div>
-                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                        {(role === 'guru' || role === 'guru_mapel') && (
+                            <div className="space-y-6">
+                                {/* Card 1: Workspace & Quick Operations for Active Class/Subject */}
+                                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                                        <div>
+                                            <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                                                <span>Pusat Pengajaran & Pembelajaran Kelas</span>
+                                            </h2>
+                                            <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                                Akses cepat pengelolaan kelas, presensi, materi, dan e-rapor.
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-1.5">
+                                            {displaySubjectTitle && (
+                                                <span className="px-3 py-1 rounded-xl text-xs font-bold bg-[#FDF2F4] text-[#800020] border border-[#E8B4B8]/50">
+                                                    {displaySubjectTitle}
+                                                </span>
+                                            )}
+                                            {claimed_classes && claimed_classes.length > 0 && (
+                                                <span className="px-3 py-1 rounded-xl text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                                    {claimed_classes.map(c => c.name).join(', ')}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                        <Link
+                                            href={route('presensi.index')}
+                                            className="p-4 rounded-xl border border-slate-200/80 hover:border-[#800020]/40 hover:bg-[#FDF2F4]/40 transition group flex items-start space-x-3.5"
+                                        >
+                                            <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#800020] border border-rose-100 flex items-center justify-center shrink-0 group-hover:bg-[#800020] group-hover:text-white transition">
+                                                <CalendarCheck className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#800020] transition">
+                                                    Presensi Siswa Harian
+                                                </h4>
+                                                <p className="text-[11px] text-slate-500 mt-0.5 leading-normal">
+                                                    Catat kehadiran harian, sakit, izin, & alpa siswa rombel.
+                                                </p>
+                                            </div>
+                                        </Link>
+
+                                        <Link
+                                            href={route('elearning.index')}
+                                            className="p-4 rounded-xl border border-slate-200/80 hover:border-blue-300 hover:bg-blue-50/40 transition group flex items-start space-x-3.5"
+                                        >
+                                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
+                                                <BookOpen className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-bold text-slate-900 group-hover:text-blue-700 transition">
+                                                    Modul & Bahan Ajar LMS
+                                                </h4>
+                                                <p className="text-[11px] text-slate-500 mt-0.5 leading-normal">
+                                                    Unggah materi, dokumen PDF, & bahan pembelajaran digital.
+                                                </p>
+                                            </div>
+                                        </Link>
+
+                                        <Link
+                                            href={route('elearning.index') + '?tab=tugas'}
+                                            className="p-4 rounded-xl border border-slate-200/80 hover:border-emerald-300 hover:bg-emerald-50/40 transition group flex items-start space-x-3.5"
+                                        >
+                                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition">
+                                                <FileText className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition">
+                                                    Tugas & Asesmen Siswa
+                                                </h4>
+                                                <p className="text-[11px] text-slate-500 mt-0.5 leading-normal">
+                                                    Buat penugasan mandiri & koreksi berkas nilai siswa.
+                                                </p>
+                                            </div>
+                                        </Link>
+
+                                        <Link
+                                            href={route('erapor.index')}
+                                            className="p-4 rounded-xl border border-slate-200/80 hover:border-amber-300 hover:bg-amber-50/40 transition group flex items-start space-x-3.5"
+                                        >
+                                            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0 group-hover:bg-amber-600 group-hover:text-white transition">
+                                                <Award className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-bold text-slate-900 group-hover:text-amber-800 transition">
+                                                    Pengisian E-Rapor Digital
+                                                </h4>
+                                                <p className="text-[11px] text-slate-500 mt-0.5 leading-normal">
+                                                    Input nilai akhir, predikat, & catatan capaian rapor.
+                                                </p>
+                                            </div>
+                                        </Link>
+                                    </div>
+                                </div>
+
+                                {/* Card 2: Pending Submissions */}
+                                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-4">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                                         <div>
                                             <h2 className="text-base font-bold text-slate-900 tracking-tight">Tugas Siswa Menunggu Pemeriksaan</h2>
                                             <p className="text-xs text-slate-500 font-medium mt-0.5">Daftar pengumpulan tugas yang perlu diberi nilai.</p>
