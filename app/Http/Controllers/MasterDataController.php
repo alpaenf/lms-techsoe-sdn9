@@ -277,7 +277,8 @@ class MasterDataController extends Controller
             'employment_status' => 'required|in:PNS,PPPK,GTT,Honorer',
             'education_level' => 'required|string|max:50',
             'email' => 'nullable|email|unique:users,email',
-            'role' => 'required|in:guru,bk,pimpinan',
+            'role' => 'required|in:guru,guru_mapel,tendik,bk,pimpinan,admin',
+            'subject_specialization' => 'nullable|string|max:255',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
@@ -287,7 +288,7 @@ class MasterDataController extends Controller
             $photoPath = '/storage/'.$path;
         }
 
-        DB::transaction(function () use ($validated, $photoPath) {
+        DB::transaction(function () use ($validated, $photoPath, $request) {
             $username = ! empty($validated['nip']) ? $validated['nip'] : 'guru_'.time();
             $email = ! empty($validated['email']) ? $validated['email'] : $username.'@sdn9gandangbatu.sch.id';
 
@@ -302,6 +303,9 @@ class MasterDataController extends Controller
                 'updated_at' => now(),
             ]);
 
+            $spec = $request->input('subject_specialization') ?: null;
+            $teacherType = (! empty($spec) && ! in_array(strtolower($spec), ['guru kelas', 'wali kelas'])) ? 'guru_mapel' : 'guru_kelas';
+
             DB::table('teachers')->insert([
                 'user_id' => $userId,
                 'nip' => $validated['nip'] ?: null,
@@ -309,6 +313,8 @@ class MasterDataController extends Controller
                 'gender' => $validated['gender'],
                 'employment_status' => $validated['employment_status'],
                 'education_level' => $validated['education_level'],
+                'teacher_type' => $teacherType,
+                'subject_specialization' => $spec,
                 'photo' => $photoPath,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -332,7 +338,8 @@ class MasterDataController extends Controller
             'employment_status' => 'required|in:PNS,PPPK,GTT,Honorer',
             'education_level' => 'required|string|max:50',
             'email' => 'nullable|email|unique:users,email,'.$teacher->user_id,
-            'role' => 'required|in:guru,bk,pimpinan',
+            'role' => 'required|in:guru,guru_mapel,tendik,bk,pimpinan,admin',
+            'subject_specialization' => 'nullable|string|max:255',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
@@ -342,16 +349,25 @@ class MasterDataController extends Controller
             $photoPath = '/storage/'.$path;
         }
 
-        DB::transaction(function () use ($teacher, $validated, $photoPath) {
-            DB::table('teachers')->where('id', $teacher->id)->update([
+        DB::transaction(function () use ($teacher, $validated, $photoPath, $request) {
+            $spec = $request->input('subject_specialization') ?: null;
+            $teacherType = (! empty($spec) && ! in_array(strtolower($spec), ['guru kelas', 'wali kelas'])) ? 'guru_mapel' : 'guru_kelas';
+
+            $teacherData = [
                 'full_name' => $validated['full_name'],
                 'nip' => $validated['nip'] ?: null,
                 'gender' => $validated['gender'],
                 'employment_status' => $validated['employment_status'],
                 'education_level' => $validated['education_level'],
+                'teacher_type' => $teacherType,
                 'photo' => $photoPath,
                 'updated_at' => now(),
-            ]);
+            ];
+            if ($request->has('subject_specialization')) {
+                $teacherData['subject_specialization'] = $spec;
+            }
+
+            DB::table('teachers')->where('id', $teacher->id)->update($teacherData);
 
             $userData = [
                 'name' => $validated['full_name'],

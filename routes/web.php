@@ -57,6 +57,7 @@ Route::get('/clear-cache', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // 01. Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/teacher/claim-subjects', [DashboardController::class, 'claimSubjects'])->name('teacher.claim-subjects');
 
     // 02. Kelembagaan
     Route::get('/kelembagaan', [KelembagaanController::class, 'index'])->name('kelembagaan.index');

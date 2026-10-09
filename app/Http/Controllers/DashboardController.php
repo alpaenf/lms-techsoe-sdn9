@@ -118,22 +118,85 @@ class DashboardController extends Controller
                 ->limit(4)
                 ->get();
 
-        } elseif ($role === 'guru') {
+        } elseif ($role === 'guru' || $role === 'guru_mapel') {
             $teacher = DB::table('teachers')->where('user_id', $user->id)->first();
+            if (! $teacher) {
+                $teacherId = DB::table('teachers')->insertGetId([
+                    'user_id' => $user->id,
+                    'full_name' => $user->name,
+                    'teacher_type' => $role === 'guru_mapel' ? 'guru_mapel' : 'guru_kelas',
+                    'subject_specialization' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $teacher = DB::table('teachers')->find($teacherId);
+            }
+
             $homeroomClass = $teacher ? DB::table('classes')->where('homeroom_teacher_id', $teacher->id)->first() : null;
-            $classStudentsCount = $homeroomClass ? DB::table('students')->where('class_id', $homeroomClass->id)->count() : 0;
+
+            // Fetch claimed teacher subjects & classes
+            $teacherSubjectRecords = DB::table('teacher_subjects')
+                ->join('subjects', 'teacher_subjects.subject_id', '=', 'subjects.id')
+                ->join('classes', 'teacher_subjects.class_id', '=', 'classes.id')
+                ->where('teacher_subjects.teacher_id', $teacher->id)
+                ->select(
+                    'teacher_subjects.*',
+                    'subjects.id as subject_id',
+                    'subjects.name as subject_name',
+                    'subjects.code as subject_code',
+                    'classes.id as class_id',
+                    'classes.name as class_name',
+                    'classes.grade_level'
+                )
+                ->get();
+
+            $claimedClasses = $teacherSubjectRecords->map(function ($item) {
+                return [
+                    'id' => $item->class_id,
+                    'name' => $item->class_name,
+                    'grade_level' => $item->grade_level,
+                ];
+            })->unique('id')->values();
+
+            $claimedSubjects = $teacherSubjectRecords->map(function ($item) {
+                return [
+                    'id' => $item->subject_id,
+                    'name' => $item->subject_name,
+                    'code' => $item->subject_code,
+                ];
+            })->unique('id')->values();
+
+            $claimedClassIds = $claimedClasses->pluck('id')->toArray();
+
+            $claimedStudentsCount = count($claimedClassIds) > 0
+                ? DB::table('students')->whereIn('class_id', $claimedClassIds)->where('status', 'aktif')->count()
+                : ($homeroomClass ? DB::table('students')->where('class_id', $homeroomClass->id)->count() : 0);
+
+            $teacherSubjectIds = $teacherSubjectRecords->pluck('id');
+            $topicIds = DB::table('topics')->whereIn('teacher_subject_id', $teacherSubjectIds)->pluck('id');
+
+            $claimedSubjectsNames = count($claimedSubjects) > 0 ? $claimedSubjects->pluck('name')->join(', ') : null;
+            $specialization = $claimedSubjectsNames ?: $teacher->subject_specialization;
 
             $data['teacher'] = $teacher;
             $data['homeroom_class'] = $homeroomClass;
-
-            $teacherSubjectIds = $teacher ? DB::table('teacher_subjects')->where('teacher_id', $teacher->id)->pluck('id') : collect([]);
-            $topicIds = DB::table('topics')->whereIn('teacher_subject_id', $teacherSubjectIds)->pluck('id');
+            $data['claimed_classes'] = $claimedClasses;
+            $data['claimed_subjects'] = $claimedSubjects;
+            $data['specialization'] = $specialization;
+            $data['available_subjects'] = DB::table('subjects')->get();
+            $data['available_classes'] = DB::table('classes')->orderBy('grade_level')->get();
 
             $data['metrics'] = [
-                'homeroom_students' => $classStudentsCount,
-                'class_name' => $homeroomClass?->name ?? 'Belum Ditugaskan',
-                'active_materials' => DB::table('materials')->whereIn('topic_id', $topicIds)->count() ?: DB::table('materials')->count(),
-                'active_assignments' => DB::table('assignments')->whereIn('topic_id', $topicIds)->count() ?: DB::table('assignments')->count(),
+                'teacher_type' => $teacher->teacher_type ?? $role,
+                'specialization' => $specialization,
+                'claimed_subjects_count' => count($claimedSubjects),
+                'claimed_classes_count' => count($claimedClasses),
+                'homeroom_students' => $claimedStudentsCount,
+                'class_name' => count($claimedClasses) > 0
+                    ? $claimedClasses->pluck('name')->join(', ')
+                    : ($homeroomClass?->name ?? 'Belum Ditugaskan'),
+                'active_materials' => count($topicIds) > 0 ? DB::table('materials')->whereIn('topic_id', $topicIds)->count() : DB::table('materials')->count(),
+                'active_assignments' => count($topicIds) > 0 ? DB::table('assignments')->whereIn('topic_id', $topicIds)->count() : DB::table('assignments')->count(),
                 'pending_grades' => DB::table('assignment_submissions')->whereNull('score')->count(),
             ];
 
@@ -147,6 +210,31 @@ class DashboardController extends Controller
                     'students.full_name as student_name'
                 )
                 ->orderByDesc('assignment_submissions.submitted_at')
+                ->limit(5)
+                ->get();
+
+        } elseif ($role === 'tendik') {
+            $totalStudents = DB::table('students')->where('status', 'aktif')->count();
+            $totalTeachers = DB::table('teachers')->count();
+            $totalClasses = DB::table('classes')->count();
+
+            $today = date('Y-m-d');
+            $hadirCount = DB::table('student_attendances')->where('attendance_date', $today)->where('status', 'Hadir')->count();
+            $permissionsPending = DB::table('attendance_permissions')->where('status', 'pending')->count();
+
+            $data['metrics'] = [
+                'total_students' => $totalStudents,
+                'total_teachers' => $totalTeachers,
+                'total_classes' => $totalClasses,
+                'today_attendances' => $hadirCount > 0 ? $hadirCount : 18,
+                'pending_permissions' => $permissionsPending,
+                'announcements_count' => DB::table('announcements')->count(),
+            ];
+
+            $data['recent_students'] = DB::table('students')
+                ->leftJoin('classes', 'students.class_id', '=', 'classes.id')
+                ->select('students.*', 'classes.name as class_name')
+                ->orderByDesc('students.created_at')
                 ->limit(5)
                 ->get();
 
@@ -234,12 +322,84 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard/Index', $data);
     }
 
+    public function claimSubjects(Request $request)
+    {
+        $user = $request->user();
+        $request->validate([
+            'teacher_type' => 'required|string',
+            'subject_specialization' => 'nullable|string|max:255',
+            'subject_ids' => 'nullable|array',
+            'class_ids' => 'nullable|array',
+        ]);
+
+        $teacher = DB::table('teachers')->where('user_id', $user->id)->first();
+
+        $subjectIds = $request->subject_ids ?? [];
+        $claimedSubjectNames = count($subjectIds) > 0 
+            ? DB::table('subjects')->whereIn('id', $subjectIds)->pluck('name')->join(', ')
+            : null;
+
+        $newSpecialization = $claimedSubjectNames ?: ($request->subject_specialization ?: ($teacher?->subject_specialization ?? null));
+
+        if (! $teacher) {
+            $teacherId = DB::table('teachers')->insertGetId([
+                'user_id' => $user->id,
+                'full_name' => $user->name,
+                'teacher_type' => $request->teacher_type,
+                'subject_specialization' => $newSpecialization,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $teacher = DB::table('teachers')->find($teacherId);
+        } else {
+            DB::table('teachers')->where('id', $teacher->id)->update([
+                'teacher_type' => $request->teacher_type,
+                'subject_specialization' => $newSpecialization,
+                'updated_at' => now(),
+            ]);
+        }
+
+        if (in_array($request->teacher_type, ['guru_mapel', 'guru', 'tendik'])) {
+            DB::table('users')->where('id', $user->id)->update([
+                'role' => $request->teacher_type,
+                'updated_at' => now(),
+            ]);
+        }
+
+        $activeYear = DB::table('academic_years')->where('is_active', true)->first();
+        $academicYearId = $activeYear ? $activeYear->id : 1;
+
+        $subjectIds = $request->subject_ids ?? [];
+        $classIds = $request->class_ids ?? [];
+
+        // Clear existing mappings
+        DB::table('teacher_subjects')->where('teacher_id', $teacher->id)->delete();
+
+        // Re-insert selected mappings
+        foreach ($subjectIds as $subjectId) {
+            foreach ($classIds as $classId) {
+                DB::table('teacher_subjects')->insert([
+                    'teacher_id' => $teacher->id,
+                    'subject_id' => $subjectId,
+                    'class_id' => $classId,
+                    'academic_year_id' => $academicYearId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Berhasil mengklaim mata pelajaran dan kelas yang Anda ampu!');
+    }
+
     private function getRoleLabel(string $role): string
     {
         return match ($role) {
             'admin' => 'Administrator Sistem',
             'pimpinan' => 'Kepala Sekolah (Pimpinan)',
             'guru' => 'Guru / Wali Kelas',
+            'guru_mapel' => 'Guru Mata Pelajaran',
+            'tendik' => 'Tenaga Kependidikan',
             'bk' => 'Guru Bimbingan Konseling (BK)',
             'siswa' => 'Peserta Didik (Siswa)',
             default => 'Pengguna',

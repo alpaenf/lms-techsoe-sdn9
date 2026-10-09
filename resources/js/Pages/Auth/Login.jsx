@@ -37,11 +37,25 @@ export default function Login({ status, canResetPassword }) {
             desc: 'Monitoring eksekutif & pengesahan E-Raport',
         },
         {
+            role: 'Guru Mapel',
+            identifier: '199208152020121005',
+            name: 'Alfiana, S.Pd.I.',
+            email: 'gurumapel@sdn9gandangbatu.sch.id',
+            desc: 'Guru Mata Pelajaran & Klaim Rombel',
+        },
+        {
             role: 'Guru / Wali Kelas',
             identifier: '198705122015021003',
             name: 'Budi Santoso, S.Pd.',
             email: 'guru@sdn9gandangbatu.sch.id',
             desc: 'Kelola materi, tugas, presensi & leger nilai',
+        },
+        {
+            role: 'Tenaga Kependidikan',
+            identifier: '199504102022032010',
+            name: 'Rina Agustina, A.Md.',
+            email: 'tendik@sdn9gandangbatu.sch.id',
+            desc: 'Staf Administrasi & Tata Usaha Sekolah',
         },
         {
             role: 'Guru BK',

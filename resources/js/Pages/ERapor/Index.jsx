@@ -17,7 +17,6 @@ import {
     MessageSquare,
     Search,
     ShieldCheck,
-    Sparkles,
     UserCheck
 } from 'lucide-react';
 import ModalEditNilaiMapel from './Modals/ModalEditNilaiMapel';

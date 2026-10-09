@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { 
     Users, 
     BookOpen, 
@@ -20,7 +20,12 @@ import {
     AlertTriangle, 
     Calendar,
     Bell,
-    ChevronRight
+    ChevronRight,
+    SlidersHorizontal,
+    Check,
+    X,
+    ShieldCheck,
+    Edit3
 } from 'lucide-react';
 
 export default function DashboardIndex({ 
@@ -30,55 +35,118 @@ export default function DashboardIndex({
     academicYear = '2026/2027 • Ganjil',
     schoolProfile = null,
     metrics = {},
+    teacher = null,
+    specialization = '',
+    claimed_classes = [],
+    claimed_subjects = [],
+    available_subjects = [],
+    available_classes = [],
     announcements = [],
     recent_classes = [],
     assignments = [],
     recent_violations = [],
     recent_sessions = [],
     recent_achievements = [],
+    recent_students = [],
     pending_submissions = [],
     attendance = {}
 }) {
     const user = auth?.user;
     const schoolName = schoolProfile?.school_name || 'UPT SDN 9 Gandangbatu Sillanan';
-
-    // Format current date display
     const currentDateStr = "Sabtu, 27 September 2026";
+
+    const [showClaimModal, setShowClaimModal] = useState(false);
+
+    const { data: claimForm, setData: setClaimForm, post: postClaim, processing: claimProcessing } = useForm({
+        teacher_type: teacher?.teacher_type || (role === 'guru_mapel' ? 'guru_mapel' : 'guru_kelas'),
+        subject_specialization: specialization || '',
+        subject_ids: (claimed_subjects || []).map(s => s.id),
+        class_ids: (claimed_classes || []).map(c => c.id),
+    });
+
+    const toggleSubject = (id) => {
+        const current = claimForm.subject_ids || [];
+        if (current.includes(id)) {
+            setClaimForm('subject_ids', current.filter(item => item !== id));
+        } else {
+            setClaimForm('subject_ids', [...current, id]);
+        }
+    };
+
+    const toggleClass = (id) => {
+        const current = claimForm.class_ids || [];
+        if (current.includes(id)) {
+            setClaimForm('class_ids', current.filter(item => item !== id));
+        } else {
+            setClaimForm('class_ids', [...current, id]);
+        }
+    };
+
+    const handleClaimSubmit = (e) => {
+        e.preventDefault();
+        postClaim(route('teacher.claim-subjects'), {
+            onSuccess: () => {
+                setShowClaimModal(false);
+            }
+        });
+    };
+
+    const displaySubjectTitle = specialization || (claimed_subjects && claimed_subjects.length > 0 ? claimed_subjects.map(s => s.name).join(', ') : '');
+
+    const card1MapelTitle = displaySubjectTitle || 'Belum Set Mapel';
+
+    const displayTitle = (role === 'guru_mapel' || teacher?.teacher_type === 'guru_mapel')
+        ? (displaySubjectTitle ? `Guru Mata Pelajaran ${displaySubjectTitle}` : 'Guru Mata Pelajaran')
+        : role === 'guru'
+            ? (displaySubjectTitle && displaySubjectTitle !== 'Wali Kelas' ? `Guru Mata Pelajaran ${displaySubjectTitle}` : 'Guru / Wali Kelas')
+            : role === 'tendik'
+                ? 'Tenaga Kependidikan'
+                : roleLabel;
 
     return (
         <AuthenticatedLayout>
-            <Head title={`Dashboard ${roleLabel} - Smart School LMS`} />
+            <Head title={`Dashboard ${displayTitle} - Smart School LMS`} />
 
             <div className="space-y-6 max-w-7xl mx-auto">
                 {/* 1. CLEAN & MODERN DASHBOARD HEADER */}
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-slate-200/80 pb-5">
                     <div className="space-y-1">
-                        {/* Eyebrow Small Red Text */}
                         <p className="text-[11px] font-bold text-[#800020] uppercase tracking-wider">
-                            Selamat Datang
+                            Selamat Datang di Smart School LMS
                         </p>
 
-                        {/* Large Main Title */}
-                        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                            Dashboard {roleLabel}
+                        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex flex-wrap items-center gap-2">
+                            <span>Dashboard {displayTitle}</span>
                         </h1>
                         <p className="text-xs sm:text-sm text-slate-500 font-medium">
                             Ringkasan data dan informasi utama sistem sekolah dalam satu tampilan terpadu.
                         </p>
                     </div>
 
-                    {/* Right Side: Date & Greeting Card Widget */}
-                    <div className="bg-white px-4 py-2.5 rounded-2xl border border-slate-200/80 text-right shadow-2xs shrink-0 self-start md:self-auto flex items-center space-x-3">
-                        <div className="w-9 h-9 rounded-xl bg-rose-50 text-[#800020] flex items-center justify-center shrink-0 border border-rose-100">
-                            <Calendar className="w-4 h-4 text-[#800020]" />
-                        </div>
-                        <div className="text-left md:text-right">
-                            <p className="text-xs font-bold text-slate-900 leading-tight">
-                                {currentDateStr}
-                            </p>
-                            <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                                Selamat bekerja, <span className="font-semibold text-slate-800">{user?.name?.split(' ')[0] || 'Administrator'}</span>.
-                            </p>
+                    <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+                        {(role === 'guru' || role === 'guru_mapel') && (
+                            <button
+                                type="button"
+                                onClick={() => setShowClaimModal(true)}
+                                className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-[#800020] text-white hover:bg-[#5C0017] transition text-xs font-bold shadow-md shadow-[#800020]/20 cursor-pointer"
+                            >
+                                <SlidersHorizontal className="w-4 h-4" />
+                                <span>Klaim Pelajaran & Kelas</span>
+                            </button>
+                        )}
+
+                        <div className="bg-white px-4 py-2 rounded-2xl border border-slate-200/80 text-right shadow-2xs shrink-0 flex items-center space-x-3">
+                            <div className="w-8 h-8 rounded-xl bg-rose-50 text-[#800020] flex items-center justify-center shrink-0 border border-rose-100">
+                                <Calendar className="w-4 h-4 text-[#800020]" />
+                            </div>
+                            <div className="text-left md:text-right">
+                                <p className="text-xs font-bold text-slate-900 leading-tight">
+                                    {currentDateStr}
+                                </p>
+                                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                    Selamat bekerja, <span className="font-semibold text-slate-800">{user?.name?.split(' ')[0] || 'Pengguna'}</span>.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -292,94 +360,284 @@ export default function DashboardIndex({
                     </div>
                 )}
 
-                {/* ROLE: GURU / WALI KELAS */}
-                {role === 'guru' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#800020] via-[#70001C] to-[#5C0017] p-5 text-white shadow-md shadow-[#800020]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
-                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
-                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
-                            <div className="flex items-start justify-between relative z-10">
-                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
-                                    <School className="w-5 h-5 text-white" />
+                {/* ROLE: GURU / GURU MAPEL */}
+                {(role === 'guru' || role === 'guru_mapel') && (
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                            {/* Card 1: Spesialisasi / Mapel Diampu */}
+                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#800020] via-[#70001C] to-[#5C0017] p-5 text-white shadow-md shadow-[#800020]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                                <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                                <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                                <div className="flex items-start justify-between relative z-10">
+                                    <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                        <BookOpen className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="text-right max-w-[65%]">
+                                        <h3 className="text-base sm:text-lg font-black tracking-tight leading-tight text-white truncate">
+                                            {card1MapelTitle}
+                                        </h3>
+                                        <p className="text-[11px] font-medium text-rose-200 mt-0.5">Mapel Diampu</p>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
-                                        {metrics.class_name ? metrics.class_name.replace(/^Kelas\s*/i, '') : '6'}
-                                    </h3>
-                                    <p className="text-[11px] font-medium text-rose-200 mt-0.5">Wali Kelas</p>
+                                <div className="flex items-end justify-between relative z-10 pt-4">
+                                    <p className="text-xs font-bold text-white tracking-wide">
+                                        {claimed_subjects.length > 0 ? `${claimed_subjects.length} Mapel Diklaim` : 'Guru Mata Pelajaran'}
+                                    </p>
+                                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                        {role === 'guru_mapel' ? 'Guru Mapel' : 'Guru Kelas'}
+                                    </span>
                                 </div>
                             </div>
-                            <div className="flex items-end justify-between relative z-10 pt-4">
-                                <p className="text-xs font-bold text-white tracking-wide">Rombel Binaan</p>
-                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
-                                    {metrics.homeroom_students ?? 5} Peserta Didik
-                                </span>
+
+                            {/* Card 2: Rombel / Kelas Diajar */}
+                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#D97706] via-[#B45309] to-[#92400E] p-5 text-white shadow-md shadow-[#D97706]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                                <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                                <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                                <div className="flex items-start justify-between relative z-10">
+                                    <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                        <School className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="text-right">
+                                        <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                            {claimed_classes.length > 0 ? `${claimed_classes.length} Kelas` : (metrics.class_name ?? 'Kelas 6')}
+                                        </h3>
+                                        <p className="text-[11px] font-medium text-amber-100 mt-0.5">Rombel Diajar</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-end justify-between relative z-10 pt-4">
+                                    <p className="text-xs font-bold text-white tracking-wide truncate max-w-[150px]">
+                                        {claimed_classes.length > 0 ? claimed_classes.map(c => c.name).join(', ') : 'Kelas 1 - Kelas 6'}
+                                    </p>
+                                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                        {metrics.homeroom_students ?? 0} Siswa Total
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Card 3: Modul Ajar */}
+                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF] p-5 text-white shadow-md shadow-[#2563EB]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                                <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                                <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                                <div className="flex items-start justify-between relative z-10">
+                                    <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                        <Layers className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="text-right">
+                                        <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                            {metrics.active_materials ?? 1}
+                                        </h3>
+                                        <p className="text-[11px] font-medium text-blue-100 mt-0.5">Modul</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-end justify-between relative z-10 pt-4">
+                                    <p className="text-xs font-bold text-white tracking-wide">Modul Ajar Saya</p>
+                                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                        Tersedia untuk Siswa
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Card 4: Tugas & Asesmen */}
+                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#E11D48] via-[#BE123C] to-[#9F1239] p-5 text-white shadow-md shadow-[#E11D48]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                                <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                                <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                                <div className="flex items-start justify-between relative z-10">
+                                    <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                        <FileText className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="text-right">
+                                        <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                            {metrics.active_assignments ?? 1}
+                                        </h3>
+                                        <p className="text-[11px] font-medium text-rose-100 mt-0.5">Tugas</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-end justify-between relative z-10 pt-4">
+                                    <p className="text-xs font-bold text-white tracking-wide">Tugas & Asesmen</p>
+                                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                        {metrics.pending_grades ?? 0} Perlu Dinilai
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#D97706] via-[#B45309] to-[#92400E] p-5 text-white shadow-md shadow-[#D97706]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
-                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
-                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
-                            <div className="flex items-start justify-between relative z-10">
-                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
-                                    <BookOpen className="w-5 h-5 text-white" />
+                        {/* DETAIL PENUGASAN GURU CARD */}
+                        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 rounded-xl bg-[#FDF2F4] text-[#800020] flex items-center justify-center font-bold shrink-0 border border-[#E8B4B8]/40">
+                                        <GraduationCap className="w-5 h-5 text-[#800020]" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                                            <span>{displayTitle}</span>
+                                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#800020] text-white">
+                                                {role === 'guru_mapel' ? 'Guru Mapel' : 'Guru Pendidik'}
+                                            </span>
+                                        </h2>
+                                        <p className="text-xs text-slate-500 font-medium">
+                                            NIP: <span className="font-mono text-slate-800">{teacher?.nip || user?.username || '-'}</span> • Status: <span className="font-semibold text-slate-700">{teacher?.employment_status || 'PNS'}</span>
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
-                                        {metrics.active_materials ?? 1}
-                                    </h3>
-                                    <p className="text-[11px] font-medium text-amber-100 mt-0.5">Modul</p>
-                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setShowClaimModal(true)}
+                                    className="px-3.5 py-2 rounded-xl bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer shrink-0 self-start sm:self-auto"
+                                >
+                                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                                    <span>Klaim / Atur Kelas & Mapel</span>
+                                </button>
                             </div>
-                            <div className="flex items-end justify-between relative z-10 pt-4">
-                                <p className="text-xs font-bold text-white tracking-wide">Modul Ajar Saya</p>
-                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
-                                    Tersedia untuk Siswa
-                                </span>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                                            <BookOpen className="w-3.5 h-3.5 text-[#800020]" />
+                                            Mata Pelajaran Diampu
+                                        </span>
+                                        <span className="text-[11px] font-bold text-[#800020]">
+                                            {claimed_subjects.length} Mapel
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5 pt-1">
+                                        {claimed_subjects && claimed_subjects.length > 0 ? (
+                                            claimed_subjects.map((sbj, sIdx) => (
+                                                <span key={sIdx} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-[#800020] border border-[#800020]/20 shadow-2xs">
+                                                    <Check className="w-3 h-3 text-[#800020]" />
+                                                    {sbj.name}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                                Belum mengklaim mata pelajaran
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                                            <School className="w-3.5 h-3.5 text-amber-600" />
+                                            Rombel / Kelas Diajar
+                                        </span>
+                                        <span className="text-[11px] font-bold text-amber-700">
+                                            {claimed_classes.length} Rombel
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5 pt-1">
+                                        {claimed_classes && claimed_classes.length > 0 ? (
+                                            claimed_classes.map((cls, cIdx) => (
+                                                <span key={cIdx} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-800 border border-slate-200 shadow-2xs">
+                                                    <Check className="w-3 h-3 text-emerald-600" />
+                                                    {cls.name}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                Belum mengklaim kelas
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                )}
 
-                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF] p-5 text-white shadow-md shadow-[#2563EB]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
-                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
-                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
-                            <div className="flex items-start justify-between relative z-10">
-                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
-                                    <Layers className="w-5 h-5 text-white" />
+                {/* ROLE: TENAGA KEPENDIDIKAN (TENDIK) */}
+                {role === 'tendik' && (
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#800020] via-[#70001C] to-[#5C0017] p-5 text-white shadow-md shadow-[#800020]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                                <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                                <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                                <div className="flex items-start justify-between relative z-10">
+                                    <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                        <Users className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="text-right">
+                                        <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                            {metrics.total_students ?? 5}
+                                        </h3>
+                                        <p className="text-[11px] font-medium text-rose-200 mt-0.5">Siswa</p>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
-                                        {metrics.active_assignments ?? 1}
-                                    </h3>
-                                    <p className="text-[11px] font-medium text-blue-100 mt-0.5">Tugas</p>
+                                <div className="flex items-end justify-between relative z-10 pt-4">
+                                    <p className="text-xs font-bold text-white tracking-wide">Buku Induk Siswa</p>
+                                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                        Terdaftar Aktif
+                                    </span>
                                 </div>
                             </div>
-                            <div className="flex items-end justify-between relative z-10 pt-4">
-                                <p className="text-xs font-bold text-white tracking-wide">Tugas & Asesmen</p>
-                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
-                                    Sedang Berlangsung
-                                </span>
-                            </div>
-                        </div>
 
-                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#E11D48] via-[#BE123C] to-[#9F1239] p-5 text-white shadow-md shadow-[#E11D48]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
-                            <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
-                            <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
-                            <div className="flex items-start justify-between relative z-10">
-                                <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
-                                    <FileText className="w-5 h-5 text-white" />
+                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#D97706] via-[#B45309] to-[#92400E] p-5 text-white shadow-md shadow-[#D97706]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                                <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                                <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                                <div className="flex items-start justify-between relative z-10">
+                                    <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                        <GraduationCap className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="text-right">
+                                        <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                            {metrics.total_teachers ?? 3}
+                                        </h3>
+                                        <p className="text-[11px] font-medium text-amber-100 mt-0.5">Pegawai</p>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
-                                        {metrics.pending_grades ?? 0}
-                                    </h3>
-                                    <p className="text-[11px] font-medium text-rose-100 mt-0.5">Berkas</p>
+                                <div className="flex items-end justify-between relative z-10 pt-4">
+                                    <p className="text-xs font-bold text-white tracking-wide">Guru & Tendik</p>
+                                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                        Tenaga Pendidik
+                                    </span>
                                 </div>
                             </div>
-                            <div className="flex items-end justify-between relative z-10 pt-4">
-                                <p className="text-xs font-bold text-white tracking-wide">Perlu Dinilai</p>
-                                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
-                                    Pemeriksaan Tugas
-                                </span>
+
+                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF] p-5 text-white shadow-md shadow-[#2563EB]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                                <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                                <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                                <div className="flex items-start justify-between relative z-10">
+                                    <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                        <School className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="text-right">
+                                        <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                            {metrics.total_classes ?? 6}
+                                        </h3>
+                                        <p className="text-[11px] font-medium text-blue-100 mt-0.5">Rombel</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-end justify-between relative z-10 pt-4">
+                                    <p className="text-xs font-bold text-white tracking-wide">Rombongan Belajar</p>
+                                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                        Kelas 1 - Kelas 6
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#E11D48] via-[#BE123C] to-[#9F1239] p-5 text-white shadow-md shadow-[#E11D48]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[135px] border border-white/10 group">
+                                <div className="w-20 h-20 rounded-full bg-white/10 absolute -top-5 -left-5 pointer-events-none blur-xs group-hover:scale-110 transition-transform duration-500" />
+                                <div className="w-28 h-28 rounded-full bg-white/10 absolute -bottom-8 -right-8 pointer-events-none blur-sm group-hover:scale-110 transition-transform duration-500" />
+                                <div className="flex items-start justify-between relative z-10">
+                                    <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                                        <CalendarCheck className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="text-right">
+                                        <h3 className="text-2xl sm:text-3xl font-black tracking-tight leading-none text-white">
+                                            {metrics.today_attendances ?? 18}
+                                        </h3>
+                                        <p className="text-[11px] font-medium text-rose-100 mt-0.5">Hadir</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-end justify-between relative z-10 pt-4">
+                                    <p className="text-xs font-bold text-white tracking-wide">Presensi Terdaftar</p>
+                                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-white/15 text-white/90 border border-white/20 backdrop-blur-xs">
+                                        Administrasi Sekolah
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1294,6 +1552,179 @@ export default function DashboardIndex({
                     </div>
                 </div>
             </div>
+
+            {/* MODAL KLAIM PELAJARAN & KELAS YANG DIAMPU */}
+            {showClaimModal && (
+                <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div className="flex items-center space-x-2.5">
+                                <div className="w-9 h-9 rounded-xl bg-[#FDF2F4] text-[#800020] flex items-center justify-center shrink-0 border border-[#E8B4B8]/40">
+                                    <SlidersHorizontal className="w-5 h-5 text-[#800020]" />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-bold text-slate-900">Klaim Pelajaran & Kelas yang Diampu</h3>
+                                    <p className="text-xs text-slate-500">Pilih kualifikasi penugasan, mata pelajaran, dan kelas yang Anda ajar.</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowClaimModal(false)}
+                                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleClaimSubmit} className="space-y-4 text-xs font-medium">
+                            {/* Jenis Penugasan Guru */}
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Jenis Penugasan Guru
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setClaimForm({ ...claimForm, teacher_type: 'guru_mapel' })}
+                                        className={`p-3 rounded-xl border text-left flex items-start space-x-2.5 transition cursor-pointer ${
+                                            claimForm.teacher_type === 'guru_mapel'
+                                                ? 'bg-[#FDF2F4] border-[#800020] text-[#800020] font-bold ring-2 ring-[#800020]/20'
+                                                : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                                        }`}
+                                    >
+                                        <BookOpen className="w-4 h-4 mt-0.5 shrink-0 text-[#800020]" />
+                                        <div>
+                                            <span className="block font-bold">Guru Mata Pelajaran</span>
+                                            <span className="text-[10px] text-slate-500 font-normal">Contoh: Guru PAI, PJOK, Bahasa Inggris, dll.</span>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setClaimForm({ ...claimForm, teacher_type: 'guru_kelas' })}
+                                        className={`p-3 rounded-xl border text-left flex items-start space-x-2.5 transition cursor-pointer ${
+                                            claimForm.teacher_type === 'guru_kelas'
+                                                ? 'bg-[#FDF2F4] border-[#800020] text-[#800020] font-bold ring-2 ring-[#800020]/20'
+                                                : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                                        }`}
+                                    >
+                                        <School className="w-4 h-4 mt-0.5 shrink-0 text-[#800020]" />
+                                        <div>
+                                            <span className="block font-bold">Guru Kelas / Wali Kelas</span>
+                                            <span className="text-[10px] text-slate-500 font-normal">Mengajar dan membina rombel tertentu.</span>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Nama Spesialisasi Mapel */}
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Spesialisasi Mata Pelajaran / Jabatan
+                                </label>
+                                <input
+                                    type="text"
+                                    value={claimForm.subject_specialization}
+                                    onChange={(e) => setClaimForm('subject_specialization', e.target.value)}
+                                    placeholder="Contoh: Pendidikan Agama Islam, PJOK, Bahasa Inggris"
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/20 text-xs text-slate-900 font-medium"
+                                />
+                            </div>
+
+                            {/* Checkbox Mata Pelajaran */}
+                            <div>
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        Pilih Mata Pelajaran yang Diampu
+                                    </label>
+                                    <span className="text-[10px] font-bold text-[#800020]">
+                                        {claimForm.subject_ids?.length || 0} Terpilih
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[150px] overflow-y-auto p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                                    {(available_subjects || []).map((sbj) => {
+                                        const isChecked = claimForm.subject_ids?.includes(sbj.id);
+                                        return (
+                                            <div
+                                                key={sbj.id}
+                                                onClick={() => toggleSubject(sbj.id)}
+                                                className={`flex items-center space-x-2 p-2 rounded-lg border cursor-pointer select-none transition ${
+                                                    isChecked
+                                                        ? 'bg-white border-[#800020] text-[#800020] font-bold shadow-2xs'
+                                                        : 'bg-white/70 border-slate-200 text-slate-600 hover:border-slate-300'
+                                                }`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isChecked}
+                                                    onChange={() => {}}
+                                                    className="rounded text-[#800020] focus:ring-[#800020] w-3.5 h-3.5 cursor-pointer"
+                                                />
+                                                <span className="text-[11px] truncate">{sbj.name}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Checkbox Kelas / Rombel */}
+                            <div>
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        Pilih Rombel / Kelas yang Diajar
+                                    </label>
+                                    <span className="text-[10px] font-bold text-amber-700">
+                                        {claimForm.class_ids?.length || 0} Terpilih
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[150px] overflow-y-auto p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                                    {(available_classes || []).map((cls) => {
+                                        const isChecked = claimForm.class_ids?.includes(cls.id);
+                                        return (
+                                            <div
+                                                key={cls.id}
+                                                onClick={() => toggleClass(cls.id)}
+                                                className={`flex items-center space-x-2 p-2 rounded-lg border cursor-pointer select-none transition ${
+                                                    isChecked
+                                                        ? 'bg-white border-amber-600 text-amber-800 font-bold shadow-2xs'
+                                                        : 'bg-white/70 border-slate-200 text-slate-600 hover:border-slate-300'
+                                                }`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isChecked}
+                                                    onChange={() => {}}
+                                                    className="rounded text-amber-600 focus:ring-amber-600 w-3.5 h-3.5 cursor-pointer"
+                                                />
+                                                <span className="text-[11px] truncate">{cls.name}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowClaimModal(false)}
+                                    className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold text-xs transition cursor-pointer"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={claimProcessing}
+                                    className="px-5 py-2.5 rounded-xl bg-[#800020] hover:bg-[#5C0017] text-white font-bold text-xs transition shadow-sm cursor-pointer disabled:opacity-75 flex items-center gap-1.5"
+                                >
+                                    <Check className="w-4 h-4 text-white" />
+                                    <span>{claimProcessing ? 'Menyimpan...' : 'Simpan & Klaim Kelas'}</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }

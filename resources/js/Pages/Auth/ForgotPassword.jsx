@@ -16,10 +16,8 @@ import {
     HelpCircle, 
     School, 
     Phone, 
-    User,
     Eye,
-    EyeOff,
-    Sparkles
+    EyeOff
 } from 'lucide-react';
 
 export default function ForgotPassword({ status, statusNisn, schoolPhone = '081234567890', schoolName = 'UPT SDN 9 Gandangbatu Sillanan' }) {
@@ -137,7 +135,7 @@ export default function ForgotPassword({ status, statusNisn, schoolPhone = '0812
                         {activeTab === 'siswa' && (
                             <div className="space-y-5">
                                 <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900 leading-relaxed flex items-start space-x-2.5">
-                                    <Sparkles className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                                    <CheckCircle2 className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                                     <div>
                                         <span className="font-bold block">Tanpa Perlu Email!</span>
                                         Siswa Sekolah Dasar (SD) dapat langsung mengatur kata sandi baru menggunakan <strong>NISN</strong> dan <strong>Tanggal Lahir</strong> yang tercantum di Buku Rapor atau Kartu Pelajar.

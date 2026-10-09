@@ -145,10 +145,29 @@ export default function ModalGuru({
                                     className="w-full h-10 px-3.5 bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:border-[#8B001F] focus:ring-[#8B001F]"
                                 >
                                     <option value="guru">Guru / Wali Kelas</option>
+                                    <option value="tendik">Tenaga Kependidikan (Tendik)</option>
                                     <option value="bk">Guru BK</option>
                                     <option value="pimpinan">Kepala Sekolah (Pimpinan)</option>
                                 </select>
                             </div>
+
+                            {teacherForm.role === 'guru' && (
+                                <div className="sm:col-span-2">
+                                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                        Mata Pelajaran yang Diampu (Opsional)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="Contoh: Pendidikan Agama Islam, PJOK, Bahasa Inggris, dll. (Kosongkan jika Guru Kelas)"
+                                        value={teacherForm.subject_specialization || ''}
+                                        onChange={(e) => setTeacherForm({ ...teacherForm, subject_specialization: e.target.value })}
+                                        className="w-full h-10 px-3.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:border-[#8B001F] focus:ring-[#8B001F]"
+                                    />
+                                    <p className="text-[11px] text-slate-500 mt-1">
+                                        Jika diisi (misal: Pendidikan Agama Islam), status guru akan tampil sebagai Guru Mata Pelajaran di sistem.
+                                    </p>
+                                </div>
+                            )}
 
                             <div>
                                 <label className="block text-xs font-semibold text-slate-700 mb-1">

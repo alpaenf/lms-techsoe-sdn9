@@ -12,7 +12,6 @@ import {
     ShieldAlert, 
     Download,
     HeartHandshake,
-    Sparkles,
     MessageSquareQuote,
     CheckCircle2,
     Trash2,

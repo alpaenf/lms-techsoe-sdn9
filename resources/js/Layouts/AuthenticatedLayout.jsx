@@ -52,6 +52,8 @@ export default function AuthenticatedLayout({ header, children }) {
             case 'admin': return 'Administrator Sistem';
             case 'pimpinan': return 'Kepala Sekolah';
             case 'guru': return 'Guru / Wali Kelas';
+            case 'guru_mapel': return 'Guru Mata Pelajaran';
+            case 'tendik': return 'Tenaga Kependidikan';
             case 'bk': return 'Guru Bimbingan Konseling';
             case 'siswa': return 'Peserta Didik';
             default: return 'Pengguna';
@@ -254,12 +256,12 @@ export default function AuthenticatedLayout({ header, children }) {
             ];
         }
 
-        if (role === 'guru') {
+        if (role === 'guru' || role === 'guru_mapel') {
             return [
                 {
                     category: 'UTAMA',
                     items: [
-                        { name: 'Dashboard Pengajar', icon: Home, href: route('dashboard'), active: route().current('dashboard'), type: 'link' }
+                        { name: role === 'guru_mapel' ? 'Dashboard Guru Mapel' : 'Dashboard Pengajar', icon: Home, href: route('dashboard'), active: route().current('dashboard'), type: 'link' }
                     ]
                 },
                 {
@@ -296,6 +298,53 @@ export default function AuthenticatedLayout({ header, children }) {
                     category: 'LAYANAN',
                     items: [
                         { name: 'Pengumuman Sekolah', icon: Landmark, href: route('announcements.index'), active: route().current('announcements.*'), type: 'link' },
+                    ]
+                }
+            ];
+        }
+
+        if (role === 'tendik') {
+            return [
+                {
+                    category: 'UTAMA',
+                    items: [
+                        { name: 'Dashboard Administrasi', icon: Home, href: route('dashboard'), active: route().current('dashboard'), type: 'link' }
+                    ]
+                },
+                {
+                    category: 'AKADEMIK & TENDIK',
+                    items: [
+                        {
+                            name: 'Master Data Staff',
+                            icon: Database,
+                            type: 'dropdown',
+                            key: 'masterData',
+                            active: route().current('master-data.*'),
+                            subItems: [
+                                { name: 'Buku Induk Siswa', href: route('master-data.index') + '?tab=siswa' },
+                                { name: 'Tenaga Pendidik & Tendik', href: route('master-data.index') + '?tab=guru' },
+                                { name: 'Rombongan Belajar', href: route('master-data.index') + '?tab=rombel' },
+                                { name: 'Mata Pelajaran', href: route('master-data.index') + '?tab=mapel' },
+                            ],
+                        },
+                        {
+                            name: 'Presensi Sekolah',
+                            icon: Bell,
+                            type: 'dropdown',
+                            key: 'presensi',
+                            active: route().current('presensi.*'),
+                            subItems: [
+                                { name: 'Presensi Siswa Harian', href: route('presensi.index') + '?type=siswa' },
+                                { name: 'Presensi Staf & Guru', href: route('presensi.index') + '?type=guru' },
+                            ],
+                        },
+                        { name: 'Kelembagaan & Profil', icon: Landmark, href: route('kelembagaan.index'), active: route().current('kelembagaan.*'), type: 'link' },
+                    ]
+                },
+                {
+                    category: 'LAYANAN',
+                    items: [
+                        { name: 'Pengumuman & Berita', icon: Landmark, href: route('announcements.index'), active: route().current('announcements.*'), type: 'link' },
                     ]
                 }
             ];

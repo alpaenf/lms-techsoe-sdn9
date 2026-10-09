@@ -82,6 +82,30 @@ class DatabaseSeeder extends Seeder
             'updated_at' => now(),
         ]);
 
+        // Guru Mapel PAI Demo (Sesuai Permintaan Client)
+        $guruMapelUserId = DB::table('users')->insertGetId([
+            'name' => 'Alfiana, S.Pd.I.',
+            'username' => '199208152020121005',
+            'email' => 'gurumapel@sdn9gandangbatu.sch.id',
+            'password' => $defaultPassword,
+            'role' => 'guru_mapel',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Tenaga Kependidikan (Tendik) Demo (Sesuai Permintaan Client)
+        $tendikUserId = DB::table('users')->insertGetId([
+            'name' => 'Rina Agustina, A.Md.',
+            'username' => '199504102022032010',
+            'email' => 'tendik@sdn9gandangbatu.sch.id',
+            'password' => $defaultPassword,
+            'role' => 'tendik',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         // Guru BK Demo
         $bkUserId = DB::table('users')->insertGetId([
             'name' => 'Maria Rante, S.Pd.',
@@ -114,6 +138,21 @@ class DatabaseSeeder extends Seeder
             'gender' => 'L',
             'employment_status' => 'PNS',
             'education_level' => 'S1',
+            'teacher_type' => 'guru_kelas',
+            'subject_specialization' => 'Wali Kelas',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $teacherGuruMapelId = DB::table('teachers')->insertGetId([
+            'user_id' => $guruMapelUserId,
+            'nip' => '199208152020121005',
+            'full_name' => 'Alfiana, S.Pd.I.',
+            'gender' => 'P',
+            'employment_status' => 'PNS',
+            'education_level' => 'S1',
+            'teacher_type' => 'guru_mapel',
+            'subject_specialization' => 'Pendidikan Agama Islam',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -125,6 +164,8 @@ class DatabaseSeeder extends Seeder
             'gender' => 'P',
             'employment_status' => 'PNS',
             'education_level' => 'S1',
+            'teacher_type' => 'guru_bk',
+            'subject_specialization' => 'Bimbingan Konseling',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -148,6 +189,7 @@ class DatabaseSeeder extends Seeder
 
         // 6. Seed Subjects (Katalog Mapel SD)
         $subjects = [
+            ['code' => 'PAI-SD', 'name' => 'Pendidikan Agama Islam', 'category' => 'wajib', 'kkm' => 75.00],
             ['code' => 'BIN-SD', 'name' => 'Bahasa Indonesia', 'category' => 'wajib', 'kkm' => 75.00],
             ['code' => 'MAT-SD', 'name' => 'Matematika', 'category' => 'wajib', 'kkm' => 70.00],
             ['code' => 'IPA-SD', 'name' => 'Ilmu Pengetahuan Alam', 'category' => 'wajib', 'kkm' => 75.00],
@@ -255,6 +297,22 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => now(),
             ]);
             $tsMap[$sbj->id] = $tsId;
+        }
+
+        // Seed Guru Mapel PAI (Alfiana, S.Pd.I.) mengajar PAI di seluruh Rombel (Kelas 1 - Kelas 6)
+        $paiSubjectRecord = DB::table('subjects')->where('code', 'PAI-SD')->first();
+        if ($paiSubjectRecord) {
+            $allClasses = DB::table('classes')->get();
+            foreach ($allClasses as $cls) {
+                DB::table('teacher_subjects')->insert([
+                    'teacher_id' => $teacherGuruMapelId,
+                    'subject_id' => $paiSubjectRecord->id,
+                    'class_id' => $cls->id,
+                    'academic_year_id' => $academicYearId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
 
         if ($ipaSubject && isset($tsMap[$ipaSubject->id])) {

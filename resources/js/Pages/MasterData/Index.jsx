@@ -178,7 +178,7 @@ export default function MasterDataIndex({
         setEditingTeacher(null);
         setTeacherForm({
             full_name: '', nip: '', gender: 'L', employment_status: 'PNS',
-            education_level: 'S1', email: '', role: 'guru', photo: null
+            education_level: 'S1', email: '', role: 'guru', subject_specialization: '', photo: null
         });
         setIsTeacherModalOpen(true);
     };
@@ -193,6 +193,7 @@ export default function MasterDataIndex({
             education_level: tc.education_level || 'S1',
             email: tc.email || '',
             role: tc.role || 'guru',
+            subject_specialization: tc.subject_specialization || '',
             photo: null
         });
         setIsTeacherModalOpen(true);
@@ -210,6 +211,7 @@ export default function MasterDataIndex({
         formData.append('education_level', teacherForm.education_level || 'S1');
         formData.append('email', teacherForm.email || '');
         formData.append('role', teacherForm.role || 'guru');
+        formData.append('subject_specialization', teacherForm.subject_specialization || '');
         if (teacherForm.photo instanceof File) {
             formData.append('photo', teacherForm.photo);
         }
