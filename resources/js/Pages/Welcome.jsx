@@ -270,7 +270,7 @@ export default function Welcome({ auth, announcements = [] }) {
 
     return (
         <>
-            <Head title="UPT SDN 9 Gandangbatu Sillanan — Smart School LMS" />
+            <Head title="UPT SDN 9 Gandangbatu Sillanan" />
 
             <div className="min-h-screen bg-white text-[#142033] font-sans selection:bg-[#8B001F] selection:text-white">
 
