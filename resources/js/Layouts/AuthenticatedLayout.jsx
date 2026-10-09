@@ -81,7 +81,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             subItems: [
                                 { name: 'Profil Sekolah', href: route('kelembagaan.index') + '?tab=profil' },
                                 { name: 'Tahun Ajaran & Semester', href: route('kelembagaan.index') + '?tab=akademik' },
-                                { name: 'Pusat Pengumuman', href: route('kelembagaan.index') + '?tab=pengumuman' },
+                                { name: 'Pusat Pengumuman', href: route('announcements.index') },
                             ],
                         },
                         {
@@ -179,7 +179,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             active: route().current('kelembagaan.*'),
                             subItems: [
                                 { name: 'Profil Sekolah', href: route('kelembagaan.index') + '?tab=profil' },
-                                { name: 'Maklumat & Pengumuman', href: route('kelembagaan.index') + '?tab=pengumuman' },
+                                { name: 'Pusat Pengumuman', href: route('announcements.index') },
                             ],
                         },
                         {
