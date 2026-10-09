@@ -135,6 +135,27 @@ export default function ModalSiswa({
                             />
                         </div>
 
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                Agama *
+                            </label>
+                            <div className="relative">
+                                <select
+                                    value={studentForm.religion}
+                                    onChange={(e) => setStudentForm({ ...studentForm, religion: e.target.value })}
+                                    className="w-full h-10 pl-3.5 pr-9 bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:border-[#800020] focus:ring-[#800020] appearance-none cursor-pointer"
+                                >
+                                    <option value="Kristen">Kristen Protestan</option>
+                                    <option value="Islam">Islam</option>
+                                    <option value="Katolik">Katolik</option>
+                                    <option value="Hindu">Hindu</option>
+                                    <option value="Buddha">Buddha</option>
+                                    <option value="Khonghucu">Khonghucu</option>
+                                </select>
+                                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            </div>
+                        </div>
+
                         <div className="sm:col-span-2">
                             <label className="block text-xs font-semibold text-slate-700 mb-1">
                                 Alamat Tempat Tinggal

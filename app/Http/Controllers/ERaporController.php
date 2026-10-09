@@ -86,7 +86,7 @@ class ERaporController extends Controller
 
         $students = DB::table('students')
             ->where('students.class_id', $selectedClassId)
-            ->select('id', 'nis', 'nisn', 'full_name', 'gender', 'birth_place', 'birth_date')
+            ->select('id', 'nis', 'nisn', 'full_name', 'gender', 'birth_place', 'birth_date', 'religion')
             ->orderBy('full_name')
             ->get();
 

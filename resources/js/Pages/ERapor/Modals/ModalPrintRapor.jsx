@@ -115,6 +115,14 @@ export default function ModalPrintRapor({
                             <span className="font-bold text-slate-900">: {student.birth_place || 'Gandangbatu'}, {student.birth_date || '12 Mei 2014'}</span>
                         </div>
                         <div>
+                            <span className="text-slate-500 inline-block w-32">Agama</span>
+                            <span className="font-bold text-slate-900">: {student.religion || 'Kristen'}</span>
+                        </div>
+                        <div>
+                            <span className="text-slate-500 inline-block w-32">Jenis Kelamin</span>
+                            <span className="font-bold text-slate-900">: {student.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</span>
+                        </div>
+                        <div>
                             <span className="text-slate-500 inline-block w-32">Wali Kelas</span>
                             <span className="font-bold text-slate-900">: {selectedClass?.homeroom_teacher_name || 'Budi Santoso, S.Pd.'}</span>
                         </div>
