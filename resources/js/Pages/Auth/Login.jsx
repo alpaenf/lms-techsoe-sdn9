@@ -91,7 +91,7 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <>
-            <Head title="Masuk - Smart School LMS UPT SDN 9 Gandangbatu Sillanan" />
+            <Head title="Masuk" />
 
             <div className="min-h-screen lg:h-screen w-full relative bg-gradient-to-br from-[#7B0D1E] via-[#650817] to-[#45040F] text-slate-800 font-sans selection:bg-[#800020] selection:text-white flex flex-col justify-between overflow-x-hidden lg:overflow-hidden">
                 {/* Background Pattern Grid Overlay */}

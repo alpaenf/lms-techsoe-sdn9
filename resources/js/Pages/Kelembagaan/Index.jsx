@@ -124,7 +124,7 @@ export default function KelembagaanIndex({ schoolProfile, academicYears = [] }) 
                 </div>
             }
         >
-            <Head title="Kelembagaan - Smart School LMS" />
+            <Head title="Kelembagaan" />
 
             <div className="space-y-6 max-w-6xl mx-auto">
                 {/* Notification toast */}

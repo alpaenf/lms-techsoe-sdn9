@@ -133,7 +133,7 @@ export default function BKIndex({
                 </div>
             }
         >
-            <Head title={isStudent ? "Prestasi & Bimbingan - Smart School LMS" : "Bimbingan Konseling - Smart School LMS"} />
+            <Head title={isStudent ? "Prestasi & Bimbingan" : "Bimbingan Konseling"} />
 
             <div className="space-y-6 max-w-7xl mx-auto">
                 {/* Notification toast */}

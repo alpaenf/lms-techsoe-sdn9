@@ -168,7 +168,7 @@ export default function ERaporIndex({
                 </div>
             }
         >
-            <Head title={`${isSiswa ? 'Rapor Saya' : 'E-Raport Kurikulum Merdeka'} - Smart School LMS`} />
+            <Head title={isSiswa ? 'Rapor Saya' : 'E-Raport Kurikulum Merdeka'} />
 
             <div className="space-y-6 max-w-7xl mx-auto">
                 {/* Notification toast */}

@@ -68,7 +68,7 @@ export default function ForgotPassword({ status, statusNisn, schoolPhone = '0812
 
     return (
         <>
-            <Head title="Pemulihan Kata Sandi - UPT SDN 9 Gandangbatu Sillanan" />
+            <Head title="Pemulihan Kata Sandi" />
 
             <div className="min-h-screen bg-[#F8F9FA] text-slate-800 flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#800020] selection:text-white">
                 

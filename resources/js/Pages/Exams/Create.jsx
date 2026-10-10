@@ -61,7 +61,7 @@ export default function ExamsCreate({ auth, subjects = [], classes = [], teacher
                 </div>
             }
         >
-            <Head title="Buat Ujian Baru - Smart School LMS" />
+            <Head title="Buat Ujian Baru" />
 
             <div className="max-w-4xl mx-auto space-y-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
