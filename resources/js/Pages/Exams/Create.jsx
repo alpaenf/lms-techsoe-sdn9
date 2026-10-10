@@ -194,7 +194,19 @@ export default function ExamsCreate({ auth, subjects = [], classes = [], teacher
                                     type="datetime-local"
                                     required
                                     value={form.start_time}
-                                    onChange={(e) => setForm({ ...form, start_time: e.target.value })}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        const updated = { ...form, start_time: val };
+                                        if (val && (!form.end_time || form.end_time <= val)) {
+                                            const d = new Date(val);
+                                            if (!isNaN(d.getTime())) {
+                                                d.setMinutes(d.getMinutes() + (Number(form.duration_minutes) || 60));
+                                                const pad = (n) => String(n).padStart(2, '0');
+                                                updated.end_time = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                                            }
+                                        }
+                                        setForm(updated);
+                                    }}
                                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020]"
                                 />
                             </div>

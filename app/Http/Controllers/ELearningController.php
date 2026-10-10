@@ -24,7 +24,7 @@ class ELearningController extends Controller
         }
 
         $teacher = null;
-        if (in_array($userRole, ['guru', 'bk', 'pimpinan'])) {
+        if (in_array($userRole, ['guru', 'guru_mapel', 'bk', 'pimpinan'])) {
             $teacher = DB::table('teachers')->where('user_id', $user->id)->first();
         }
 

@@ -92,7 +92,10 @@ export default function ExamsIndex({ auth, exams = [] }) {
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '-';
-        return new Date(dateStr).toLocaleDateString('id-ID', {
+        const cleanStr = String(dateStr).replace(' ', 'T');
+        const date = new Date(cleanStr);
+        if (isNaN(date.getTime())) return '-';
+        return date.toLocaleDateString('id-ID', {
             day: 'numeric',
             month: 'short',
             year: 'numeric',

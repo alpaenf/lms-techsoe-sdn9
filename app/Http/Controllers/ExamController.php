@@ -17,10 +17,29 @@ use Inertia\Inertia;
 
 class ExamController extends Controller
 {
+    protected function getTeacher(): ?Teacher
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return null;
+        }
+
+        $teacher = Teacher::where('user_id', $user->id)->first();
+        if (! $teacher && in_array($user->role, ['guru', 'guru_mapel'])) {
+            $teacher = Teacher::create([
+                'user_id' => $user->id,
+                'full_name' => $user->name,
+                'teacher_type' => $user->role === 'guru_mapel' ? 'guru_mapel' : 'guru_kelas',
+            ]);
+        }
+
+        return $teacher;
+    }
+
     public function index()
     {
         $user = auth()->user();
-        $teacher = Teacher::where('user_id', $user->id)->first();
+        $teacher = $this->getTeacher();
 
         $exams = Exam::with(['subject', 'class', 'academicYear', 'questions'])
             ->when($teacher && $user->role !== 'admin' && $user->role !== 'pimpinan', function ($q) use ($teacher) {
@@ -37,7 +56,7 @@ class ExamController extends Controller
     public function create()
     {
         $user = auth()->user();
-        $teacher = Teacher::where('user_id', $user->id)->first();
+        $teacher = $this->getTeacher();
 
         $subjects = Subject::all();
         $classes = Classes::with('homeroomTeacher')->get();
@@ -52,7 +71,7 @@ class ExamController extends Controller
     public function store(Request $request)
     {
         $user = auth()->user();
-        $teacher = Teacher::where('user_id', $user->id)->first();
+        $teacher = $this->getTeacher();
 
         $validated = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
@@ -149,6 +168,9 @@ class ExamController extends Controller
     public function update(Request $request, Exam $exam)
     {
         $validated = $request->validate([
+            'subject_id' => 'sometimes|required|exists:subjects,id',
+            'class_id' => 'nullable|exists:classes,id',
+            'exam_category' => 'sometimes|required|in:uts,uas,ulangan_harian,ujian_sekolah,kuis',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'duration_minutes' => 'required|integer|min:1|max:300',

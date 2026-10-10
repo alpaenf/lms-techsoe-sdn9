@@ -32,7 +32,10 @@ export default function StudentExamsShow({ auth, exam, attempts = [], can_attemp
     };
 
     const formatDate = (dateString) => {
-        const date = new Date(dateString);
+        if (!dateString) return '-';
+        const cleanStr = String(dateString).replace(' ', 'T');
+        const date = new Date(cleanStr);
+        if (isNaN(date.getTime())) return '-';
         return date.toLocaleDateString('id-ID', { 
             day: 'numeric', 
             month: 'long', 

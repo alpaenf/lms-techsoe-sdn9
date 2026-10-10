@@ -163,7 +163,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/bk/achievements/{id}', [BKController::class, 'destroyAchievement'])->name('bk.achievements.destroy');
 
     // 08. Ujian Online - Guru & Pimpinan (Supervisi) Routes
-    Route::prefix('exams')->middleware(['role:guru,admin,pimpinan'])->group(function () {
+    Route::prefix('exams')->middleware(['role:guru,guru_mapel,admin,pimpinan'])->group(function () {
         Route::get('/', [ExamController::class, 'index'])->name('exams.index');
         Route::get('/create', [ExamController::class, 'create'])->name('exams.create');
         Route::post('/', [ExamController::class, 'store'])->name('exams.store');

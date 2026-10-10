@@ -73,7 +73,10 @@ export default function StudentExamsIndex({ auth, exams = [], student }) {
     };
 
     const formatDate = (dateString) => {
-        const date = new Date(dateString);
+        if (!dateString) return '-';
+        const cleanStr = String(dateString).replace(' ', 'T');
+        const date = new Date(cleanStr);
+        if (isNaN(date.getTime())) return '-';
         return date.toLocaleDateString('id-ID', { 
             day: 'numeric', 
             month: 'long', 
@@ -252,7 +255,7 @@ export default function StudentExamsIndex({ auth, exams = [], student }) {
                                             <div>
                                                 <p className="text-slate-500">Berakhir</p>
                                                 <p className="font-semibold text-slate-900">
-                                                    {new Date(exam.end_time).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                                    {new Date(String(exam.end_time).replace(' ', 'T')).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                                                 </p>
                                             </div>
                                         </div>

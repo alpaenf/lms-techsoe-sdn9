@@ -74,7 +74,15 @@ class StudentExamAttempt extends Model
         $elapsed = now()->diffInSeconds($this->started_at);
         $duration = $this->exam->duration_minutes * 60;
 
-        return $elapsed >= $duration;
+        if ($elapsed >= $duration) {
+            return true;
+        }
+
+        if ($this->exam->end_time && now()->greaterThan($this->exam->end_time)) {
+            return true;
+        }
+
+        return false;
     }
 
     public function getRemainingSeconds(): int
@@ -82,6 +90,13 @@ class StudentExamAttempt extends Model
         $elapsed = now()->diffInSeconds($this->started_at);
         $duration = $this->exam->duration_minutes * 60;
         $remaining = $duration - $elapsed;
+
+        if ($this->exam->end_time) {
+            $secondsUntilEnd = now()->diffInSeconds($this->exam->end_time, false);
+            if ($secondsUntilEnd < $remaining) {
+                $remaining = max(0, $secondsUntilEnd);
+            }
+        }
 
         return (int) max(0, round($remaining));
     }

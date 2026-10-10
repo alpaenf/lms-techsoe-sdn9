@@ -28,8 +28,8 @@ class Exam extends Model
     ];
 
     protected $casts = [
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
+        'start_time' => 'datetime:Y-m-d\TH:i',
+        'end_time' => 'datetime:Y-m-d\TH:i',
         'randomize_questions' => 'boolean',
         'show_review' => 'boolean',
         'show_result_immediately' => 'boolean',

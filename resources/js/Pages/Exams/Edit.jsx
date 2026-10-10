@@ -14,7 +14,15 @@ import {
 export default function ExamsEdit({ auth, exam, subjects = [], classes = [] }) {
     const formatDateTimeForInput = (dateTimeStr) => {
         if (!dateTimeStr) return '';
+        // If string is already like "2026-10-10T08:33" or "2026-10-10 08:33:00", preserve the wall-clock time
+        if (typeof dateTimeStr === 'string') {
+            const cleaned = dateTimeStr.replace(' ', 'T');
+            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(cleaned) && !cleaned.endsWith('Z')) {
+                return cleaned.substring(0, 16);
+            }
+        }
         const date = new Date(dateTimeStr);
+        if (isNaN(date.getTime())) return '';
         const pad = (n) => String(n).padStart(2, '0');
         const yyyy = date.getFullYear();
         const mm = pad(date.getMonth() + 1);
@@ -27,6 +35,9 @@ export default function ExamsEdit({ auth, exam, subjects = [], classes = [] }) {
     const [form, setForm] = useState({
         title: exam.title || '',
         description: exam.description || '',
+        subject_id: exam.subject_id || (subjects[0]?.id || ''),
+        class_id: exam.class_id || '',
+        exam_category: exam.exam_category || 'ulangan_harian',
         duration_minutes: exam.duration_minutes || 60,
         start_time: formatDateTimeForInput(exam.start_time),
         end_time: formatDateTimeForInput(exam.end_time),
@@ -80,7 +91,7 @@ export default function ExamsEdit({ auth, exam, subjects = [], classes = [] }) {
                             </div>
                             <div>
                                 <h3 className="text-base font-bold text-slate-900">Informasi Pokok</h3>
-                                <p className="text-xs text-slate-500">Judul asesmen dan petunjuk</p>
+                                <p className="text-xs text-slate-500">Judul asesmen, kurikulum, dan sasaran kelas</p>
                             </div>
                         </div>
 
@@ -107,6 +118,58 @@ export default function ExamsEdit({ auth, exam, subjects = [], classes = [] }) {
                                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] resize-none"
                             />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    Mata Pelajaran <span className="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    required
+                                    value={form.subject_id}
+                                    onChange={(e) => setForm({ ...form, subject_id: e.target.value })}
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] bg-white font-medium"
+                                >
+                                    {subjects.map(s => (
+                                        <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    Sasaran Rombel / Kelas <span className="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    value={form.class_id}
+                                    onChange={(e) => setForm({ ...form, class_id: e.target.value })}
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] bg-white font-medium"
+                                >
+                                    <option value="">Semua Rombel</option>
+                                    {classes.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    Kategori Ujian <span className="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    required
+                                    value={form.exam_category}
+                                    onChange={(e) => setForm({ ...form, exam_category: e.target.value })}
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] bg-white font-medium"
+                                >
+                                    <option value="ulangan_harian">Ulangan Harian</option>
+                                    <option value="uts">Ujian Tengah Semester (UTS)</option>
+                                    <option value="uas">Ujian Akhir Semester (UAS)</option>
+                                    <option value="ujian_sekolah">Ujian Sekolah (US)</option>
+                                    <option value="kuis">Kuis / Latihan Harian</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
