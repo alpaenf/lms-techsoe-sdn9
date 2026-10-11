@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Student;
+use App\Services\StudentImportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,19 +38,27 @@ class MasterDataController extends Controller
             ->orderBy('code')
             ->get();
 
-        $students = DB::table('students')
-            ->leftJoin('classes', 'students.class_id', '=', 'classes.id')
-            ->leftJoin('guardians', 'students.id', '=', 'guardians.student_id')
-            ->select(
-                'students.*',
-                'classes.name as class_name',
-                'guardians.name as guardian_name',
-                'guardians.relation_type as guardian_relation',
-                'guardians.phone_number as guardian_phone',
-                'guardians.occupation as guardian_occupation'
-            )
-            ->orderBy('students.full_name')
-            ->get();
+        $students = Student::with(['class', 'guardians'])
+            ->orderBy('full_name')
+            ->get()
+            ->map(function ($s) {
+                $ayah = $s->guardians->firstWhere('relation_type', 'ayah');
+                $ibu = $s->guardians->firstWhere('relation_type', 'ibu');
+                $wali = $s->guardians->firstWhere('relation_type', 'wali');
+                $primary = $wali ?? $ayah ?? $ibu;
+
+                $s->class_name = $s->class?->name ?? 'Belum ada rombel';
+                $s->guardian_name = $primary?->name ?? '-';
+                $s->guardian_relation = $primary?->relation_type ?? '-';
+                $s->guardian_phone = $primary?->phone_number ?: ($s->mobile_phone ?: ($s->phone ?: '-'));
+                $s->guardian_occupation = $primary?->occupation ?? '-';
+
+                $s->father_data = $ayah;
+                $s->mother_data = $ibu;
+                $s->guardian_data = $wali;
+
+                return $s;
+            });
 
         return Inertia::render('MasterData/Index', [
             'currentTab' => $tab,
@@ -119,7 +130,13 @@ class MasterDataController extends Controller
     {
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'nisn' => 'required|string|size:10|unique:students,nisn',
+            'nisn' => [
+                'required',
+                'string',
+                'size:10',
+                'unique:students,nisn',
+                'unique:users,username',
+            ],
             'nis' => 'required|string|max:20|unique:students,nis',
             'nik' => 'nullable|string|max:20',
             'class_id' => 'required|exists:classes,id',
@@ -132,6 +149,9 @@ class MasterDataController extends Controller
             'guardian_relation' => 'nullable|in:ayah,ibu,wali',
             'guardian_phone' => 'nullable|string|max:25',
             'guardian_occupation' => 'nullable|string|max:100',
+        ], [
+            'nisn.unique' => 'NISN sudah terdaftar pada data siswa atau akun pengguna lain.',
+            'nis.unique' => 'NIPD / NIS sudah terdaftar pada data siswa lain.',
         ]);
 
         DB::transaction(function () use ($validated) {
@@ -193,8 +213,19 @@ class MasterDataController extends Controller
 
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'nisn' => 'required|string|size:10|unique:students,nisn,'.$id,
-            'nis' => 'required|string|max:20|unique:students,nis,'.$id,
+            'nisn' => [
+                'required',
+                'string',
+                'size:10',
+                Rule::unique('students', 'nisn')->ignore($id),
+                Rule::unique('users', 'username')->ignore($student->user_id),
+            ],
+            'nis' => [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('students', 'nis')->ignore($id),
+            ],
             'nik' => 'nullable|string|max:20',
             'class_id' => 'required|exists:classes,id',
             'gender' => 'required|in:L,P',
@@ -206,6 +237,9 @@ class MasterDataController extends Controller
             'guardian_relation' => 'nullable|in:ayah,ibu,wali',
             'guardian_phone' => 'nullable|string|max:25',
             'guardian_occupation' => 'nullable|string|max:100',
+        ], [
+            'nisn.unique' => 'NISN sudah terdaftar pada data siswa atau akun pengguna lain.',
+            'nis.unique' => 'NIPD / NIS sudah terdaftar pada data siswa lain.',
         ]);
 
         DB::transaction(function () use ($student, $validated) {
@@ -228,6 +262,7 @@ class MasterDataController extends Controller
             DB::table('users')->where('id', $student->user_id)->update([
                 'name' => $validated['full_name'],
                 'username' => $validated['nisn'],
+                'email' => $validated['nisn'].'@sdn9gandangbatu.sch.id',
                 'updated_at' => now(),
             ]);
 
@@ -266,13 +301,90 @@ class MasterDataController extends Controller
         return back()->with('message', 'Data peserta didik berhasil dihapus.');
     }
 
+    public function importStudents(Request $request, StudentImportService $service)
+    {
+        $request->validate([
+            'file' => 'required|file|max:20480',
+            'reset_old' => 'nullable|boolean',
+        ], [
+            'file.required' => 'Pilih file Excel (.xlsx, .xls) atau CSV terlebih dahulu.',
+            'file.max' => 'Ukuran file maksimal adalah 20MB.',
+        ]);
+
+        $uploadedFile = $request->file('file');
+        $extension = strtolower($uploadedFile->getClientOriginalExtension());
+        if (! in_array($extension, ['xlsx', 'xls', 'csv'])) {
+            return back()->withErrors(['file' => 'Format file harus berupa Excel (.xlsx, .xls) atau CSV.']);
+        }
+
+        try {
+            $resetOld = $request->boolean('reset_old');
+            $result = $service->import($uploadedFile, $resetOld);
+
+            $msg = "Berhasil mengimpor data siswa: {$result['imported']} siswa baru";
+            if ($result['updated'] > 0) {
+                $msg .= ", {$result['updated']} siswa diperbarui";
+            }
+            if (! empty($result['classes_created'])) {
+                $msg .= ". " . count($result['classes_created']) . " rombel otomatis dibuat (" . implode(', ', $result['classes_created']) . ")";
+            }
+
+            return back()->with('message', $msg);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['error' => 'Gagal memproses file: ' . $e->getMessage()]);
+        }
+    }
+
+    public function downloadTemplate()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="Template_Import_Siswa_Dapodik.csv"',
+        ];
+
+        $columns = [
+            'No', 'Nama', 'NIPD', 'JK', 'NISN', 'Tempat Lahir', 'Tanggal Lahir', 'NIK', 'Agama',
+            'Alamat', 'RT', 'RW', 'Dusun', 'Kelurahan', 'Kecamatan', 'Kode Pos', 'Jenis Tinggal',
+            'Alat Transportasi', 'Telepon', 'HP', 'E-Mail', 'SKHUN', 'Penerima KPS', 'No. KPS',
+            'Nama Ayah', 'Tahun Lahir Ayah', 'Pendidikan Ayah', 'Pekerjaan Ayah', 'Penghasilan Ayah', 'NIK Ayah',
+            'Nama Ibu', 'Tahun Lahir Ibu', 'Pendidikan Ibu', 'Pekerjaan Ibu', 'Penghasilan Ibu', 'NIK Ibu',
+            'Nama Wali', 'Tahun Lahir Wali', 'Pendidikan Wali', 'Pekerjaan Wali', 'Penghasilan Wali', 'NIK Wali',
+            'Rombel Saat Ini'
+        ];
+
+        $sampleRow = [
+            '1', 'CONTOH NAMA SISWA', '0012026', 'L', '0123456789', 'TANA TORAJA', '2015-05-12', '7318192410130001', 'Kristen',
+            'BUNTU', '0', '0', 'BUNTU', 'KELURAHAN BENTENG AMBESO', 'Kec. Gandangbatu Sillanan', '91871', 'Bersama orang tua',
+            'Jalan kaki', '', '081234567890', '', '', 'Tidak', '',
+            'NAMA AYAH', '1980', 'SMA / sederajat', 'Petani', '< Rp1.000.000', '7318160107760004',
+            'NAMA IBU', '1983', 'SMP / sederajat', 'Ibu Rumah Tangga', 'Tidak Berpenghasilan', '7318055611750001',
+            '', '', '', '', '', '',
+            'KELAS IA'
+        ];
+
+        $callback = function () use ($columns, $sampleRow) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            fputcsv($file, $sampleRow);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     // ==================== TENAGA PENDIDIK / TEACHERS ==================== //
 
     public function storeTeacher(Request $request)
     {
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'nip' => 'nullable|string|max:30|unique:teachers,nip',
+            'nip' => [
+                'nullable',
+                'string',
+                'max:30',
+                'unique:teachers,nip',
+                'unique:users,username',
+            ],
             'gender' => 'required|in:L,P',
             'employment_status' => 'required|in:PNS,PPPK,GTT,Honorer',
             'education_level' => 'required|string|max:50',
@@ -280,6 +392,9 @@ class MasterDataController extends Controller
             'role' => 'required|in:guru,guru_mapel,tendik,bk,pimpinan,admin',
             'subject_specialization' => 'nullable|string|max:255',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ], [
+            'nip.unique' => 'NIP sudah digunakan oleh tenaga pendidik atau akun pengguna lain.',
+            'email.unique' => 'Email sudah terdaftar pada akun lain.',
         ]);
 
         $photoPath = null;
@@ -333,14 +448,27 @@ class MasterDataController extends Controller
 
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'nip' => 'nullable|string|max:30|unique:teachers,nip,'.$id,
+            'nip' => [
+                'nullable',
+                'string',
+                'max:30',
+                Rule::unique('teachers', 'nip')->ignore($id),
+                Rule::unique('users', 'username')->ignore($teacher->user_id),
+            ],
             'gender' => 'required|in:L,P',
             'employment_status' => 'required|in:PNS,PPPK,GTT,Honorer',
             'education_level' => 'required|string|max:50',
-            'email' => 'nullable|email|unique:users,email,'.$teacher->user_id,
+            'email' => [
+                'nullable',
+                'email',
+                Rule::unique('users', 'email')->ignore($teacher->user_id),
+            ],
             'role' => 'required|in:guru,guru_mapel,tendik,bk,pimpinan,admin',
             'subject_specialization' => 'nullable|string|max:255',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ], [
+            'nip.unique' => 'NIP sudah digunakan oleh tenaga pendidik atau akun pengguna lain.',
+            'email.unique' => 'Email sudah terdaftar pada akun lain.',
         ]);
 
         $photoPath = $teacher->photo;

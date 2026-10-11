@@ -12,6 +12,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentExamController;
+use App\Http\Controllers\TeacherScheduleController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -107,6 +108,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/teacher/claim-subjects', [DashboardController::class, 'claimSubjects'])->name('teacher.claim-subjects');
 
+    // Teaching Schedules (Jadwal Mengajar Guru)
+    Route::get('/schedules', [TeacherScheduleController::class, 'index'])->name('schedules.index');
+    Route::post('/schedules', [TeacherScheduleController::class, 'store'])->name('schedules.store');
+    Route::put('/schedules/{id}', [TeacherScheduleController::class, 'update'])->name('schedules.update');
+    Route::delete('/schedules/{id}', [TeacherScheduleController::class, 'destroy'])->name('schedules.destroy');
+    Route::get('/schedules/reminders/check', [TeacherScheduleController::class, 'checkReminders'])->name('schedules.reminders.check');
+
     // 02. Kelembagaan
     Route::get('/kelembagaan', [KelembagaanController::class, 'index'])->name('kelembagaan.index');
     Route::post('/kelembagaan/profile', [KelembagaanController::class, 'updateProfile'])->name('kelembagaan.profile.update');
@@ -124,6 +132,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Master Data: Siswa / Students
     Route::post('/master-data/students', [MasterDataController::class, 'storeStudent'])->name('master-data.students.store');
+    Route::post('/master-data/students/import', [MasterDataController::class, 'importStudents'])->name('master-data.students.import');
+    Route::get('/master-data/students/template', [MasterDataController::class, 'downloadTemplate'])->name('master-data.students.template');
     Route::put('/master-data/students/{id}', [MasterDataController::class, 'updateStudent'])->name('master-data.students.update');
     Route::delete('/master-data/students/{id}', [MasterDataController::class, 'destroyStudent'])->name('master-data.students.destroy');
 

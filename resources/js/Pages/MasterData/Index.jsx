@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Search, Download, PlusCircle, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, Download, PlusCircle, CheckCircle2, AlertCircle, Upload, Filter } from 'lucide-react';
 
 // Sub-components
 import TabSiswa from './Partials/TabSiswa';
@@ -15,6 +15,7 @@ import ModalSiswa from './Modals/ModalSiswa';
 import ModalGuru from './Modals/ModalGuru';
 import ModalMapel from './Modals/ModalMapel';
 import ModalDetailSiswa from './Modals/ModalDetailSiswa';
+import ModalImportSiswa from './Modals/ModalImportSiswa';
 
 export default function MasterDataIndex({ 
     currentTab = 'siswa', 
@@ -30,10 +31,14 @@ export default function MasterDataIndex({
 
     const [tab, setTab] = useState(canManageMaster ? currentTab : 'siswa');
     const [search, setSearch] = useState('');
+    const [selectedClassFilter, setSelectedClassFilter] = useState('');
     const [notification, setNotification] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // ==================== MODALS STATE ==================== //
+
+    // 0. Import Modal
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     // 1. Rombel Modal
     const [isRombelModalOpen, setIsRombelModalOpen] = useState(false);
@@ -337,11 +342,17 @@ export default function MasterDataIndex({
 
     const studentList = Array.isArray(students) ? students : (students?.data || []);
 
-    const filteredStudents = studentList.filter(s => 
-        s.full_name?.toLowerCase().includes(search.toLowerCase()) || 
-        s.nisn?.includes(search) ||
-        s.nis?.includes(search)
-    );
+    const filteredStudents = studentList.filter(s => {
+        const matchesSearch =
+            s.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+            s.nisn?.includes(search) ||
+            s.nis?.includes(search) ||
+            s.nik?.includes(search);
+
+        const matchesClass = !selectedClassFilter || String(s.class_id) === String(selectedClassFilter);
+
+        return matchesSearch && matchesClass;
+    });
 
     const filteredTeachers = (teachers || []).filter(t => 
         t.full_name?.toLowerCase().includes(search.toLowerCase()) || 
@@ -431,35 +442,67 @@ export default function MasterDataIndex({
                 )}
 
                 {/* Action Bar */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <div className="relative w-full sm:w-80">
-                        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                            type="text"
-                            placeholder="Cari berdasarkan nama, NISN, NIP..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-300 text-xs text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
-                        />
+                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1">
+                        <div className="relative flex-1 sm:max-w-xs">
+                            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                                type="text"
+                                placeholder="Cari berdasarkan nama, NISN, NIP, NIK..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-300 text-xs text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
+                            />
+                        </div>
+
+                        {tab === 'siswa' && classes && classes.length > 0 && (
+                            <div className="relative sm:w-48">
+                                <select
+                                    value={selectedClassFilter}
+                                    onChange={(e) => setSelectedClassFilter(e.target.value)}
+                                    className="w-full h-10 px-3 bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 focus:border-[#800020] focus:ring-[#800020] cursor-pointer"
+                                >
+                                    <option value="">Semua Rombel ({studentList.length})</option>
+                                    {classes.map((cls) => {
+                                        const count = studentList.filter(s => String(s.class_id) === String(cls.id)).length;
+                                        return (
+                                            <option key={cls.id} value={cls.id}>
+                                                {cls.name} ({count})
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
-                        <button 
+                    <div className="flex items-center space-x-2 justify-end flex-wrap gap-y-2">
+                        <button
                             onClick={exportToCSV}
                             className="px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition"
                         >
                             <Download className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
-                            <span>Ekspor Data (CSV)</span>
+                            <span>Ekspor CSV</span>
                         </button>
                         {canManageMaster && (
                             tab === 'siswa' ? (
-                                <button 
-                                    onClick={openCreateStudentModal}
-                                    className="px-3.5 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition"
-                                >
-                                    <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
-                                    <span>Tambah Siswa</span>
-                                </button>
+                                <>
+                                    <button
+                                        onClick={() => setIsImportModalOpen(true)}
+                                        className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition"
+                                        title="Import Siswa dari Excel / Dapodik"
+                                    >
+                                        <Upload className="w-3.5 h-3.5 mr-1.5" />
+                                        <span>Import Siswa</span>
+                                    </button>
+                                    <button
+                                        onClick={openCreateStudentModal}
+                                        className="px-3.5 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition"
+                                    >
+                                        <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
+                                        <span>Tambah Siswa</span>
+                                    </button>
+                                </>
                             ) : tab === 'guru' ? (
                                 <button 
                                     onClick={openCreateTeacherModal}
@@ -551,9 +594,18 @@ export default function MasterDataIndex({
                 isSubmitting={isSubmitting} 
             />
 
-            <ModalDetailSiswa 
-                student={selectedStudentDetail} 
-                onClose={() => setSelectedStudentDetail(null)} 
+            <ModalDetailSiswa
+                student={selectedStudentDetail}
+                onClose={() => setSelectedStudentDetail(null)}
+            />
+
+            <ModalImportSiswa
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                onSuccess={() => {
+                    setNotification('Data siswa berhasil diimpor!');
+                    setTimeout(() => setNotification(null), 5000);
+                }}
             />
 
             <ModalGuru 

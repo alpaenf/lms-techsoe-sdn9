@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import NotificationDropdown from '@/Components/NotificationDropdown';
+import ScheduleReminderToast from '@/Components/ScheduleReminderToast';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Home,
@@ -663,6 +664,9 @@ export default function AuthenticatedLayout({ header, children }) {
                 <main className="flex-1 p-4 sm:p-6 lg:p-8">
                     {children}
                 </main>
+
+                {/* Floating Schedule Reminder for Teachers */}
+                <ScheduleReminderToast role={userRole} />
 
                 {/* Sticky Clean Footer */}
                 <footer className="bg-white border-t border-slate-200 py-3.5 px-4 sm:px-6 lg:px-8 text-[11px] text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">

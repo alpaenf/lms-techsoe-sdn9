@@ -22,6 +22,20 @@ class Student extends Model
         'birth_date',
         'religion',
         'address',
+        'rt',
+        'rw',
+        'dusun',
+        'kelurahan',
+        'kecamatan',
+        'postal_code',
+        'residence_type',
+        'transportation',
+        'phone',
+        'mobile_phone',
+        'email',
+        'skhun',
+        'is_kps_recipient',
+        'kps_number',
         'entry_date',
         'status',
     ];
@@ -46,6 +60,11 @@ class Student extends Model
     public function class(): BelongsTo
     {
         return $this->belongsTo(Classes::class, 'class_id');
+    }
+
+    public function guardians(): HasMany
+    {
+        return $this->hasMany(Guardian::class, 'student_id');
     }
 
     public function examAttempts(): HasMany

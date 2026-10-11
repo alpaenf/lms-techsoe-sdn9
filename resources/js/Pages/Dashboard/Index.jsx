@@ -27,10 +27,12 @@ import {
     ShieldCheck,
     Edit3
 } from 'lucide-react';
+import TeacherScheduleWidget from './Partials/TeacherScheduleWidget';
+import ModalJadwalMengajar from './Modals/ModalJadwalMengajar';
 
-export default function DashboardIndex({ 
-    auth, 
-    role = 'admin', 
+export default function DashboardIndex({
+    auth,
+    role = 'admin',
     roleLabel = 'Administrator Sistem',
     academicYear = '2026/2027 • Ganjil',
     schoolProfile = null,
@@ -49,13 +51,19 @@ export default function DashboardIndex({
     recent_achievements = [],
     recent_students = [],
     pending_submissions = [],
-    attendance = {}
+    attendance = {},
+    today_day = 'Senin',
+    teaching_schedules = [],
+    today_schedules = []
 }) {
     const user = auth?.user;
     const schoolName = schoolProfile?.school_name || 'UPT SDN 9 Gandangbatu Sillanan';
     const currentDateStr = "Sabtu, 27 September 2026";
 
     const [showClaimModal, setShowClaimModal] = useState(false);
+    const [showScheduleModal, setShowScheduleModal] = useState(false);
+    const [selectedSchedule, setSelectedSchedule] = useState(null);
+    const [toastMessage, setToastMessage] = useState(null);
 
     const { data: claimForm, setData: setClaimForm, post: postClaim, processing: claimProcessing } = useForm({
         teacher_type: teacher?.teacher_type || (role === 'guru_mapel' ? 'guru_mapel' : 'guru_kelas'),
@@ -89,6 +97,21 @@ export default function DashboardIndex({
                 setShowClaimModal(false);
             }
         });
+    };
+
+    const handleOpenAddSchedule = () => {
+        setSelectedSchedule(null);
+        setShowScheduleModal(true);
+    };
+
+    const handleOpenEditSchedule = (sched) => {
+        setSelectedSchedule(sched);
+        setShowScheduleModal(true);
+    };
+
+    const handleScheduleSuccess = (msg) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(null), 4000);
     };
 
     const displaySubjectTitle = (claimed_subjects && claimed_subjects.length > 0)
@@ -1168,6 +1191,14 @@ export default function DashboardIndex({
 
                         {(role === 'guru' || role === 'guru_mapel') && (
                             <div className="space-y-6">
+                                {/* Widget: Jadwal Mengajar Guru */}
+                                <TeacherScheduleWidget
+                                    teachingSchedules={teaching_schedules}
+                                    todayDay={today_day}
+                                    onAddSchedule={handleOpenAddSchedule}
+                                    onEditSchedule={handleOpenEditSchedule}
+                                />
+
                                 {/* Card 1: Workspace & Quick Operations for Active Class/Subject */}
                                 <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-4">
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
@@ -1902,6 +1933,28 @@ export default function DashboardIndex({
                             </div>
                         </form>
                     </div>
+                </div>
+            )}
+
+            {/* MODAL KELOLA JADWAL MENGAJAR GURU */}
+            <ModalJadwalMengajar
+                isOpen={showScheduleModal}
+                onClose={() => {
+                    setShowScheduleModal(false);
+                    setSelectedSchedule(null);
+                }}
+                schedule={selectedSchedule}
+                availableClasses={available_classes}
+                availableSubjects={available_subjects}
+                todayDay={today_day}
+                onSuccess={handleScheduleSuccess}
+            />
+
+            {/* FEEDBACK TOAST */}
+            {toastMessage && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold flex items-center space-x-2 animate-fade-in border border-white/10">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{toastMessage}</span>
                 </div>
             )}
         </AuthenticatedLayout>

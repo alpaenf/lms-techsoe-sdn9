@@ -131,6 +131,19 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 4. Seed Teachers
+        $teacherKepsekId = DB::table('teachers')->insertGetId([
+            'user_id' => $kepsekUserId,
+            'nip' => '198502012010012025',
+            'full_name' => 'Hendrika Genti, S.Pd.SD.',
+            'gender' => 'P',
+            'employment_status' => 'PNS',
+            'education_level' => 'S1',
+            'teacher_type' => 'guru_kelas',
+            'subject_specialization' => 'Kepala Sekolah',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         $teacherGuruId = DB::table('teachers')->insertGetId([
             'user_id' => $guruUserId,
             'nip' => '198705122015021003',

@@ -213,6 +213,61 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get();
 
+            // Teaching Schedules for this teacher
+            $dayNames = [
+                0 => 'Minggu',
+                1 => 'Senin',
+                2 => 'Selasa',
+                3 => 'Rabu',
+                4 => 'Kamis',
+                5 => 'Jumat',
+                6 => 'Sabtu',
+            ];
+            $todayDayName = $dayNames[(int) date('w')];
+            $currentTime = date('H:i:s');
+
+            $allTeacherSchedules = DB::table('teaching_schedules')
+                ->join('classes', 'teaching_schedules.class_id', '=', 'classes.id')
+                ->join('subjects', 'teaching_schedules.subject_id', '=', 'subjects.id')
+                ->where('teaching_schedules.teacher_id', $teacher->id)
+                ->where('teaching_schedules.is_active', true)
+                ->select(
+                    'teaching_schedules.*',
+                    'classes.name as class_name',
+                    'classes.grade_level',
+                    'subjects.name as subject_name',
+                    'subjects.code as subject_code'
+                )
+                ->orderByRaw("FIELD(day_of_week, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu')")
+                ->orderBy('start_time')
+                ->get()
+                ->map(function ($item) use ($currentTime, $todayDayName) {
+                    $item->start_time_formatted = substr($item->start_time, 0, 5);
+                    $item->end_time_formatted = substr($item->end_time, 0, 5);
+
+                    if ($item->day_of_week === $todayDayName) {
+                        if ($currentTime >= $item->start_time && $currentTime <= $item->end_time) {
+                            $item->status = 'ongoing';
+                            $item->status_label = 'Sedang Berlangsung';
+                        } elseif ($currentTime < $item->start_time) {
+                            $item->status = 'upcoming';
+                            $item->status_label = 'Akan Datang';
+                        } else {
+                            $item->status = 'completed';
+                            $item->status_label = 'Selesai';
+                        }
+                    } else {
+                        $item->status = 'scheduled';
+                        $item->status_label = 'Terjadwal';
+                    }
+
+                    return $item;
+                });
+
+            $data['today_day'] = $todayDayName;
+            $data['teaching_schedules'] = $allTeacherSchedules;
+            $data['today_schedules'] = $allTeacherSchedules->where('day_of_week', $todayDayName)->values();
+
         } elseif ($role === 'tendik') {
             $totalStudents = DB::table('students')->where('status', 'aktif')->count();
             $totalTeachers = DB::table('teachers')->count();
