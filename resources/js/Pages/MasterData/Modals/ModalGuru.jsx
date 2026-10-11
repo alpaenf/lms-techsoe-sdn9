@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Save, Crop, Trash2, RotateCw, Camera } from 'lucide-react';
+import { X, Save, Crop, Trash2, RotateCw, Camera, AlertCircle } from 'lucide-react';
 import ModalCropFoto from './ModalCropFoto';
 
 export default function ModalGuru({
@@ -10,7 +10,8 @@ export default function ModalGuru({
     setTeacherForm,
     handleSaveTeacher,
     subjects = [],
-    isSubmitting
+    isSubmitting,
+    errors = {}
 }) {
     const [rawImageForCrop, setRawImageForCrop] = useState(null);
     const [isCropModalOpen, setIsCropModalOpen] = useState(false);
@@ -62,6 +63,18 @@ export default function ModalGuru({
                     </div>
 
                     <form onSubmit={handleSaveTeacher} className="p-6 space-y-4 overflow-y-auto flex-1">
+                        {errors && Object.keys(errors).length > 0 && (
+                            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start space-x-2 text-rose-700 text-xs">
+                                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+                                <div className="space-y-0.5">
+                                    <p className="font-bold">Gagal menyimpan data:</p>
+                                    {Object.entries(errors).map(([k, v]) => (
+                                        <p key={k} className="text-[11px] leading-tight">• {v}</p>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         <div>
                             <label className="block text-xs font-semibold text-slate-700 mb-1">
                                 Nama Lengkap & Gelar *
@@ -74,6 +87,9 @@ export default function ModalGuru({
                                 onChange={(e) => setTeacherForm({ ...teacherForm, full_name: e.target.value })}
                                 className="w-full h-10 px-3.5 rounded-xl border border-slate-300 text-xs text-slate-900 focus:border-[#8B001F] focus:ring-[#8B001F]"
                             />
+                            {errors?.full_name && (
+                                <p className="text-[11px] text-rose-600 font-medium mt-1">{errors.full_name}</p>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -86,8 +102,13 @@ export default function ModalGuru({
                                     placeholder="19870512..."
                                     value={teacherForm.nip}
                                     onChange={(e) => setTeacherForm({ ...teacherForm, nip: e.target.value })}
-                                    className="w-full h-10 px-3.5 rounded-xl border border-slate-300 text-xs font-mono text-slate-900 focus:border-[#8B001F] focus:ring-[#8B001F]"
+                                    className={`w-full h-10 px-3.5 rounded-xl border text-xs font-mono text-slate-900 focus:border-[#8B001F] focus:ring-[#8B001F] ${
+                                        errors?.nip ? 'border-rose-300 bg-rose-50/20' : 'border-slate-300'
+                                    }`}
                                 />
+                                {errors?.nip && (
+                                    <p className="text-[11px] text-rose-600 font-medium mt-1">{errors.nip}</p>
+                                )}
                             </div>
 
                             <div>
@@ -185,8 +206,13 @@ export default function ModalGuru({
                                     placeholder="guru@sdn9gandangbatu.sch.id"
                                     value={teacherForm.email}
                                     onChange={(e) => setTeacherForm({ ...teacherForm, email: e.target.value })}
-                                    className="w-full h-10 px-3.5 rounded-xl border border-slate-300 text-xs font-mono text-slate-900 focus:border-[#8B001F] focus:ring-[#8B001F]"
+                                    className={`w-full h-10 px-3.5 rounded-xl border text-xs font-mono text-slate-900 focus:border-[#8B001F] focus:ring-[#8B001F] ${
+                                        errors?.email ? 'border-rose-300 bg-rose-50/20' : 'border-slate-300'
+                                    }`}
                                 />
+                                {errors?.email && (
+                                    <p className="text-[11px] text-rose-600 font-medium mt-1">{errors.email}</p>
+                                )}
                             </div>
 
                             {/* Upload Foto dengan Step Crop */}

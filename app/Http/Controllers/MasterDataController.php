@@ -509,7 +509,20 @@ class MasterDataController extends Controller
                 $userData['username'] = $validated['nip'];
             }
 
-            DB::table('users')->where('id', $teacher->user_id)->update($userData);
+            if ($teacher->user_id) {
+                DB::table('users')->where('id', $teacher->user_id)->update($userData);
+            } else {
+                $username = ! empty($validated['nip']) ? $validated['nip'] : 'guru_'.time();
+                $email = ! empty($validated['email']) ? $validated['email'] : $username.'@sdn9gandangbatu.sch.id';
+                $newUserId = DB::table('users')->insertGetId(array_merge($userData, [
+                    'username' => $username,
+                    'email' => $email,
+                    'password' => Hash::make('password123'),
+                    'is_active' => true,
+                    'created_at' => now(),
+                ]));
+                DB::table('teachers')->where('id', $teacher->id)->update(['user_id' => $newUserId]);
+            }
         });
 
         return back()->with('message', 'Data tenaga pendidik berhasil diperbarui.');
@@ -529,7 +542,9 @@ class MasterDataController extends Controller
 
         DB::transaction(function () use ($teacher) {
             DB::table('teachers')->where('id', $teacher->id)->delete();
-            DB::table('users')->where('id', $teacher->user_id)->delete();
+            if ($teacher->user_id) {
+                DB::table('users')->where('id', $teacher->user_id)->delete();
+            }
         });
 
         return back()->with('message', 'Data tenaga pendidik berhasil dihapus.');

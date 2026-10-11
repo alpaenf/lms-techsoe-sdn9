@@ -60,6 +60,7 @@ export default function MasterDataIndex({
     // 4. Teacher Modal
     const [isTeacherModalOpen, setIsTeacherModalOpen] = useState(false);
     const [editingTeacher, setEditingTeacher] = useState(null);
+    const [teacherErrors, setTeacherErrors] = useState({});
     const [teacherForm, setTeacherForm] = useState({
         full_name: '', nip: '', gender: 'L', employment_status: 'PNS',
         education_level: 'S1', email: '', role: 'guru'
@@ -181,6 +182,7 @@ export default function MasterDataIndex({
 
     const openCreateTeacherModal = () => {
         setEditingTeacher(null);
+        setTeacherErrors({});
         setTeacherForm({
             full_name: '', nip: '', gender: 'L', employment_status: 'PNS',
             education_level: 'S1', email: '', role: 'guru', subject_specialization: '', photo: null
@@ -190,6 +192,7 @@ export default function MasterDataIndex({
 
     const openEditTeacherModal = (tc) => {
         setEditingTeacher(tc);
+        setTeacherErrors({});
         setTeacherForm({
             full_name: tc.full_name || '',
             nip: tc.nip || '',
@@ -207,6 +210,7 @@ export default function MasterDataIndex({
     const handleSaveTeacher = (e) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setTeacherErrors({});
 
         const formData = new FormData();
         formData.append('full_name', teacherForm.full_name || '');
@@ -235,10 +239,14 @@ export default function MasterDataIndex({
             onSuccess: () => {
                 setIsSubmitting(false);
                 setIsTeacherModalOpen(false);
+                setTeacherErrors({});
                 setNotification(isEdit ? 'Data pendidik berhasil diperbarui.' : 'Pendidik baru berhasil ditambahkan.');
                 setTimeout(() => setNotification(null), 4000);
             },
-            onError: () => setIsSubmitting(false)
+            onError: (errs) => {
+                setIsSubmitting(false);
+                setTeacherErrors(errs || {});
+            }
         });
     };
 
@@ -608,15 +616,16 @@ export default function MasterDataIndex({
                 }}
             />
 
-            <ModalGuru 
-                isOpen={isTeacherModalOpen} 
-                onClose={() => setIsTeacherModalOpen(false)} 
-                editingTeacher={editingTeacher} 
-                teacherForm={teacherForm} 
-                setTeacherForm={setTeacherForm} 
-                handleSaveTeacher={handleSaveTeacher} 
+            <ModalGuru
+                isOpen={isTeacherModalOpen}
+                onClose={() => setIsTeacherModalOpen(false)}
+                editingTeacher={editingTeacher}
+                teacherForm={teacherForm}
+                setTeacherForm={setTeacherForm}
+                handleSaveTeacher={handleSaveTeacher}
                 subjects={subjects}
-                isSubmitting={isSubmitting} 
+                isSubmitting={isSubmitting}
+                errors={teacherErrors}
             />
 
             <ModalMapel 
