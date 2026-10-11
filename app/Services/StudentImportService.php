@@ -21,6 +21,10 @@ class StudentImportService
      */
     public function import(UploadedFile|string $file, bool $resetOld = false): array
     {
+        @set_time_limit(300);
+        @ini_set('max_execution_time', '300');
+        @ini_set('memory_limit', '512M');
+
         $filePath = is_string($file) ? $file : $file->getRealPath();
 
         if (! file_exists($filePath)) {
@@ -81,6 +85,8 @@ class StudentImportService
                     }
                 }
             }
+
+            $defaultPasswordHash = Hash::make('password123');
 
             foreach ($rows as $rowIndex => $row) {
                 if ($rowIndex < $startRow) {
@@ -199,7 +205,7 @@ class StudentImportService
                         'name' => $fullName,
                         'username' => $nisn,
                         'email' => $userEmail,
-                        'password' => Hash::make('password123'),
+                        'password' => $defaultPasswordHash,
                         'role' => 'siswa',
                         'is_active' => true,
                     ]);
