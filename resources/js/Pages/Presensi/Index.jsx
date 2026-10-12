@@ -38,7 +38,7 @@ export default function PresensiIndex({
     const { auth } = usePage().props;
     const userRole = auth?.user?.role || 'siswa';
     const isSiswa = userRole === 'siswa';
-    const isGuruOrAdmin = userRole === 'admin' || userRole === 'guru' || userRole === 'pimpinan';
+    const isGuruOrAdmin = userRole === 'admin' || userRole === 'guru' || userRole === 'guru_mapel' || userRole === 'pimpinan';
     const isGuru = type === 'guru';
 
     const [activeTab, setActiveTab] = useState('harian'); // 'harian', 'rekap', 'izin'
@@ -341,20 +341,31 @@ export default function PresensiIndex({
                         {!isGuru && !isSiswa && (
                             <div>
                                 <label className="block text-[11px] font-semibold text-slate-500 mb-1">
-                                    Pilih Rombongan Belajar
+                                    {classes.length === 1 && !['admin', 'pimpinan'].includes(userRole) 
+                                        ? 'Rombongan Belajar Binaan' 
+                                        : 'Pilih Rombongan Belajar'}
                                 </label>
-                                <div className="relative inline-block">
-                                    <select
-                                        value={selectedClassId}
-                                        onChange={handleClassChange}
-                                        className="h-10 pl-3.5 pr-9 min-w-[170px] bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:border-[#800020] focus:ring-[#800020] appearance-none cursor-pointer shadow-sm"
-                                    >
-                                        {classes && classes.map(c => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                </div>
+                                {classes.length === 1 && !['admin', 'pimpinan'].includes(userRole) ? (
+                                    <div className="h-10 px-3.5 bg-rose-50 border border-rose-200/80 rounded-xl flex items-center space-x-2 text-xs font-bold text-[#800020] shadow-sm">
+                                        <span>{classes[0]?.name}</span>
+                                        <span className="text-[10px] font-semibold px-2 py-0.5 bg-white text-[#800020] border border-rose-200 rounded-full">
+                                            Kelas Binaan Tetap
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="relative inline-block">
+                                        <select
+                                            value={selectedClassId}
+                                            onChange={handleClassChange}
+                                            className="h-10 pl-3.5 pr-9 min-w-[170px] bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:border-[#800020] focus:ring-[#800020] appearance-none cursor-pointer shadow-sm"
+                                        >
+                                            {classes && classes.map(c => (
+                                                <option key={c.id} value={c.id}>{c.name}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    </div>
+                                )}
                             </div>
                         )}
 

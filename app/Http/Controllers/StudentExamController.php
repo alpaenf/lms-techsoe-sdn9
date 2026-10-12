@@ -23,10 +23,22 @@ class StudentExamController extends Controller
             return redirect()->route('dashboard');
         }
 
+        $studentGradeLevel = $student->class?->grade_level;
+
         $exams = Exam::with(['subject', 'teacher.user', 'class'])
-            ->where(function ($q) use ($student) {
+            ->where(function ($q) use ($student, $studentGradeLevel) {
                 $q->where('class_id', $student->class_id)
-                    ->orWhereNull('class_id');
+                    ->orWhere(function ($sub) use ($studentGradeLevel) {
+                        $sub->whereNull('class_id')
+                            ->where(function ($cat) use ($studentGradeLevel) {
+                                if ($studentGradeLevel == 6) {
+                                    $cat->where('exam_category', 'ujian_sekolah')
+                                        ->orWhere('exam_category', '!=', 'ujian_sekolah');
+                                } else {
+                                    $cat->where('exam_category', '!=', 'ujian_sekolah');
+                                }
+                            });
+                    });
             })
             ->where('status', 'published')
             ->orderBy('start_time', 'desc')
@@ -71,10 +83,18 @@ class StudentExamController extends Controller
     public function show(Exam $exam)
     {
         $user = auth()->user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = Student::with('class')->where('user_id', $user->id)->first();
 
         if (! $student) {
             return redirect()->route('dashboard');
+        }
+
+        if ($exam->class_id !== null && $exam->class_id !== $student->class_id) {
+            return redirect()->route('student.exams.index')->with('error', 'Ujian ini bukan untuk kelas Anda.');
+        }
+
+        if ($exam->class_id === null && $exam->exam_category === 'ujian_sekolah' && $student->class?->grade_level != 6) {
+            return redirect()->route('student.exams.index')->with('error', 'Ujian Sekolah ini khusus untuk siswa Kelas 6 (Kelas Akhir).');
         }
 
         $exam->load(['subject', 'teacher.user', 'class']);
@@ -97,10 +117,18 @@ class StudentExamController extends Controller
     public function start(Exam $exam)
     {
         $user = auth()->user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = Student::with('class')->where('user_id', $user->id)->first();
 
         if (! $student) {
             return redirect()->route('dashboard');
+        }
+
+        if ($exam->class_id !== null && $exam->class_id !== $student->class_id) {
+            return redirect()->route('student.exams.index')->with('error', 'Ujian ini bukan untuk kelas Anda.');
+        }
+
+        if ($exam->class_id === null && $exam->exam_category === 'ujian_sekolah' && $student->class?->grade_level != 6) {
+            return redirect()->route('student.exams.index')->with('error', 'Ujian Sekolah ini khusus untuk siswa Kelas 6 (Kelas Akhir).');
         }
 
         if (! $exam->isAvailable()) {
@@ -390,11 +418,12 @@ class StudentExamController extends Controller
     private function syncToRapor(StudentExamAttempt $attempt)
     {
         $exam = $attempt->exam;
+        $studentClassId = $attempt->student?->class_id ?? $exam->class_id;
 
         $teacherSubject = DB::table('teacher_subjects')
             ->where('subject_id', $exam->subject_id)
             ->where('academic_year_id', $exam->academic_year_id)
-            ->when($exam->class_id, fn ($q) => $q->where('class_id', $exam->class_id))
+            ->when($studentClassId, fn ($q) => $q->where('class_id', $studentClassId))
             ->first();
 
         if ($teacherSubject) {

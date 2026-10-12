@@ -28,8 +28,56 @@ class ELearningController extends Controller
             $teacher = DB::table('teachers')->where('user_id', $user->id)->first();
         }
 
+        $teacherClasses = collect();
+        $teacherSubjects = collect();
+        $defaultClassId = null;
+        $defaultSubjectId = null;
+
+        if ($teacher) {
+            $homeroomClassIds = DB::table('classes')
+                ->where('homeroom_teacher_id', $teacher->id)
+                ->pluck('id')
+                ->toArray();
+
+            $claimedClassIds = DB::table('teacher_subjects')
+                ->where('teacher_id', $teacher->id)
+                ->pluck('class_id')
+                ->unique()
+                ->toArray();
+
+            $claimedSubjectIds = DB::table('teacher_subjects')
+                ->where('teacher_id', $teacher->id)
+                ->pluck('subject_id')
+                ->unique()
+                ->toArray();
+
+            $teacherClassIds = array_values(array_unique(array_merge($homeroomClassIds, $claimedClassIds)));
+
+            if (! empty($teacherClassIds)) {
+                $teacherClasses = DB::table('classes')
+                    ->whereIn('id', $teacherClassIds)
+                    ->orderBy('grade_level')
+                    ->get();
+                $defaultClassId = ! empty($homeroomClassIds) ? $homeroomClassIds[0] : ($teacherClasses->first()?->id ?? null);
+            }
+
+            if (! empty($claimedSubjectIds)) {
+                $teacherSubjects = DB::table('subjects')
+                    ->whereIn('id', $claimedSubjectIds)
+                    ->orderBy('name')
+                    ->get();
+                $defaultSubjectId = $teacherSubjects->first()?->id ?? null;
+            } elseif ($userRole === 'guru') {
+                $teacherSubjects = $subjects;
+                $defaultSubjectId = $subjects->first()?->id ?? null;
+            }
+        }
+
+        $availableClasses = ($teacher && $teacherClasses->isNotEmpty()) ? $teacherClasses : $classes;
+        $availableSubjects = ($teacher && $teacherSubjects->isNotEmpty()) ? $teacherSubjects : $subjects;
+
         // Query Materials
-        $materials = DB::table('materials')
+        $materialsQuery = DB::table('materials')
             ->join('topics', 'materials.topic_id', '=', 'topics.id')
             ->join('teacher_subjects', 'topics.teacher_subject_id', '=', 'teacher_subjects.id')
             ->join('subjects', 'teacher_subjects.subject_id', '=', 'subjects.id')
@@ -42,12 +90,16 @@ class ELearningController extends Controller
                 'subjects.code as subject_code',
                 'classes.id as class_id',
                 'classes.name as class_name'
-            )
-            ->orderBy('materials.created_at', 'desc')
-            ->get();
+            );
+
+        if ($userRole === 'siswa' && $student?->class_id) {
+            $materialsQuery->where('classes.id', $student->class_id);
+        }
+
+        $materials = $materialsQuery->orderBy('materials.created_at', 'desc')->get();
 
         // Query Assignments
-        $rawAssignments = DB::table('assignments')
+        $rawAssignmentsQuery = DB::table('assignments')
             ->join('topics', 'assignments.topic_id', '=', 'topics.id')
             ->join('teacher_subjects', 'topics.teacher_subject_id', '=', 'teacher_subjects.id')
             ->join('subjects', 'teacher_subjects.subject_id', '=', 'subjects.id')
@@ -60,9 +112,13 @@ class ELearningController extends Controller
                 'subjects.code as subject_code',
                 'classes.id as class_id',
                 'classes.name as class_name'
-            )
-            ->orderBy('assignments.created_at', 'desc')
-            ->get();
+            );
+
+        if ($userRole === 'siswa' && $student?->class_id) {
+            $rawAssignmentsQuery->where('classes.id', $student->class_id);
+        }
+
+        $rawAssignments = $rawAssignmentsQuery->orderBy('assignments.created_at', 'desc')->get();
 
         $assignments = $rawAssignments->map(function ($assignment) use ($student) {
             $classStudentCount = DB::table('students')
@@ -92,6 +148,12 @@ class ELearningController extends Controller
         return Inertia::render('ELearning/Index', [
             'subjects' => $subjects,
             'classes' => $classes,
+            'availableSubjects' => $availableSubjects,
+            'availableClasses' => $availableClasses,
+            'defaultClassId' => $defaultClassId,
+            'defaultSubjectId' => $defaultSubjectId,
+            'teacherClasses' => $teacherClasses,
+            'teacherSubjects' => $teacherSubjects,
             'materials' => $materials,
             'assignments' => $assignments,
             'currentStudent' => $student,
@@ -110,9 +172,17 @@ class ELearningController extends Controller
         $academicYearId = $activeYear?->id ?? 1;
 
         $teacherSubject = DB::table('teacher_subjects')
+            ->where('teacher_id', $teacherId)
             ->where('subject_id', $subjectId)
             ->where('class_id', $classId)
             ->first();
+
+        if (! $teacherSubject) {
+            $teacherSubject = DB::table('teacher_subjects')
+                ->where('subject_id', $subjectId)
+                ->where('class_id', $classId)
+                ->first();
+        }
 
         if (! $teacherSubject) {
             $tsId = DB::table('teacher_subjects')->insertGetId([

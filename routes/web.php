@@ -12,6 +12,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentExamController;
+use App\Http\Controllers\TeacherJournalController;
 use App\Http\Controllers\TeacherScheduleController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Artisan;
@@ -114,6 +115,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/schedules/{id}', [TeacherScheduleController::class, 'update'])->name('schedules.update');
     Route::delete('/schedules/{id}', [TeacherScheduleController::class, 'destroy'])->name('schedules.destroy');
     Route::get('/schedules/reminders/check', [TeacherScheduleController::class, 'checkReminders'])->name('schedules.reminders.check');
+
+    // Teacher Journals (Jurnal Harian Guru & Logbook)
+    Route::get('/journals', [TeacherJournalController::class, 'index'])->name('journals.index');
+    Route::post('/journals', [TeacherJournalController::class, 'store'])->name('journals.store');
+    Route::put('/journals/{id}', [TeacherJournalController::class, 'update'])->name('journals.update');
+    Route::delete('/journals/{id}', [TeacherJournalController::class, 'destroy'])->name('journals.destroy');
+    Route::get('/journals/print-monthly', [TeacherJournalController::class, 'printMonthly'])->name('journals.print-monthly');
 
     // 02. Kelembagaan
     Route::get('/kelembagaan', [KelembagaanController::class, 'index'])->name('kelembagaan.index');

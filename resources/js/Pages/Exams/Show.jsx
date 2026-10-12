@@ -127,7 +127,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                 {exam.title}
                             </h2>
                             <p className="text-xs text-slate-500 font-medium mt-0.5">
-                                {exam.subject?.name} • {exam.class ? exam.class.name : 'Semua Rombel'}
+                                {exam.subject?.name} • {exam.class ? exam.class.name : (exam.exam_category === 'ujian_sekolah' ? 'Seluruh Kelas 6 (Kelas Akhir)' : 'Semua Rombel')}
                             </p>
                         </div>
                     </div>

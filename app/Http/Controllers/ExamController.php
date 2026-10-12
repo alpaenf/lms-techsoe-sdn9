@@ -41,9 +41,18 @@ class ExamController extends Controller
         $user = auth()->user();
         $teacher = $this->getTeacher();
 
-        $exams = Exam::with(['subject', 'class', 'academicYear', 'questions'])
+        $exams = Exam::with(['subject', 'class', 'academicYear', 'questions', 'teacher.user'])
             ->when($teacher && $user->role !== 'admin' && $user->role !== 'pimpinan', function ($q) use ($teacher) {
-                $q->where('teacher_id', $teacher->id);
+                $q->where(function ($sub) use ($teacher) {
+                    $sub->where('teacher_id', $teacher->id)
+                        ->orWhere(function ($us) use ($teacher) {
+                            $us->where('exam_category', 'ujian_sekolah')
+                                ->where(function ($c) use ($teacher) {
+                                    $c->whereNull('class_id')
+                                        ->orWhereHas('class', fn ($cl) => $cl->where('grade_level', 6));
+                                });
+                        });
+                });
             })
             ->orderBy('created_at', 'desc')
             ->get();
@@ -100,6 +109,7 @@ class ExamController extends Controller
 
         $validated['teacher_id'] = $teacherId;
         $validated['academic_year_id'] = $academicYearId;
+        $validated['class_id'] = ! empty($validated['class_id']) ? $validated['class_id'] : null;
 
         $exam = Exam::create($validated);
         $exam->load('subject');
@@ -182,6 +192,10 @@ class ExamController extends Controller
             'show_result_immediately' => 'boolean',
             'passing_score' => 'nullable|numeric|min:0|max:100',
         ]);
+
+        if (array_key_exists('class_id', $validated)) {
+            $validated['class_id'] = ! empty($validated['class_id']) ? $validated['class_id'] : null;
+        }
 
         $exam->update($validated);
 
@@ -273,9 +287,11 @@ class ExamController extends Controller
     {
         $exam->load(['subject', 'class', 'questions']);
 
-        $studentsQuery = Student::query();
+        $studentsQuery = Student::with('class');
         if ($exam->class_id) {
             $studentsQuery->where('class_id', $exam->class_id);
+        } elseif ($exam->exam_category === 'ujian_sekolah') {
+            $studentsQuery->whereHas('class', fn ($c) => $c->where('grade_level', 6));
         }
 
         $students = $studentsQuery->get()
@@ -289,6 +305,7 @@ class ExamController extends Controller
                     'id' => $student->id,
                     'nis' => $student->nis,
                     'full_name' => $student->full_name,
+                    'class_name' => $student->class?->name ?? 'Kelas 6',
                     'status' => $attempt ? $attempt->status : 'not_started',
                     'attempt_number' => $attempt?->attempt_number,
                     'progress' => $attempt ? $attempt->getAnsweredCount().'/'.$exam->questions->count() : '0/'.$exam->questions->count(),
@@ -309,14 +326,16 @@ class ExamController extends Controller
         $exam->load(['subject', 'class', 'questions']);
 
         $attempts = StudentExamAttempt::where('exam_id', $exam->id)
-            ->with(['student', 'answers.question'])
+            ->with(['student.class', 'answers.question'])
             ->whereIn('status', ['submitted', 'graded'])
             ->orderBy('percentage', 'desc')
             ->get();
 
         $studentsCount = $exam->class_id
             ? Student::where('class_id', $exam->class_id)->count()
-            : Student::count();
+            : ($exam->exam_category === 'ujian_sekolah'
+                ? Student::whereHas('class', fn ($c) => $c->where('grade_level', 6))->count()
+                : Student::count());
 
         $statistics = [
             'total_students' => $studentsCount,
@@ -376,11 +395,12 @@ class ExamController extends Controller
     private function syncToRapor(StudentExamAttempt $attempt)
     {
         $exam = $attempt->exam;
+        $studentClassId = $attempt->student?->class_id ?? $exam->class_id;
 
         $teacherSubject = DB::table('teacher_subjects')
             ->where('subject_id', $exam->subject_id)
             ->where('academic_year_id', $exam->academic_year_id)
-            ->when($exam->class_id, fn ($q) => $q->where('class_id', $exam->class_id))
+            ->when($studentClassId, fn ($q) => $q->where('class_id', $studentClassId))
             ->first();
 
         if ($teacherSubject) {

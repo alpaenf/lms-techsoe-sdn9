@@ -66,7 +66,7 @@ export default function StudentExamsIndex({ auth, exams = [], student }) {
             uts: 'UTS',
             uas: 'UAS',
             ulangan_harian: 'Ulangan Harian',
-            ujian_sekolah: 'Ujian Sekolah',
+            ujian_sekolah: 'Ujian Sekolah (Kelas Akhir)',
             kuis: 'Kuis'
         };
         return labels[category] || category;

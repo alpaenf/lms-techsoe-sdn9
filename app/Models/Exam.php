@@ -36,11 +36,24 @@ class Exam extends Model
         'passing_score' => 'decimal:2',
     ];
 
-    protected $appends = ['total_points'];
+    protected $appends = ['total_points', 'target_class_label'];
 
     public function getTotalPointsAttribute(): int
     {
         return $this->totalPoints();
+    }
+
+    public function getTargetClassLabelAttribute(): string
+    {
+        if ($this->class) {
+            return $this->class->name;
+        }
+
+        if ($this->exam_category === 'ujian_sekolah') {
+            return 'Seluruh Kelas 6 (Kelas Akhir)';
+        }
+
+        return 'Semua Rombel';
     }
 
     public function teacher(): BelongsTo

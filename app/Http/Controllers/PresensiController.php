@@ -16,9 +16,59 @@ class PresensiController extends Controller
         $selectedMonth = $request->query('month', date('m'));
         $selectedYear = $request->query('year', date('Y'));
 
-        $classes = DB::table('classes')->orderBy('grade_level')->get();
-        $defaultClassId = $classes->first()?->id ?? 1;
-        $selectedClassId = (int) $request->query('class_id', $defaultClassId);
+        $user = $request->user();
+        $role = $user?->role ?? 'siswa';
+
+        $allClasses = DB::table('classes')->orderBy('grade_level')->get();
+        $teacherClasses = collect();
+        $defaultClassId = null;
+        $isTeacher = in_array($role, ['guru', 'guru_mapel']);
+
+        if ($isTeacher) {
+            $teacher = DB::table('teachers')->where('user_id', $user->id)->first();
+            if ($teacher) {
+                // 1. Homeroom class
+                $homeroomClassIds = DB::table('classes')
+                    ->where('homeroom_teacher_id', $teacher->id)
+                    ->pluck('id')
+                    ->toArray();
+
+                // 2. Claimed classes via teacher_subjects
+                $claimedClassIds = DB::table('teacher_subjects')
+                    ->where('teacher_id', $teacher->id)
+                    ->pluck('class_id')
+                    ->unique()
+                    ->toArray();
+
+                $teacherClassIds = array_values(array_unique(array_merge($homeroomClassIds, $claimedClassIds)));
+
+                if (! empty($teacherClassIds)) {
+                    $teacherClasses = DB::table('classes')
+                        ->whereIn('id', $teacherClassIds)
+                        ->orderBy('grade_level')
+                        ->get();
+
+                    $defaultClassId = ! empty($homeroomClassIds) ? $homeroomClassIds[0] : ($teacherClasses->first()?->id ?? null);
+                }
+            }
+        } elseif ($role === 'siswa') {
+            $student = DB::table('students')->where('user_id', $user->id)->first();
+            $defaultClassId = $student?->class_id ?? $allClasses->first()?->id ?? 1;
+        }
+
+        if ($isTeacher && $teacherClasses->isNotEmpty()) {
+            $classes = $teacherClasses;
+            $requestedClassId = (int) $request->query('class_id', 0);
+            if ($requestedClassId && $teacherClasses->pluck('id')->contains($requestedClassId)) {
+                $selectedClassId = $requestedClassId;
+            } else {
+                $selectedClassId = (int) ($defaultClassId ?? $teacherClasses->first()->id);
+            }
+        } else {
+            $classes = $allClasses;
+            $defaultClassId = $defaultClassId ?? $allClasses->first()?->id ?? 1;
+            $selectedClassId = (int) $request->query('class_id', $defaultClassId);
+        }
 
         $students = [];
         $teachers = [];
@@ -146,6 +196,8 @@ class PresensiController extends Controller
             'teachers' => $teachers,
             'monthlyRecap' => $monthlyRecap,
             'permissions' => $permissions,
+            'isTeacher' => $isTeacher,
+            'teacherClassesCount' => $teacherClasses->count(),
         ]);
     }
 

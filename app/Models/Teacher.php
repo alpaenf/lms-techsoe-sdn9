@@ -36,4 +36,9 @@ class Teacher extends Model
     {
         return $this->hasMany(Exam::class, 'teacher_id');
     }
+
+    public function journals(): HasMany
+    {
+        return $this->hasMany(TeacherJournal::class, 'teacher_id');
+    }
 }

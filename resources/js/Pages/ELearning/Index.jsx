@@ -25,6 +25,12 @@ import ModalPenilaianTugas from './Modals/ModalPenilaianTugas';
 export default function ELearningIndex({ 
     subjects = [], 
     classes = [], 
+    availableSubjects = [],
+    availableClasses = [],
+    defaultClassId = null,
+    defaultSubjectId = null,
+    teacherClasses = [],
+    teacherSubjects = [],
     materials = [], 
     assignments = [], 
     currentStudent = null, 
@@ -34,11 +40,35 @@ export default function ELearningIndex({
     const { auth } = usePage().props;
     const userRole = auth?.user?.role || 'siswa';
     const isSiswa = userRole === 'siswa';
-    const canManage = ['admin', 'guru', 'pimpinan'].includes(userRole);
+    const isTeacher = ['guru', 'guru_mapel'].includes(userRole);
+    const canManage = ['admin', 'guru', 'guru_mapel', 'pimpinan'].includes(userRole);
+
+    const modalSubjects = availableSubjects.length > 0 ? availableSubjects : subjects;
+    const modalClasses = availableClasses.length > 0 ? availableClasses : classes;
+
+    const initialSubjectId = defaultSubjectId 
+        ? String(defaultSubjectId) 
+        : (modalSubjects.length > 0 ? String(modalSubjects[0].id) : '');
+    const initialClassId = defaultClassId 
+        ? String(defaultClassId) 
+        : (modalClasses.length > 0 ? String(modalClasses[0].id) : '');
 
     const [tab, setTab] = useState('materi');
-    const [selectedSubject, setSelectedSubject] = useState('');
-    const [selectedClass, setSelectedClass] = useState('');
+    const [selectedSubject, setSelectedSubject] = useState(() => {
+        if (userRole === 'guru_mapel' && defaultSubjectId) {
+            return String(defaultSubjectId);
+        }
+        return '';
+    });
+    const [selectedClass, setSelectedClass] = useState(() => {
+        if (defaultClassId) {
+            return String(defaultClassId);
+        }
+        if (currentStudent?.class_id) {
+            return String(currentStudent.class_id);
+        }
+        return '';
+    });
     const [searchQuery, setSearchQuery] = useState('');
     const [notification, setNotification] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,7 +79,7 @@ export default function ELearningIndex({
     const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
     const [editingMaterial, setEditingMaterial] = useState(null);
     const [materialForm, setMaterialForm] = useState({
-        title: '', subject_id: subjects[0]?.id || '', class_id: classes[0]?.id || '',
+        title: '', subject_id: initialSubjectId, class_id: initialClassId,
         type: 'file', body_text: '', content_url: '', file: null
     });
 
@@ -57,7 +87,7 @@ export default function ELearningIndex({
     const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
     const [editingAssignment, setEditingAssignment] = useState(null);
     const [assignmentForm, setAssignmentForm] = useState({
-        title: '', subject_id: subjects[0]?.id || '', class_id: classes[0]?.id || '',
+        title: '', subject_id: initialSubjectId, class_id: initialClassId,
         instructions: '', due_date: '', max_score: 100, attachment: null
     });
 
@@ -76,8 +106,8 @@ export default function ELearningIndex({
         setEditingMaterial(null);
         setMaterialForm({
             title: '', 
-            subject_id: subjects.length > 0 ? String(subjects[0].id) : '', 
-            class_id: classes.length > 0 ? String(classes[0].id) : '',
+            subject_id: initialSubjectId, 
+            class_id: initialClassId,
             type: 'file', 
             body_text: '', 
             content_url: '', 
@@ -158,8 +188,8 @@ export default function ELearningIndex({
         const defaultDueDate = new Date(Date.now() + 86400000 * 3).toISOString().slice(0, 16);
         setAssignmentForm({
             title: '', 
-            subject_id: subjects.length > 0 ? String(subjects[0].id) : '', 
-            class_id: classes.length > 0 ? String(classes[0].id) : '',
+            subject_id: initialSubjectId, 
+            class_id: initialClassId,
             instructions: '', 
             due_date: defaultDueDate, 
             max_score: 100, 
@@ -359,7 +389,7 @@ export default function ELearningIndex({
                                 className="w-full sm:w-auto h-10 pl-3.5 pr-9 min-w-[200px] bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 focus:border-[#800020] focus:ring-[#800020] appearance-none cursor-pointer shadow-sm"
                             >
                                 <option value="">Semua Mata Pelajaran</option>
-                                {subjects.map(s => (
+                                {(isTeacher && modalSubjects.length < subjects.length ? modalSubjects : subjects).map(s => (
                                     <option key={s.id} value={s.id}>{s.name}</option>
                                 ))}
                             </select>
@@ -372,8 +402,8 @@ export default function ELearningIndex({
                                 onChange={(e) => setSelectedClass(e.target.value)}
                                 className="w-full sm:w-auto h-10 pl-3.5 pr-9 min-w-[170px] bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 focus:border-[#800020] focus:ring-[#800020] appearance-none cursor-pointer shadow-sm"
                             >
-                                <option value="">Semua Tingkat Kelas</option>
-                                {classes.map(c => (
+                                <option value="">{isTeacher ? 'Semua Kelas Ampuan' : 'Semua Tingkat Kelas'}</option>
+                                {(isTeacher && modalClasses.length < classes.length ? modalClasses : classes).map(c => (
                                     <option key={c.id} value={c.id}>{c.name}</option>
                                 ))}
                             </select>
@@ -448,8 +478,9 @@ export default function ELearningIndex({
                 materialForm={materialForm} 
                 setMaterialForm={setMaterialForm} 
                 handleSaveMaterial={handleSaveMaterial} 
-                subjects={subjects} 
-                classes={classes} 
+                subjects={modalSubjects} 
+                classes={modalClasses} 
+                userRole={userRole}
                 isSubmitting={isSubmitting} 
             />
 
@@ -460,8 +491,9 @@ export default function ELearningIndex({
                 assignmentForm={assignmentForm} 
                 setAssignmentForm={setAssignmentForm} 
                 handleSaveAssignment={handleSaveAssignment} 
-                subjects={subjects} 
-                classes={classes} 
+                subjects={modalSubjects} 
+                classes={modalClasses} 
+                userRole={userRole}
                 isSubmitting={isSubmitting} 
             />
 

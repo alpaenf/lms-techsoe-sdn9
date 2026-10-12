@@ -95,7 +95,7 @@ export default function ExamsMonitor({ auth, exam, students = [] }) {
                                 Pengawasan Sesi Ujian (Live Monitor)
                             </h2>
                             <p className="text-xs text-slate-500 font-medium mt-0.5">
-                                {exam.title} • {exam.class?.name || 'Semua Rombel'}
+                                {exam.title} • {exam.class?.name || (exam.exam_category === 'ujian_sekolah' ? 'Seluruh Kelas 6 (Kelas Akhir)' : 'Semua Rombel')}
                             </p>
                         </div>
                     </div>
@@ -226,7 +226,14 @@ export default function ExamsMonitor({ auth, exam, students = [] }) {
                                         <tr key={st.id} className="hover:bg-slate-50/70 transition">
                                             <td className="py-3.5 px-4 text-slate-400">{idx + 1}</td>
                                             <td className="py-3.5 px-4 font-bold text-slate-900">
-                                                {st.full_name}
+                                                <div className="flex items-center gap-1.5">
+                                                    <span>{st.full_name}</span>
+                                                    {st.class_name && (
+                                                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-600 font-semibold border border-slate-200">
+                                                            {st.class_name}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="py-3.5 px-4 text-slate-600 font-mono">
                                                 {st.nis || '-'}

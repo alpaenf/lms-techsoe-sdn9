@@ -17,7 +17,8 @@ import {
     Edit, 
     Award,
     Activity,
-    ClipboardCheck
+    ClipboardCheck,
+    GraduationCap
 } from 'lucide-react';
 
 export default function ExamsIndex({ auth, exams = [] }) {
@@ -171,8 +172,19 @@ export default function ExamsIndex({ auth, exams = [] }) {
                                         <div className="flex items-center gap-2 flex-wrap">
                                             {getStatusBadge(exam.status)}
                                             {getCategoryBadge(exam.exam_category)}
-                                            <span className="text-xs font-semibold text-slate-500">
-                                                {exam.subject?.name} • {exam.class ? exam.class.name : 'Semua Rombel'}
+                                            <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 flex-wrap">
+                                                <span>{exam.subject?.name}</span>
+                                                <span>•</span>
+                                                {exam.class ? (
+                                                    <span>{exam.class.name}</span>
+                                                ) : exam.exam_category === 'ujian_sekolah' ? (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                                                        <GraduationCap className="w-3 h-3 text-amber-700" />
+                                                        <span>Seluruh Kelas 6 (Kelas Akhir)</span>
+                                                    </span>
+                                                ) : (
+                                                    <span>Semua Rombel</span>
+                                                )}
                                             </span>
                                         </div>
                                         <h3 className="text-base font-bold text-slate-900">

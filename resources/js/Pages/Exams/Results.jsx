@@ -126,7 +126,7 @@ export default function ExamsResults({ auth, exam, attempts = [], statistics = {
                                 Rekapitulasi Nilai & Koreksi Ujian
                             </h2>
                             <p className="text-xs text-slate-500 font-medium mt-0.5">
-                                {exam.title} • {exam.class?.name || 'Semua Rombel'}
+                                {exam.title} • {exam.class?.name || (exam.exam_category === 'ujian_sekolah' ? 'Seluruh Kelas 6 (Kelas Akhir)' : 'Semua Rombel')}
                             </p>
                         </div>
                     </div>
@@ -232,7 +232,14 @@ export default function ExamsResults({ auth, exam, attempts = [], statistics = {
                                                     </span>
                                                 </td>
                                                 <td className="py-3.5 px-4 font-bold text-slate-900">
-                                                    {att.student?.full_name}
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span>{att.student?.full_name}</span>
+                                                        {att.student?.class?.name && (
+                                                            <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-600 font-semibold border border-slate-200">
+                                                                {att.student.class.name}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="py-3.5 px-4 text-slate-600 font-mono">
                                                     {att.student?.nis || '-'}

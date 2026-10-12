@@ -12,6 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // SQLite already supports dynamic string lengths without alter table
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // 1. Ensure users.role is VARCHAR(50) to accept 'tendik', 'guru_mapel', etc.
         if (Schema::hasTable('users')) {
             try {

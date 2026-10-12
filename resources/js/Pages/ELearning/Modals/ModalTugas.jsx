@@ -10,8 +10,20 @@ export default function ModalTugas({
     handleSaveAssignment, 
     subjects = [], 
     classes = [], 
+    userRole = '',
     isSubmitting = false 
 }) {
+    React.useEffect(() => {
+        if (isOpen) {
+            if (!assignmentForm.subject_id && subjects.length > 0) {
+                setAssignmentForm(prev => ({ ...prev, subject_id: String(subjects[0].id) }));
+            }
+            if (!assignmentForm.class_id && classes.length > 0) {
+                setAssignmentForm(prev => ({ ...prev, class_id: String(classes[0].id) }));
+            }
+        }
+    }, [isOpen, subjects, classes]);
+
     if (!isOpen) return null;
 
     return (
@@ -62,34 +74,52 @@ export default function ModalTugas({
                             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                                 Mata Pelajaran <span className="text-rose-500">*</span>
                             </label>
-                            <select
-                                required
-                                value={assignmentForm.subject_id}
-                                onChange={(e) => setAssignmentForm({ ...assignmentForm, subject_id: e.target.value })}
-                                className="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
-                            >
-                                <option value="">Pilih Mapel</option>
-                                {subjects.map((s) => (
-                                    <option key={s.id} value={s.id}>{s.name}</option>
-                                ))}
-                            </select>
+                            {subjects.length === 1 && !['admin', 'pimpinan'].includes(userRole) ? (
+                                <div className="w-full h-10 px-3 rounded-xl border border-rose-200 bg-rose-50/70 flex items-center justify-between text-xs font-bold text-[#800020]">
+                                    <span className="truncate">{subjects[0]?.name}</span>
+                                    <span className="text-[10px] font-semibold text-[#800020] bg-white px-2 py-0.5 rounded-full border border-rose-200 shrink-0">
+                                        Mapel Anda
+                                    </span>
+                                </div>
+                            ) : (
+                                <select
+                                    required
+                                    value={assignmentForm.subject_id}
+                                    onChange={(e) => setAssignmentForm({ ...assignmentForm, subject_id: e.target.value })}
+                                    className="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
+                                >
+                                    <option value="">Pilih Mapel</option>
+                                    {subjects.map((s) => (
+                                        <option key={s.id} value={s.id}>{s.name}</option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
 
                         <div>
                             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                                 Sasaran Kelas <span className="text-rose-500">*</span>
                             </label>
-                            <select
-                                required
-                                value={assignmentForm.class_id}
-                                onChange={(e) => setAssignmentForm({ ...assignmentForm, class_id: e.target.value })}
-                                className="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
-                            >
-                                <option value="">Pilih Kelas</option>
-                                {classes.map((c) => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
-                            </select>
+                            {classes.length === 1 && !['admin', 'pimpinan'].includes(userRole) ? (
+                                <div className="w-full h-10 px-3 rounded-xl border border-rose-200 bg-rose-50/70 flex items-center justify-between text-xs font-bold text-[#800020]">
+                                    <span className="truncate">{classes[0]?.name}</span>
+                                    <span className="text-[10px] font-semibold text-[#800020] bg-white px-2 py-0.5 rounded-full border border-rose-200 shrink-0">
+                                        Kelas Tetap
+                                    </span>
+                                </div>
+                            ) : (
+                                <select
+                                    required
+                                    value={assignmentForm.class_id}
+                                    onChange={(e) => setAssignmentForm({ ...assignmentForm, class_id: e.target.value })}
+                                    className="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
+                                >
+                                    <option value="">Pilih Kelas</option>
+                                    {classes.map((c) => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
                     </div>
 

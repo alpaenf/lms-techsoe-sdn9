@@ -8,7 +8,9 @@ import {
     Calendar, 
     BookOpen, 
     Settings,
-    Layers
+    Layers,
+    GraduationCap,
+    Info
 } from 'lucide-react';
 
 export default function ExamsEdit({ auth, exam, subjects = [], classes = [] }) {
@@ -139,28 +141,19 @@ export default function ExamsEdit({ auth, exam, subjects = [], classes = [] }) {
 
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                                    Sasaran Rombel / Kelas <span className="text-rose-500">*</span>
-                                </label>
-                                <select
-                                    value={form.class_id}
-                                    onChange={(e) => setForm({ ...form, class_id: e.target.value })}
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] bg-white font-medium"
-                                >
-                                    <option value="">Semua Rombel</option>
-                                    {classes.map(c => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-1">
                                     Kategori Ujian <span className="text-rose-500">*</span>
                                 </label>
                                 <select
                                     required
                                     value={form.exam_category}
-                                    onChange={(e) => setForm({ ...form, exam_category: e.target.value })}
+                                    onChange={(e) => {
+                                        const newCat = e.target.value;
+                                        setForm(prev => ({
+                                            ...prev,
+                                            exam_category: newCat,
+                                            class_id: newCat === 'ujian_sekolah' && !prev.class_id ? '' : prev.class_id
+                                        }));
+                                    }}
                                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] bg-white font-medium"
                                 >
                                     <option value="ulangan_harian">Ulangan Harian</option>
@@ -170,7 +163,41 @@ export default function ExamsEdit({ auth, exam, subjects = [], classes = [] }) {
                                     <option value="kuis">Kuis / Latihan Harian</option>
                                 </select>
                             </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    Sasaran Rombel / Kelas <span className="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    value={form.class_id}
+                                    onChange={(e) => setForm({ ...form, class_id: e.target.value })}
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] bg-white font-medium"
+                                >
+                                    <option value="">
+                                        {form.exam_category === 'ujian_sekolah'
+                                            ? 'Seluruh Kelas 6 (Kelas Akhir)'
+                                            : 'Semua Rombel'}
+                                    </option>
+                                    {classes.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
+
+                        {form.exam_category === 'ujian_sekolah' && (
+                            <div className="p-3.5 bg-amber-50/80 rounded-2xl border border-amber-200 flex items-start gap-3 text-xs text-amber-900 animate-fadeIn">
+                                <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+                                    <GraduationCap className="w-4 h-4 text-amber-700" />
+                                </div>
+                                <div>
+                                    <p className="font-bold text-amber-900">Sasaran Ujian Sekolah (US) Terpilih</p>
+                                    <p className="mt-0.5 text-amber-700 leading-relaxed">
+                                        Dengan memilih opsi <strong>"Seluruh Kelas 6 (Kelas Akhir)"</strong>, seluruh rombel tingkat akhir dapat langsung mengakses ujian ini secara serempak tanpa perlu dibuat terpisah per kelas.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Schedule & Timing */}

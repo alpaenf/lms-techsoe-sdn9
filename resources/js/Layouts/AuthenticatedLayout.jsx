@@ -121,6 +121,13 @@ export default function AuthenticatedLayout({ header, children }) {
                             ],
                         },
                         {
+                            name: 'Jurnal Harian Guru',
+                            icon: BookOpen,
+                            href: route('journals.index'),
+                            active: route().current('journals.*'),
+                            type: 'link',
+                        },
+                        {
                             name: 'Ujian Online',
                             icon: ClipboardCheck,
                             href: route('exams.index'),
@@ -218,6 +225,13 @@ export default function AuthenticatedLayout({ header, children }) {
                             ],
                         },
                         {
+                            name: 'Supervisi Jurnal Guru',
+                            icon: BookOpen,
+                            href: route('journals.index'),
+                            active: route().current('journals.*'),
+                            type: 'link',
+                        },
+                        {
                             name: 'Supervisi Ujian Online',
                             icon: ClipboardCheck,
                             href: route('exams.index'),
@@ -268,6 +282,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 {
                     category: 'AKADEMIK',
                     items: [
+                        { name: 'Jurnal Harian Guru', icon: BookOpen, href: route('journals.index'), active: route().current('journals.*'), type: 'link' },
                         { name: 'Presensi Siswa Harian', icon: Bell, href: route('presensi.index') + '?type=siswa', active: route().current('presensi.*'), type: 'link' },
                         {
                             name: 'E-Learning Guru',
