@@ -459,11 +459,15 @@ export default function AuthenticatedLayout({ header, children }) {
             >
                 {/* School Brand Header in Sidebar */}
                 <div className="h-16 bg-[#800020] px-4 flex items-center justify-between text-white shrink-0">
-                    <Link href="/" className="flex items-center space-x-3">
+                    <Link
+                        href={route('dashboard')}
+                        onClick={() => setSidebarOpen(false)}
+                        className="flex items-center space-x-3 group"
+                    >
                         <img 
                             src="/logo.webp" 
                             alt="Logo SDN 9 Gandangbatu" 
-                            className="w-8 h-8 rounded-lg object-contain bg-white p-0.5 shadow-sm shrink-0" 
+                            className="w-8 h-8 rounded-lg object-contain bg-white p-0.5 shadow-sm shrink-0 group-hover:scale-105 transition" 
                         />
                         <div className="min-w-0">
                             <span className="text-xs font-bold block leading-tight truncate tracking-wide text-white">
@@ -476,8 +480,10 @@ export default function AuthenticatedLayout({ header, children }) {
                     </Link>
 
                     <button
+                        type="button"
                         onClick={() => setSidebarOpen(false)}
-                        className="lg:hidden p-1.5 rounded-lg text-white/80 hover:bg-white/10"
+                        className="lg:hidden p-2 rounded-xl text-white/90 hover:bg-white/15 active:scale-95 transition"
+                        aria-label="Tutup menu navigasi"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -498,6 +504,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <Link
                                             key={idx}
                                             href={item.href}
+                                            onClick={() => setSidebarOpen(false)}
                                             className={`flex items-center px-3 py-2 rounded-lg text-xs font-semibold transition duration-150 group relative ${
                                                 item.active
                                                     ? 'bg-[#FDF2F4] text-[#800020] font-bold'
@@ -547,6 +554,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                                     <Link
                                                         key={sIdx}
                                                         href={sub.href}
+                                                        onClick={() => setSidebarOpen(false)}
                                                         className="block px-2 py-1.5 rounded-md text-[11px] font-medium text-slate-500 hover:text-[#800020] hover:bg-[#FDF2F4] transition truncate"
                                                     >
                                                         {sub.name}
