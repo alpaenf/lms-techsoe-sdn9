@@ -30,7 +30,12 @@ Route::get('/', function () {
         ->whereNotNull('announcements.published_at')
         ->orderBy('announcements.published_at', 'desc')
         ->take(6)
-        ->get();
+        ->get()
+        ->map(function ($item) {
+            $item->documentation_images = $item->documentation_images ? json_decode($item->documentation_images, true) : [];
+
+            return $item;
+        });
 
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -103,6 +108,10 @@ Route::get('/clear-cache', function () {
 
     return '<h1>Cache Laravel & View Berhasil Dibersihkan!</h1><p><a href="/login">Kembali ke Halaman Login</a></p>';
 });
+
+// Warta & Pengumuman Sekolah (Dapat diakses publik tanpa login)
+Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+Route::get('/announcements/{id}', [AnnouncementController::class, 'show'])->name('announcements.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // 01. Dashboard
@@ -236,11 +245,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/attempts/{attempt}/result', [StudentExamController::class, 'result'])->name('student.exams.result');
     });
 
-    // 10. Pengumuman & Berita Sekolah
-    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
-    Route::get('/announcements/{id}', [AnnouncementController::class, 'show'])->name('announcements.show');
-
-    // Admin only - manage announcements
+    // 10. Pengumuman & Berita Sekolah - Admin only manage
     Route::middleware(['role:admin,pimpinan'])->group(function () {
         Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
         Route::put('/announcements/{id}', [AnnouncementController::class, 'update'])->name('announcements.update');

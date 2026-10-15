@@ -39,7 +39,8 @@ import {
     Calendar,
     Megaphone,
     Eye,
-    Sparkles
+    Sparkles,
+    Camera
 } from 'lucide-react';
 
 export default function Welcome({ auth, announcements = [] }) {
@@ -266,6 +267,56 @@ export default function Welcome({ auth, announcements = [] }) {
             bk: { label: 'Bimbingan Konseling', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
         };
         return badges[target] || badges.all;
+    };
+
+    const cleanExcerpt = (text) => {
+        if (!text) return '';
+        return text
+            .replace(/<[^>]*>?/gm, '')
+            .replace(/\[(foto-\d+|foto-semua|galeri)\]/gi, '')
+            .replace(/^#{1,6}\s+/gm, '')
+            .replace(/\*\*(.*?)\*\*/g, '$1')
+            .replace(/^>\s+/gm, '')
+            .replace(/^[-*]\s+/gm, '')
+            .trim();
+    };
+
+    const renderModalAnnouncementContent = (content) => {
+        if (!content) return null;
+        const cleaned = content.replace(/\[(foto-\d+|foto-semua|galeri)\]/gi, '').trim();
+        const paras = cleaned.split(/\n\n+/).filter(p => p.trim() !== '');
+
+        return paras.map((p, pIdx) => {
+            const pTrim = p.trim();
+            if (pTrim.startsWith('## ')) {
+                return (
+                    <h3 key={pIdx} className="text-sm sm:text-base font-bold text-slate-900 pt-2 pb-1 border-b border-slate-100 flex items-center gap-2">
+                        <span className="w-1.5 h-4 bg-[#8B001F] rounded-full inline-block shrink-0"></span>
+                        <span>{pTrim.replace(/^##\s+/, '')}</span>
+                    </h3>
+                );
+            }
+            if (pTrim.startsWith('### ')) {
+                return (
+                    <h4 key={pIdx} className="text-xs sm:text-sm font-bold text-slate-800 pt-1 flex items-center gap-1.5">
+                        <span className="w-1 h-3 bg-rose-400 rounded-full inline-block shrink-0"></span>
+                        <span>{pTrim.replace(/^###\s+/, '')}</span>
+                    </h4>
+                );
+            }
+            if (pTrim.startsWith('> ')) {
+                return (
+                    <blockquote key={pIdx} className="my-1.5 p-3 rounded-r-lg border-l-4 border-[#8B001F] bg-rose-50/40 text-slate-700 italic text-xs leading-relaxed">
+                        {pTrim.replace(/^>\s+/, '')}
+                    </blockquote>
+                );
+            }
+            return (
+                <p key={pIdx} className="text-slate-700 text-xs sm:text-sm leading-relaxed whitespace-pre-line">
+                    {pTrim}
+                </p>
+            );
+        });
     };
 
     return (
@@ -1053,7 +1104,7 @@ export default function Welcome({ auth, announcements = [] }) {
 
                             {announcements && announcements.length > 0 && (
                                 <Link
-                                    href={auth?.user ? route('announcements.index') : route('login')}
+                                    href={route('announcements.index')}
                                     className="inline-flex items-center text-xs font-bold text-[#8B001F] hover:text-[#650019] transition group shrink-0"
                                 >
                                     <span>Pusat Pengumuman Lengkap</span>
@@ -1067,37 +1118,66 @@ export default function Welcome({ auth, announcements = [] }) {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                                 {announcements.map((item) => {
                                     const badge = getTargetBadge(item.target_role);
-                                    // Strip HTML tags for clean excerpt
-                                    const cleanText = item.content ? item.content.replace(/<[^>]*>?/gm, '') : '';
+                                    // Clean excerpt for card view
+                                    const cleanText = cleanExcerpt(item.content);
                                     return (
                                         <article
                                             key={item.id}
                                             className="bg-white rounded-2xl border border-[#E5EAF0] shadow-sm hover:shadow-md hover:border-[#8B001F]/30 transition duration-200 flex flex-col justify-between overflow-hidden group"
                                         >
-                                            <div className="p-6 space-y-4">
-                                                {/* Meta: Target Badge & Date */}
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${badge.bg} ${badge.text} ${badge.border}`}>
-                                                        {badge.label}
-                                                    </span>
-                                                    <span className="inline-flex items-center text-[11px] text-[#64748B]">
-                                                        <Calendar className="w-3.5 h-3.5 mr-1 text-[#8B001F]/70" />
-                                                        {formatDate(item.published_at || item.created_at)}
-                                                    </span>
+                                            <div>
+                                                {/* Cover Image or Documentation Preview */}
+                                                {item.image ? (
+                                                    <div 
+                                                        className="relative h-44 sm:h-48 w-full overflow-hidden bg-slate-100 cursor-pointer"
+                                                        onClick={() => setSelectedAnnouncement(item)}
+                                                    >
+                                                        <img 
+                                                            src={item.image} 
+                                                            alt={item.title} 
+                                                            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    Array.isArray(item.documentation_images) && item.documentation_images.length > 0 ? (
+                                                        <div 
+                                                            className="relative h-44 sm:h-48 w-full overflow-hidden bg-slate-100 cursor-pointer"
+                                                            onClick={() => setSelectedAnnouncement(item)}
+                                                        >
+                                                            <img 
+                                                                src={item.documentation_images[0]} 
+                                                                alt={item.title} 
+                                                                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                                            />
+                                                        </div>
+                                                    ) : null
+                                                )}
+
+                                                <div className="p-6 space-y-3.5">
+                                                    {/* Meta: Target Badge & Date */}
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${badge.bg} ${badge.text} ${badge.border}`}>
+                                                            {badge.label}
+                                                        </span>
+                                                        <span className="inline-flex items-center text-[11px] text-[#64748B]">
+                                                            <Calendar className="w-3.5 h-3.5 mr-1 text-[#8B001F]/70" />
+                                                            {formatDate(item.published_at || item.created_at)}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Title */}
+                                                    <h3
+                                                        onClick={() => setSelectedAnnouncement(item)}
+                                                        className="text-base sm:text-lg font-bold text-[#142033] group-hover:text-[#8B001F] transition cursor-pointer line-clamp-2 leading-snug"
+                                                    >
+                                                        {item.title}
+                                                    </h3>
+
+                                                    {/* Excerpt */}
+                                                    <p className="text-xs text-[#64748B] line-clamp-3 leading-relaxed">
+                                                        {cleanText}
+                                                    </p>
                                                 </div>
-
-                                                {/* Title */}
-                                                <h3
-                                                    onClick={() => setSelectedAnnouncement(item)}
-                                                    className="text-base sm:text-lg font-bold text-[#142033] group-hover:text-[#8B001F] transition cursor-pointer line-clamp-2 leading-snug"
-                                                >
-                                                    {item.title}
-                                                </h3>
-
-                                                {/* Excerpt */}
-                                                <p className="text-xs text-[#64748B] line-clamp-3 leading-relaxed">
-                                                    {cleanText}
-                                                </p>
                                             </div>
 
                                             {/* Footer */}
@@ -1297,17 +1377,36 @@ export default function Welcome({ auth, announcements = [] }) {
                     onClick={() => setSelectedAnnouncement(null)}
                 >
                     <div
-                        className="bg-white rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-[#E5EAF0] overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+                        className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-[#E5EAF0] overflow-hidden animate-in fade-in zoom-in-95 duration-150"
                         onClick={(e) => e.stopPropagation()}
                     >
+                        {/* Featured Image Banner */}
+                        {selectedAnnouncement.image && (
+                            <div className="relative w-full h-52 sm:h-64 overflow-hidden bg-slate-100 shrink-0">
+                                <img 
+                                    src={selectedAnnouncement.image} 
+                                    alt={selectedAnnouncement.title} 
+                                    className="w-full h-full object-cover"
+                                />
+                                <button
+                                    onClick={() => setSelectedAnnouncement(null)}
+                                    className="absolute top-4 right-4 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white transition shadow-sm backdrop-blur-sm"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                        )}
+
                         {/* Modal Header */}
                         <div className="p-6 sm:p-8 border-b border-[#E5EAF0] relative bg-[#F7F8FA]">
-                            <button
-                                onClick={() => setSelectedAnnouncement(null)}
-                                className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
+                            {!selectedAnnouncement.image && (
+                                <button
+                                    onClick={() => setSelectedAnnouncement(null)}
+                                    className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            )}
 
                             <div className="flex flex-wrap items-center gap-2 mb-3">
                                 {(() => {
@@ -1337,17 +1436,53 @@ export default function Welcome({ auth, announcements = [] }) {
                         </div>
 
                         {/* Modal Body */}
-                        <div className="p-6 sm:p-8 overflow-y-auto space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-                            {selectedAnnouncement.content}
+                        <div className="p-6 sm:p-8 overflow-y-auto space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                            <div>
+                                {renderModalAnnouncementContent(selectedAnnouncement.content)}
+                            </div>
+
+                            {/* Dokumentasi Kegiatan Gallery */}
+                            {Array.isArray(selectedAnnouncement.documentation_images) && selectedAnnouncement.documentation_images.length > 0 && (
+                                <div className="pt-5 border-t border-slate-100 space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <Camera className="w-4 h-4 text-[#8B001F]" />
+                                        <h4 className="text-xs font-bold text-slate-900">
+                                            Dokumentasi Foto Kegiatan
+                                        </h4>
+                                    </div>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                                        {selectedAnnouncement.documentation_images.map((imgUrl, idx) => (
+                                            <a 
+                                                key={idx} 
+                                                href={imgUrl} 
+                                                target="_blank" 
+                                                rel="noreferrer" 
+                                                className="block rounded-xl overflow-hidden aspect-4/3 bg-slate-100 border border-slate-200 group relative hover:opacity-95 transition"
+                                            >
+                                                <img src={imgUrl} alt={`Dokumentasi ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                                                <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-bold">
+                                                    Lihat Foto
+                                                </div>
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="p-4 sm:p-6 bg-[#F7F8FA] border-t border-[#E5EAF0] flex justify-end">
+                        <div className="p-4 sm:p-6 bg-[#F7F8FA] border-t border-[#E5EAF0] flex items-center justify-between">
+                            <Link
+                                href={route('announcements.show', selectedAnnouncement.id)}
+                                className="text-xs font-bold text-[#8B001F] hover:underline"
+                            >
+                                Buka Halaman Artikel Lengkap &rarr;
+                            </Link>
                             <button
                                 onClick={() => setSelectedAnnouncement(null)}
-                                className="px-5 py-2.5 bg-[#8B001F] hover:bg-[#650019] text-white text-xs font-bold rounded-xl shadow-sm transition"
+                                className="px-5 py-2.5 bg-[#8B001F] hover:bg-[#650019] text-white text-xs font-bold rounded-xl shadow-sm transition ml-auto"
                             >
-                                Tutup Pengumuman
+                                Tutup
                             </button>
                         </div>
                     </div>
