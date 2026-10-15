@@ -444,17 +444,20 @@ export default function AuthenticatedLayout({ header, children }) {
     return (
         <div className="min-h-screen bg-[#F8F9FB] text-slate-800 flex font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#800020] selection:text-white">
             {/* Mobile Sidebar Overlay Backdrop */}
-            {sidebarOpen && (
-                <div
-                    className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden transition-opacity"
-                    onClick={() => setSidebarOpen(false)}
-                />
-            )}
+            <div
+                className={`fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden transition-opacity duration-300 ${
+                    sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                }`}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setSidebarOpen(false);
+                }}
+            />
 
             {/* Sidebar Navigation */}
             <aside
-                className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
-                    sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+                    sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
                 }`}
             >
                 {/* School Brand Header in Sidebar */}
@@ -606,8 +609,11 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="flex items-center space-x-3">
                         <button
                             type="button"
-                            onClick={() => setSidebarOpen(true)}
-                            className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSidebarOpen((prev) => !prev);
+                            }}
+                            className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 active:bg-slate-200 focus:outline-none cursor-pointer"
                             aria-label="Buka menu navigasi"
                         >
                             <Menu className="w-5 h-5" />
