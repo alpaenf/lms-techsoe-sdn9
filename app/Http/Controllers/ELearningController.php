@@ -160,6 +160,8 @@ class ELearningController extends Controller
             ->select('id', 'assignment_id', 'student_id', 'submitted_at', 'file_path', 'student_notes', 'score', 'teacher_feedback', 'graded_at')
             ->get();
 
+        $gradebookData = (new PenilaianController())->getGradebookProps($request);
+
         return Inertia::render('ELearning/Index', [
             'subjects' => $subjects,
             'classes' => $classes,
@@ -175,6 +177,7 @@ class ELearningController extends Controller
             'submissions' => $allSubmissions,
             'currentStudent' => $student,
             'currentTeacher' => $teacher,
+            'gradebookData' => $gradebookData,
         ]);
     }
 

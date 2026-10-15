@@ -426,7 +426,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         subItems: [
                             { name: 'Materi Pembelajaran', href: route('elearning.index') + '?tab=materi' },
                             { name: 'Tugas & Asesmen', href: route('elearning.index') + '?tab=tugas' },
-                            { name: 'Nilai Tugas Saya', href: route('elearning.index') + '?tab=penilaian' },
+                            { name: 'Rekap Nilai Saya', href: route('elearning.index') + '?tab=penilaian' },
                         ],
                     },
                     { name: 'Ujian Online', icon: ClipboardCheck, href: route('student.exams.index'), active: route().current('student.exams.*'), type: 'link' },

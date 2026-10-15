@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { 
     BookOpen, 
     FileText, 
@@ -9,7 +9,10 @@ import {
     Send, 
     CheckCircle2, 
     AlertCircle,
-    Search
+    Search,
+    FileSpreadsheet,
+    ArrowRight,
+    Award
 } from 'lucide-react';
 
 // Subcomponents
@@ -38,6 +41,7 @@ export default function ELearningIndex({
     submissions = [],
     currentStudent = null, 
     currentTeacher = null,
+    gradebookData = {},
     errors = {} 
 }) {
     const { auth } = usePage().props;
@@ -391,13 +395,14 @@ export default function ELearningIndex({
                                     window.history.replaceState({}, '', url.toString());
                                 }
                             }}
-                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center space-x-1.5 ${
                                 tab === 'penilaian'
                                     ? 'bg-[#800020] text-white shadow-sm'
                                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                             }`}
                         >
-                            {isSiswa ? 'Nilai Tugas Saya' : 'Penilaian Siswa'}
+                            <FileSpreadsheet className="w-3.5 h-3.5" />
+                            <span>{isSiswa ? 'Buku Nilai Siswa' : 'Penilaian Siswa'}</span>
                         </button>
                     </div>
                 </div>
@@ -514,33 +519,12 @@ export default function ELearningIndex({
                     />
                 )}
 
-                {/* TAB 3: PENILAIAN SISWA */}
+                {/* TAB 3: PENILAIAN SISWA (BUKU NILAI KURIKULUM MERDEKA) */}
                 {tab === 'penilaian' && (
                     <TabPenilaian
-                        assignments={assignments}
-                        students={students}
-                        submissions={submissions}
-                        subjects={subjects}
-                        classes={classes}
-                        selectedClass={selectedClass}
-                        setSelectedClass={setSelectedClass}
-                        selectedSubject={selectedSubject}
-                        setSelectedSubject={setSelectedSubject}
+                        auth={auth}
                         isSiswa={isSiswa}
-                        canManage={canManage}
-                        currentStudent={currentStudent}
-                        onSwitchTab={(newTab) => {
-                            setTab(newTab);
-                            if (typeof window !== 'undefined') {
-                                const url = new URL(window.location.href);
-                                url.searchParams.set('tab', newTab);
-                                window.history.replaceState({}, '', url.toString());
-                            }
-                        }}
-                        onNotification={(msg) => {
-                            setNotification(msg);
-                            setTimeout(() => setNotification(null), 4000);
-                        }}
+                        {...gradebookData}
                     />
                 )}
             </div>

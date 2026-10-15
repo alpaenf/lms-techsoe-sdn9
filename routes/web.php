@@ -9,6 +9,7 @@ use App\Http\Controllers\ExamController;
 use App\Http\Controllers\KelembagaanController;
 use App\Http\Controllers\MasterDataController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PenilaianController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentExamController;
@@ -183,6 +184,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/elearning/submissions/{id}/grade', [ELearningController::class, 'gradeSubmission'])->name('elearning.submissions.grade');
     Route::post('/elearning/grade-student', [ELearningController::class, 'gradeStudent'])->name('elearning.grade.student');
     Route::post('/elearning/batch-grade', [ELearningController::class, 'batchGrade'])->name('elearning.grade.batch');
+
+    // 04b. Buku Nilai & Penilaian Kurikulum Merdeka
+    Route::get('/penilaian', [PenilaianController::class, 'index'])->name('penilaian.index');
+    Route::post('/penilaian/save', [PenilaianController::class, 'saveScores'])->name('penilaian.save');
+    Route::post('/penilaian/config', [PenilaianController::class, 'updateConfig'])->name('penilaian.config');
+    Route::get('/penilaian/export', [PenilaianController::class, 'exportExcel'])->name('penilaian.export');
+    Route::post('/penilaian/import', [PenilaianController::class, 'importExcel'])->name('penilaian.import');
+    Route::get('/penilaian/template', [PenilaianController::class, 'downloadTemplate'])->name('penilaian.template');
 
     // 05. Presensi
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
