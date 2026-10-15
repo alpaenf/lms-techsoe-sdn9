@@ -107,6 +107,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             subItems: [
                                 { name: 'Modul Bahan Ajar', href: route('elearning.index') + '?tab=materi' },
                                 { name: 'Tugas & Asesmen', href: route('elearning.index') + '?tab=tugas' },
+                                { name: 'Penilaian Siswa', href: route('elearning.index') + '?tab=penilaian' },
                             ],
                         },
                         {
@@ -211,6 +212,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             subItems: [
                                 { name: 'Modul Bahan Ajar', href: route('elearning.index') + '?tab=materi' },
                                 { name: 'Tugas & Asesmen', href: route('elearning.index') + '?tab=tugas' },
+                                { name: 'Penilaian Siswa', href: route('elearning.index') + '?tab=penilaian' },
                             ],
                         },
                         {
@@ -293,6 +295,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             subItems: [
                                 { name: 'Modul Bahan Ajar', href: route('elearning.index') + '?tab=materi' },
                                 { name: 'Tugas & Asesmen', href: route('elearning.index') + '?tab=tugas' },
+                                { name: 'Penilaian Siswa', href: route('elearning.index') + '?tab=penilaian' },
                             ],
                         },
                         { name: 'Ujian Online', icon: ClipboardCheck, href: route('exams.index'), active: route().current('exams.*'), type: 'link' },
@@ -423,6 +426,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         subItems: [
                             { name: 'Materi Pembelajaran', href: route('elearning.index') + '?tab=materi' },
                             { name: 'Tugas & Asesmen', href: route('elearning.index') + '?tab=tugas' },
+                            { name: 'Nilai Tugas Saya', href: route('elearning.index') + '?tab=penilaian' },
                         ],
                     },
                     { name: 'Ujian Online', icon: ClipboardCheck, href: route('student.exams.index'), active: route().current('student.exams.*'), type: 'link' },

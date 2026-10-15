@@ -60,13 +60,18 @@ export default function ModalPenilaianTugas({
 
     const handleSaveGrade = (e) => {
         e.preventDefault();
-        if (!selectedStudent || !selectedStudent.submission_id) {
-            alert('Siswa ini belum mengumpulkan tugas.');
+        if (!selectedStudent) {
+            alert('Silakan pilih siswa terlebih dahulu.');
             return;
         }
 
         setIsSaving(true);
-        router.post(route('elearning.submissions.grade', selectedStudent.submission_id), gradeForm, {
+        router.post(route('elearning.grade.student'), {
+            assignment_id: assignment.id,
+            student_id: selectedStudent.student_id,
+            score: gradeForm.score,
+            teacher_feedback: gradeForm.teacher_feedback
+        }, {
             preserveScroll: true,
             onSuccess: () => {
                 setIsSaving(false);
@@ -197,60 +202,58 @@ export default function ModalPenilaianTugas({
                                             )}
                                         </div>
                                     ) : (
-                                        <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl flex items-center space-x-2 mt-2">
+                                        <div className="p-3.5 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl flex items-center space-x-2.5 mt-2">
                                             <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
-                                            <span>Siswa ini belum mengumpulkan berkas atau lembar jawaban tugas.</span>
+                                            <span>Siswa ini belum mengunggah lembar jawaban digital. Anda tetap dapat memasukkan nilai tugas fisik/luring dan catatan evaluasi pada formulir di bawah.</span>
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Grading Form */}
-                                {selectedStudent.submission_id ? (
-                                    <form onSubmit={handleSaveGrade} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                                        <h5 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center">
-                                            <UserCheck className="w-4 h-4 mr-1.5 text-[#800020]" />
-                                            Input Nilai & Evaluasi Guru
-                                        </h5>
+                                <form onSubmit={handleSaveGrade} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                                    <h5 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center">
+                                        <UserCheck className="w-4 h-4 mr-1.5 text-[#800020]" />
+                                        Input Nilai & Evaluasi Guru
+                                    </h5>
 
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-700 mb-1">
-                                                Nilai Hasil Evaluasi (Skala 0 - {assignment.max_score}) <span className="text-rose-500">*</span>
-                                            </label>
-                                            <input
-                                                type="number"
-                                                required
-                                                min="0"
-                                                max={assignment.max_score}
-                                                placeholder="Contoh: 90"
-                                                value={gradeForm.score}
-                                                onChange={(e) => setGradeForm({ ...gradeForm, score: e.target.value })}
-                                                className="w-full h-10 px-3.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
-                                            />
-                                        </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                                            Nilai Hasil Evaluasi (Skala 0 - {assignment.max_score}) <span className="text-rose-500">*</span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            required
+                                            min="0"
+                                            max={assignment.max_score}
+                                            placeholder="Contoh: 90"
+                                            value={gradeForm.score}
+                                            onChange={(e) => setGradeForm({ ...gradeForm, score: e.target.value })}
+                                            className="w-full h-10 px-3.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
+                                        />
+                                    </div>
 
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-700 mb-1">
-                                                Catatan / Umpan Balik Guru untuk Siswa
-                                            </label>
-                                            <textarea
-                                                rows={3}
-                                                placeholder="Berikan apresiasi atau saran perbaikan untuk siswa..."
-                                                value={gradeForm.teacher_feedback}
-                                                onChange={(e) => setGradeForm({ ...gradeForm, teacher_feedback: e.target.value })}
-                                                className="w-full p-3 rounded-xl border border-slate-300 text-xs text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
-                                            />
-                                        </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                                            Catatan / Umpan Balik Guru untuk Siswa
+                                        </label>
+                                        <textarea
+                                            rows={3}
+                                            placeholder="Berikan apresiasi atau saran perbaikan untuk siswa..."
+                                            value={gradeForm.teacher_feedback}
+                                            onChange={(e) => setGradeForm({ ...gradeForm, teacher_feedback: e.target.value })}
+                                            className="w-full p-3 rounded-xl border border-slate-300 text-xs text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
+                                        />
+                                    </div>
 
-                                        <button
-                                            type="submit"
-                                            disabled={isSaving}
-                                            className="w-full py-2.5 bg-[#800020] hover:bg-[#5C0017] text-white font-bold text-xs rounded-xl shadow-sm transition disabled:opacity-50 inline-flex items-center justify-center"
-                                        >
-                                            <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                                            <span>{isSaving ? 'Menyimpan Nilai...' : 'Simpan Nilai & Catatan Evaluasi'}</span>
-                                        </button>
-                                    </form>
-                                ) : null}
+                                    <button
+                                        type="submit"
+                                        disabled={isSaving}
+                                        className="w-full py-2.5 bg-[#800020] hover:bg-[#5C0017] text-white font-bold text-xs rounded-xl shadow-sm transition disabled:opacity-50 inline-flex items-center justify-center cursor-pointer"
+                                    >
+                                        <CheckCircle2 className="w-4 h-4 mr-1.5" />
+                                        <span>{isSaving ? 'Menyimpan Nilai...' : 'Simpan Nilai & Catatan Evaluasi'}</span>
+                                    </button>
+                                </form>
                             </>
                         ) : (
                             <div className="text-center py-12 text-slate-400 text-xs">

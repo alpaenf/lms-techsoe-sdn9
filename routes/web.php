@@ -172,6 +172,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/elearning/submissions', [ELearningController::class, 'submitAssignment'])->name('elearning.submissions.submit');
     Route::get('/elearning/assignments/{id}/submissions', [ELearningController::class, 'getAssignmentSubmissions'])->name('elearning.assignments.submissions');
     Route::post('/elearning/submissions/{id}/grade', [ELearningController::class, 'gradeSubmission'])->name('elearning.submissions.grade');
+    Route::post('/elearning/grade-student', [ELearningController::class, 'gradeStudent'])->name('elearning.grade.student');
+    Route::post('/elearning/batch-grade', [ELearningController::class, 'batchGrade'])->name('elearning.grade.batch');
 
     // 05. Presensi
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');

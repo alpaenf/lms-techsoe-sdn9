@@ -15,6 +15,7 @@ import {
 // Subcomponents
 import TabMateri from './Partials/TabMateri';
 import TabTugas from './Partials/TabTugas';
+import TabPenilaian from './Partials/TabPenilaian';
 
 // Modals
 import ModalMateri from './Modals/ModalMateri';
@@ -33,6 +34,8 @@ export default function ELearningIndex({
     teacherSubjects = [],
     materials = [], 
     assignments = [], 
+    students = [],
+    submissions = [],
     currentStudent = null, 
     currentTeacher = null,
     errors = {} 
@@ -53,7 +56,16 @@ export default function ELearningIndex({
         ? String(defaultClassId) 
         : (modalClasses.length > 0 ? String(modalClasses[0].id) : '');
 
-    const [tab, setTab] = useState('materi');
+    const [tab, setTab] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const tabParam = params.get('tab');
+            if (['materi', 'tugas', 'penilaian'].includes(tabParam)) {
+                return tabParam;
+            }
+        }
+        return 'materi';
+    });
     const [selectedSubject, setSelectedSubject] = useState(() => {
         if (userRole === 'guru_mapel' && defaultSubjectId) {
             return String(defaultSubjectId);
@@ -337,8 +349,15 @@ export default function ELearningIndex({
 
                     <div className="flex items-center space-x-2">
                         <button
-                            onClick={() => setTab('materi')}
-                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                            onClick={() => {
+                                setTab('materi');
+                                if (typeof window !== 'undefined') {
+                                    const url = new URL(window.location.href);
+                                    url.searchParams.set('tab', 'materi');
+                                    window.history.replaceState({}, '', url.toString());
+                                }
+                            }}
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                                 tab === 'materi'
                                     ? 'bg-[#800020] text-white shadow-sm'
                                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
@@ -347,14 +366,38 @@ export default function ELearningIndex({
                             {isSiswa ? 'Materi Pelajaran' : 'Modul Bahan Ajar'} ({filteredMaterials.length})
                         </button>
                         <button
-                            onClick={() => setTab('tugas')}
-                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                            onClick={() => {
+                                setTab('tugas');
+                                if (typeof window !== 'undefined') {
+                                    const url = new URL(window.location.href);
+                                    url.searchParams.set('tab', 'tugas');
+                                    window.history.replaceState({}, '', url.toString());
+                                }
+                            }}
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                                 tab === 'tugas'
                                     ? 'bg-[#800020] text-white shadow-sm'
                                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                             }`}
                         >
                             {isSiswa ? 'Tugas Saya' : 'Penugasan & Ujian'} ({filteredAssignments.length})
+                        </button>
+                        <button
+                            onClick={() => {
+                                setTab('penilaian');
+                                if (typeof window !== 'undefined') {
+                                    const url = new URL(window.location.href);
+                                    url.searchParams.set('tab', 'penilaian');
+                                    window.history.replaceState({}, '', url.toString());
+                                }
+                            }}
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                                tab === 'penilaian'
+                                    ? 'bg-[#800020] text-white shadow-sm'
+                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                            }`}
+                        >
+                            {isSiswa ? 'Nilai Tugas Saya' : 'Penilaian Siswa'}
                         </button>
                     </div>
                 </div>
@@ -410,16 +453,18 @@ export default function ELearningIndex({
                             <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>
 
-                        <div className="relative w-full sm:w-64">
-                            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                            <input
-                                type="text"
-                                placeholder="Cari judul..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-300 text-xs text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
-                            />
-                        </div>
+                        {tab !== 'penilaian' && (
+                            <div className="relative w-full sm:w-64">
+                                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                <input
+                                    type="text"
+                                    placeholder="Cari judul..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-300 text-xs text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {canManage && (
@@ -427,7 +472,7 @@ export default function ELearningIndex({
                             {tab === 'materi' ? (
                                 <button 
                                     onClick={openCreateMaterialModal}
-                                    className="px-4 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition"
+                                    className="px-4 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition cursor-pointer"
                                 >
                                     <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
                                     <span>Tambah Bahan Ajar</span>
@@ -435,7 +480,7 @@ export default function ELearningIndex({
                             ) : (
                                 <button 
                                     onClick={openCreateAssignmentModal}
-                                    className="px-4 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition"
+                                    className="px-4 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition cursor-pointer"
                                 >
                                     <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
                                     <span>Buat Tugas Baru</span>
@@ -466,6 +511,36 @@ export default function ELearningIndex({
                         onOpenSubmissions={openPenilaianModal} 
                         onEdit={openEditAssignmentModal} 
                         onDelete={handleDeleteAssignment} 
+                    />
+                )}
+
+                {/* TAB 3: PENILAIAN SISWA */}
+                {tab === 'penilaian' && (
+                    <TabPenilaian
+                        assignments={assignments}
+                        students={students}
+                        submissions={submissions}
+                        subjects={subjects}
+                        classes={classes}
+                        selectedClass={selectedClass}
+                        setSelectedClass={setSelectedClass}
+                        selectedSubject={selectedSubject}
+                        setSelectedSubject={setSelectedSubject}
+                        isSiswa={isSiswa}
+                        canManage={canManage}
+                        currentStudent={currentStudent}
+                        onSwitchTab={(newTab) => {
+                            setTab(newTab);
+                            if (typeof window !== 'undefined') {
+                                const url = new URL(window.location.href);
+                                url.searchParams.set('tab', newTab);
+                                window.history.replaceState({}, '', url.toString());
+                            }
+                        }}
+                        onNotification={(msg) => {
+                            setNotification(msg);
+                            setTimeout(() => setNotification(null), 4000);
+                        }}
                     />
                 )}
             </div>

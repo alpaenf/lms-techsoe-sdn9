@@ -165,4 +165,176 @@ class TeacherAssignedClassesAndELearningTest extends TestCase
             'class_id' => $this->class5->id,
         ]);
     }
+
+    public function test_elearning_index_provides_students_and_submissions(): void
+    {
+        $response = $this->actingAs($this->homeroomTeacherUser)->get(route('elearning.index'));
+
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('ELearning/Index')
+            ->has('students')
+            ->has('submissions')
+        );
+    }
+
+    public function test_teacher_can_grade_student_without_prior_online_submission(): void
+    {
+        // Setup topic & assignment
+        $tsId = DB::table('teacher_subjects')->insertGetId([
+            'teacher_id' => $this->homeroomTeacher->id,
+            'subject_id' => $this->subjectMtk->id,
+            'class_id' => $this->class4->id,
+            'academic_year_id' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $topicId = DB::table('topics')->insertGetId([
+            'teacher_subject_id' => $tsId,
+            'title' => 'Bab 1 Operasi Hitung',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $assignmentId = DB::table('assignments')->insertGetId([
+            'topic_id' => $topicId,
+            'title' => 'Latihan Soal Perkalian',
+            'instructions' => 'Kerjakan di buku tugas matematika',
+            'due_date' => now()->addDays(2),
+            'max_score' => 100,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Student in Class 4
+        $studentUser = User::factory()->create(['role' => 'siswa']);
+        $studentId = DB::table('students')->insertGetId([
+            'user_id' => $studentUser->id,
+            'nis' => '1001',
+            'nisn' => '0012345678',
+            'full_name' => 'Budi Santoso',
+            'class_id' => $this->class4->id,
+            'gender' => 'L',
+            'birth_place' => 'Tana Toraja',
+            'birth_date' => '2015-05-10',
+            'entry_date' => '2023-07-15',
+            'status' => 'aktif',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Grade student directly (offline submission graded by teacher)
+        $response = $this->actingAs($this->homeroomTeacherUser)->post(route('elearning.grade.student'), [
+            'assignment_id' => $assignmentId,
+            'student_id' => $studentId,
+            'score' => 92,
+            'teacher_feedback' => 'Hasil pekerjaan sangat rapi dan tepat.',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('assignment_submissions', [
+            'assignment_id' => $assignmentId,
+            'student_id' => $studentId,
+            'score' => 92,
+            'teacher_feedback' => 'Hasil pekerjaan sangat rapi dan tepat.',
+        ]);
+    }
+
+    public function test_teacher_can_batch_grade_class_students(): void
+    {
+        $tsId = DB::table('teacher_subjects')->insertGetId([
+            'teacher_id' => $this->homeroomTeacher->id,
+            'subject_id' => $this->subjectMtk->id,
+            'class_id' => $this->class4->id,
+            'academic_year_id' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $topicId = DB::table('topics')->insertGetId([
+            'teacher_subject_id' => $tsId,
+            'title' => 'Bab 1 Operasi Hitung',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $assignmentId = DB::table('assignments')->insertGetId([
+            'topic_id' => $topicId,
+            'title' => 'Ulangan Harian Matematika',
+            'instructions' => 'Kerjakan dengan teliti',
+            'due_date' => now()->addDays(1),
+            'max_score' => 100,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Create 2 students
+        $u1 = User::factory()->create(['role' => 'siswa']);
+        $s1 = DB::table('students')->insertGetId([
+            'user_id' => $u1->id,
+            'nis' => '1002',
+            'nisn' => '0012345679',
+            'full_name' => 'Siti Aminah',
+            'class_id' => $this->class4->id,
+            'gender' => 'P',
+            'birth_place' => 'Makale',
+            'birth_date' => '2015-06-12',
+            'entry_date' => '2023-07-15',
+            'status' => 'aktif',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $u2 = User::factory()->create(['role' => 'siswa']);
+        $s2 = DB::table('students')->insertGetId([
+            'user_id' => $u2->id,
+            'nis' => '1003',
+            'nisn' => '0012345680',
+            'full_name' => 'Andi Pratama',
+            'class_id' => $this->class4->id,
+            'gender' => 'L',
+            'birth_place' => 'Rantepao',
+            'birth_date' => '2015-08-20',
+            'entry_date' => '2023-07-15',
+            'status' => 'aktif',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->homeroomTeacherUser)->post(route('elearning.grade.batch'), [
+            'assignment_id' => $assignmentId,
+            'grades' => [
+                [
+                    'student_id' => $s1,
+                    'score' => 88,
+                    'teacher_feedback' => 'Bagus sekali',
+                ],
+                [
+                    'student_id' => $s2,
+                    'score' => 95,
+                    'teacher_feedback' => 'Sempurna',
+                ],
+            ],
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('assignment_submissions', [
+            'assignment_id' => $assignmentId,
+            'student_id' => $s1,
+            'score' => 88,
+            'teacher_feedback' => 'Bagus sekali',
+        ]);
+
+        $this->assertDatabaseHas('assignment_submissions', [
+            'assignment_id' => $assignmentId,
+            'student_id' => $s2,
+            'score' => 95,
+            'teacher_feedback' => 'Sempurna',
+        ]);
+    }
 }

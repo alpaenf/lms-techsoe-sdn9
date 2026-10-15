@@ -145,6 +145,21 @@ class ELearningController extends Controller
             ]);
         });
 
+        $studentsQuery = DB::table('students')
+            ->where('status', 'aktif')
+            ->select('id', 'class_id', 'nisn', 'nis', 'full_name', 'gender')
+            ->orderBy('full_name');
+
+        if ($userRole === 'siswa' && $student?->class_id) {
+            $studentsQuery->where('class_id', $student->class_id);
+        }
+
+        $allStudents = $studentsQuery->get();
+
+        $allSubmissions = DB::table('assignment_submissions')
+            ->select('id', 'assignment_id', 'student_id', 'submitted_at', 'file_path', 'student_notes', 'score', 'teacher_feedback', 'graded_at')
+            ->get();
+
         return Inertia::render('ELearning/Index', [
             'subjects' => $subjects,
             'classes' => $classes,
@@ -156,6 +171,8 @@ class ELearningController extends Controller
             'teacherSubjects' => $teacherSubjects,
             'materials' => $materials,
             'assignments' => $assignments,
+            'students' => $allStudents,
+            'submissions' => $allSubmissions,
             'currentStudent' => $student,
             'currentTeacher' => $teacher,
         ]);
@@ -512,5 +529,86 @@ class ELearningController extends Controller
         ]);
 
         return back()->with('message', 'Nilai dan umpan balik tugas berhasil disimpan.');
+    }
+
+    public function gradeStudent(Request $request)
+    {
+        $validated = $request->validate([
+            'assignment_id' => 'required|exists:assignments,id',
+            'student_id' => 'required|exists:students,id',
+            'score' => 'required|numeric|min:0|max:100',
+            'teacher_feedback' => 'nullable|string',
+        ]);
+
+        $submission = DB::table('assignment_submissions')
+            ->where('assignment_id', $validated['assignment_id'])
+            ->where('student_id', $validated['student_id'])
+            ->first();
+
+        if ($submission) {
+            DB::table('assignment_submissions')->where('id', $submission->id)->update([
+                'score' => $validated['score'],
+                'teacher_feedback' => $validated['teacher_feedback'] ?? null,
+                'graded_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } else {
+            DB::table('assignment_submissions')->insert([
+                'assignment_id' => $validated['assignment_id'],
+                'student_id' => $validated['student_id'],
+                'submitted_at' => now(),
+                'score' => $validated['score'],
+                'teacher_feedback' => $validated['teacher_feedback'] ?? null,
+                'graded_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return back()->with('message', 'Nilai tugas siswa berhasil disimpan.');
+    }
+
+    public function batchGrade(Request $request)
+    {
+        $validated = $request->validate([
+            'assignment_id' => 'required|exists:assignments,id',
+            'grades' => 'required|array',
+            'grades.*.student_id' => 'required|exists:students,id',
+            'grades.*.score' => 'nullable|numeric|min:0|max:100',
+            'grades.*.teacher_feedback' => 'nullable|string',
+        ]);
+
+        foreach ($validated['grades'] as $item) {
+            if (! isset($item['score']) || $item['score'] === null || $item['score'] === '') {
+                continue;
+            }
+
+            $submission = DB::table('assignment_submissions')
+                ->where('assignment_id', $validated['assignment_id'])
+                ->where('student_id', $item['student_id'])
+                ->first();
+
+            if ($submission) {
+                DB::table('assignment_submissions')->where('id', $submission->id)->update([
+                    'score' => $item['score'],
+                    'teacher_feedback' => $item['teacher_feedback'] ?? null,
+                    'graded_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } else {
+                DB::table('assignment_submissions')->insert([
+                    'assignment_id' => $validated['assignment_id'],
+                    'student_id' => $item['student_id'],
+                    'submitted_at' => now(),
+                    'score' => $item['score'],
+                    'teacher_feedback' => $item['teacher_feedback'] ?? null,
+                    'graded_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        return back()->with('message', 'Semua nilai tugas berhasil disimpan.');
     }
 }
