@@ -431,9 +431,18 @@ class DashboardController extends Controller
         DB::table('teacher_subjects')->where('teacher_id', $teacher->id)->delete();
 
         // Update homeroom assignment in classes
-        if (! empty($classIds)) {
+        // CATATAN: Guru Mapel HANYA mengajar mapel di rombel terkait (disimpan di teacher_subjects),
+        // sehingga TIDAK BOLEH mengubah / menimpa Wali Kelas (homeroom_teacher_id) pada tabel classes.
+        if ($request->teacher_type === 'guru_mapel') {
+            // Jika guru ini sebelumnya pernah terdaftar sebagai wali kelas dan berganti menjadi guru mapel murni, lepas jabatan lamanya
             DB::table('classes')->where('homeroom_teacher_id', $teacher->id)->update(['homeroom_teacher_id' => null]);
-            DB::table('classes')->whereIn('id', $classIds)->update(['homeroom_teacher_id' => $teacher->id]);
+        } else {
+            // Untuk Guru Kelas / Wali Kelas
+            if (! empty($classIds)) {
+                DB::table('classes')->where('homeroom_teacher_id', $teacher->id)->update(['homeroom_teacher_id' => null]);
+                // Set wali kelas hanya untuk rombel yang dipilih (1 rombel utama)
+                DB::table('classes')->where('id', $classIds[0])->update(['homeroom_teacher_id' => $teacher->id]);
+            }
         }
 
         // Re-insert selected subject-class mappings if subject selected

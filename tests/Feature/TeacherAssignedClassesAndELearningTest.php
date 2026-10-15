@@ -30,16 +30,20 @@ class TeacherAssignedClassesAndELearningTest extends TestCase
             'name' => '2026/2027',
             'semester' => 'ganjil',
             'is_active' => true,
+            'start_date' => '2026-07-01',
+            'end_date' => '2026-12-31',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
         $this->class4 = Classes::create([
+            'academic_year_id' => 1,
             'name' => 'Kelas 4',
             'grade_level' => 4,
         ]);
 
         $this->class5 = Classes::create([
+            'academic_year_id' => 1,
             'name' => 'Kelas 5',
             'grade_level' => 5,
         ]);
@@ -117,5 +121,48 @@ class TeacherAssignedClassesAndELearningTest extends TestCase
             ->has('availableClasses', 1)
             ->where('availableClasses.0.id', $this->class4->id)
         );
+    }
+
+    public function test_guru_mapel_claim_classes_does_not_overwrite_homeroom_teacher(): void
+    {
+        $mapelUser = User::factory()->create([
+            'role' => 'guru_mapel',
+        ]);
+        $mapelTeacher = Teacher::create([
+            'user_id' => $mapelUser->id,
+            'full_name' => 'Guru Agama / Mapel',
+            'gender' => 'L',
+        ]);
+
+        // class4 originally has homeroomTeacher
+        $this->assertEquals($this->homeroomTeacher->id, $this->class4->fresh()->homeroom_teacher_id);
+
+        // Guru mapel claims class4 and class5
+        $response = $this->actingAs($mapelUser)->post(route('teacher.claim-subjects'), [
+            'teacher_type' => 'guru_mapel',
+            'subject_specialization' => 'Pendidikan Agama Islam',
+            'subject_ids' => [$this->subjectMtk->id],
+            'class_ids' => [$this->class4->id, $this->class5->id],
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+
+        // class4's homeroom_teacher_id must STILL be $this->homeroomTeacher, NOT replaced by $mapelTeacher
+        $this->assertEquals($this->homeroomTeacher->id, $this->class4->fresh()->homeroom_teacher_id);
+        // class5's homeroom_teacher_id must still be null (not replaced by $mapelTeacher)
+        $this->assertNull($this->class5->fresh()->homeroom_teacher_id);
+
+        // But the mapping in teacher_subjects MUST exist
+        $this->assertDatabaseHas('teacher_subjects', [
+            'teacher_id' => $mapelTeacher->id,
+            'subject_id' => $this->subjectMtk->id,
+            'class_id' => $this->class4->id,
+        ]);
+        $this->assertDatabaseHas('teacher_subjects', [
+            'teacher_id' => $mapelTeacher->id,
+            'subject_id' => $this->subjectMtk->id,
+            'class_id' => $this->class5->id,
+        ]);
     }
 }
