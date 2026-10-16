@@ -337,4 +337,36 @@ class TeacherAssignedClassesAndELearningTest extends TestCase
             'teacher_feedback' => 'Sempurna',
         ]);
     }
+
+    public function test_teacher_penilaian_defaults_to_assigned_class_and_only_shows_assigned_classes(): void
+    {
+        $response = $this->actingAs($this->homeroomTeacherUser)->get(route('penilaian.index', ['standalone' => 1]));
+
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Penilaian/Index')
+            ->has('classes', 1)
+            ->where('classes.0.id', $this->class4->id)
+            ->where('selectedClass.id', $this->class4->id)
+        );
+    }
+
+    public function test_teacher_cannot_access_unauthorized_class_in_penilaian(): void
+    {
+        // Teacher tries to query class5 which they do not teach
+        $response = $this->actingAs($this->homeroomTeacherUser)->get(route('penilaian.index', [
+            'standalone' => 1,
+            'class_id' => $this->class5->id,
+        ]));
+
+        $response->assertOk();
+        // Controller must fallback to class4 and not expose class5
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Penilaian/Index')
+            ->has('classes', 1)
+            ->where('classes.0.id', $this->class4->id)
+            ->where('selectedClass.id', $this->class4->id)
+        );
+    }
 }
+

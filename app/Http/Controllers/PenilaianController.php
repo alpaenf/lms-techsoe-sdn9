@@ -40,6 +40,35 @@ class PenilaianController extends Controller
     }
 
     /**
+     * Get assigned / claimed class IDs for a teacher
+     */
+    private function getTeacherClassIds($teacher): array
+    {
+        if (! $teacher) {
+            return [];
+        }
+
+        $homeroomClassIds = DB::table('classes')
+            ->where('homeroom_teacher_id', $teacher->id)
+            ->pluck('id')
+            ->toArray();
+
+        $claimedClassIds = DB::table('teacher_subjects')
+            ->where('teacher_id', $teacher->id)
+            ->pluck('class_id')
+            ->unique()
+            ->toArray();
+
+        $scheduledClassIds = DB::table('teaching_schedules')
+            ->where('teacher_id', $teacher->id)
+            ->pluck('class_id')
+            ->unique()
+            ->toArray();
+
+        return array_values(array_unique(array_merge($homeroomClassIds, $claimedClassIds, $scheduledClassIds)));
+    }
+
+    /**
      * Display the main Kurikulum Merdeka Gradebook or redirect to elearning tab
      */
     public function index(Request $request)
@@ -116,18 +145,70 @@ class PenilaianController extends Controller
         // =========================================================================
         // GURU / ADMIN / PIMPINAN VIEW: BUKU NILAI & SPREADSHEET PENILAIAN
         // =========================================================================
-        $classes = DB::table('classes')->orderBy('grade_level')->get();
-        $subjects = DB::table('subjects')->orderBy('name')->get();
+        $allClasses = DB::table('classes')->orderBy('grade_level')->get();
+        $allSubjects = DB::table('subjects')->orderBy('name')->get();
 
-        $defaultClassId = $classes->first()?->id ?? 1;
-        $defaultSubjectId = $subjects->first()?->id ?? 1;
+        $teacher = DB::table('teachers')->where('user_id', $user->id)->first();
+        $isStaffOrAdmin = in_array($userRole, ['admin', 'pimpinan']);
 
-        $selectedClassId = (int) $request->query('class_id', $defaultClassId);
-        $selectedSubjectId = (int) $request->query('subject_id', $defaultSubjectId);
+        $classes = $allClasses;
+        $subjects = $allSubjects;
+        $defaultClassId = $allClasses->first()?->id ?? 1;
+        $defaultSubjectId = $allSubjects->first()?->id ?? 1;
+
+        if ($teacher && ! $isStaffOrAdmin) {
+            $teacherClassIds = $this->getTeacherClassIds($teacher);
+
+            if (! empty($teacherClassIds)) {
+                $classes = DB::table('classes')
+                    ->whereIn('id', $teacherClassIds)
+                    ->orderBy('grade_level')
+                    ->get();
+
+                // Homeroom class prioritized as default
+                $homeroomClassId = DB::table('classes')
+                    ->where('homeroom_teacher_id', $teacher->id)
+                    ->value('id');
+
+                $defaultClassId = $homeroomClassId ?: ($classes->first()?->id ?? 1);
+            }
+
+            // Filter subjects if teacher is guru_mapel with claimed subjects
+            $claimedSubjectIds = DB::table('teacher_subjects')
+                ->where('teacher_id', $teacher->id)
+                ->pluck('subject_id')
+                ->unique()
+                ->toArray();
+
+            if ($userRole === 'guru_mapel' && ! empty($claimedSubjectIds)) {
+                $subjects = DB::table('subjects')
+                    ->whereIn('id', $claimedSubjectIds)
+                    ->orderBy('name')
+                    ->get();
+                $defaultSubjectId = $subjects->first()?->id ?? $defaultSubjectId;
+            }
+        }
+
+        // Strictly enforce selectedClassId within allowed classes
+        $requestedClassId = $request->query('class_id');
+        if ($requestedClassId && $classes->pluck('id')->contains((int) $requestedClassId)) {
+            $selectedClassId = (int) $requestedClassId;
+        } else {
+            $selectedClassId = (int) $defaultClassId;
+        }
+
+        // Strictly enforce selectedSubjectId within allowed subjects
+        $requestedSubjectId = $request->query('subject_id');
+        if ($requestedSubjectId && $subjects->pluck('id')->contains((int) $requestedSubjectId)) {
+            $selectedSubjectId = (int) $requestedSubjectId;
+        } else {
+            $selectedSubjectId = (int) $defaultSubjectId;
+        }
+
         $selectedSemester = (int) $request->query('semester', $activeAcademicYear->semester ?? 2);
 
-        $selectedClass = $classes->firstWhere('id', $selectedClassId);
-        $selectedSubject = $subjects->firstWhere('id', $selectedSubjectId);
+        $selectedClass = $classes->firstWhere('id', $selectedClassId) ?? $allClasses->firstWhere('id', $selectedClassId);
+        $selectedSubject = $subjects->firstWhere('id', $selectedSubjectId) ?? $allSubjects->firstWhere('id', $selectedSubjectId);
 
         // Find or create AcademicGradebook
         $gradebook = AcademicGradebook::firstOrCreate(
@@ -230,6 +311,18 @@ class PenilaianController extends Controller
         ]);
 
         $gradebook = AcademicGradebook::findOrFail($request->gradebook_id);
+
+        $user = auth()->user();
+        $userRole = $user->role ?? 'guru';
+        $teacher = DB::table('teachers')->where('user_id', $user->id)->first();
+        $isStaffOrAdmin = in_array($userRole, ['admin', 'pimpinan']);
+
+        if ($teacher && ! $isStaffOrAdmin) {
+            $teacherClassIds = $this->getTeacherClassIds($teacher);
+            if (! empty($teacherClassIds) && ! in_array($gradebook->class_id, $teacherClassIds)) {
+                abort(403, 'Anda tidak memiliki hak akses untuk mengubah nilai kelas ini.');
+            }
+        }
 
         // Find or create teacher_subjects row for E-Rapor sync
         $ts = DB::table('teacher_subjects')
@@ -357,6 +450,19 @@ class PenilaianController extends Controller
         ]);
 
         $gradebook = AcademicGradebook::findOrFail($request->gradebook_id);
+
+        $user = auth()->user();
+        $userRole = $user->role ?? 'guru';
+        $teacher = DB::table('teachers')->where('user_id', $user->id)->first();
+        $isStaffOrAdmin = in_array($userRole, ['admin', 'pimpinan']);
+
+        if ($teacher && ! $isStaffOrAdmin) {
+            $teacherClassIds = $this->getTeacherClassIds($teacher);
+            if (! empty($teacherClassIds) && ! in_array($gradebook->class_id, $teacherClassIds)) {
+                abort(403, 'Anda tidak memiliki hak akses untuk mengubah konfigurasi kelas ini.');
+            }
+        }
+
         $gradebook->update([
             'material_scopes' => $request->material_scopes,
         ]);
@@ -372,6 +478,18 @@ class PenilaianController extends Controller
         $classId = (int) $request->query('class_id', 1);
         $subjectId = (int) $request->query('subject_id', 1);
         $semester = (int) $request->query('semester', 2);
+
+        $user = auth()->user();
+        $userRole = $user->role ?? 'guru';
+        $teacher = DB::table('teachers')->where('user_id', $user->id)->first();
+        $isStaffOrAdmin = in_array($userRole, ['admin', 'pimpinan']);
+
+        if ($teacher && ! $isStaffOrAdmin) {
+            $teacherClassIds = $this->getTeacherClassIds($teacher);
+            if (! empty($teacherClassIds) && ! in_array($classId, $teacherClassIds)) {
+                abort(403, 'Anda tidak memiliki hak akses untuk mengekspor nilai kelas ini.');
+            }
+        }
 
         $activeAcademicYear = DB::table('academic_years')->where('is_active', true)->first();
         $academicYearId = $activeAcademicYear?->id ?? 1;
@@ -641,6 +759,18 @@ class PenilaianController extends Controller
         $classId = (int) $request->input('class_id');
         $subjectId = (int) $request->input('subject_id');
         $semester = (int) $request->input('semester', 2);
+
+        $user = auth()->user();
+        $userRole = $user->role ?? 'guru';
+        $teacher = DB::table('teachers')->where('user_id', $user->id)->first();
+        $isStaffOrAdmin = in_array($userRole, ['admin', 'pimpinan']);
+
+        if ($teacher && ! $isStaffOrAdmin) {
+            $teacherClassIds = $this->getTeacherClassIds($teacher);
+            if (! empty($teacherClassIds) && ! in_array($classId, $teacherClassIds)) {
+                abort(403, 'Anda tidak memiliki hak akses untuk mengimpor nilai ke kelas ini.');
+            }
+        }
 
         $activeAcademicYear = DB::table('academic_years')->where('is_active', true)->first();
         $academicYearId = $activeAcademicYear?->id ?? 1;

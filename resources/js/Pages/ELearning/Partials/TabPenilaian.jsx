@@ -355,12 +355,13 @@ export default function TabPenilaian({
 
     // Switch filters (Class, Subject, Semester)
     const handleFilterChange = (newClassId, newSubjectId, newSemester) => {
-        router.get(route('elearning.index'), {
-            tab: 'penilaian',
-            class_id: newClassId,
-            subject_id: newSubjectId,
-            semester: newSemester,
-        }, {
+        const isStandalone = typeof window !== 'undefined' && window.location.pathname.includes('/penilaian');
+        const targetRoute = isStandalone ? route('penilaian.index') : route('elearning.index');
+        const params = isStandalone 
+            ? { standalone: 1, class_id: newClassId, subject_id: newSubjectId, semester: newSemester }
+            : { tab: 'penilaian', class_id: newClassId, subject_id: newSubjectId, semester: newSemester };
+
+        router.get(targetRoute, params, {
             preserveState: true,
             preserveScroll: true,
         });
@@ -451,7 +452,7 @@ export default function TabPenilaian({
                             <select
                                 value={selectedClass?.id || ''}
                                 onChange={(e) => handleFilterChange(e.target.value, selectedSubject?.id, selectedSemester)}
-                                className="w-full pl-3 pr-8 py-2 text-xs font-semibold rounded-xl border-slate-200 focus:border-[#800020] focus:ring-[#800020] bg-slate-50"
+                                className="w-full pl-3 pr-8 py-2 text-xs font-semibold rounded-xl border-slate-200 focus:border-[#800020] focus:ring-[#800020] bg-slate-50 cursor-pointer"
                             >
                                 {classes.map(c => (
                                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -469,7 +470,7 @@ export default function TabPenilaian({
                             <select
                                 value={selectedSubject?.id || ''}
                                 onChange={(e) => handleFilterChange(selectedClass?.id, e.target.value, selectedSemester)}
-                                className="w-full pl-3 pr-8 py-2 text-xs font-semibold rounded-xl border-slate-200 focus:border-[#800020] focus:ring-[#800020] bg-slate-50"
+                                className="w-full pl-3 pr-8 py-2 text-xs font-semibold rounded-xl border-slate-200 focus:border-[#800020] focus:ring-[#800020] bg-slate-50 cursor-pointer"
                             >
                                 {subjects.map(s => (
                                     <option key={s.id} value={s.id}>{s.name} ({s.code})</option>

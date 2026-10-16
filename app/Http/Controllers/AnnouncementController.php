@@ -22,7 +22,7 @@ class AnnouncementController extends Controller
             ->paginate(10);
 
         $announcements->through(function ($item) {
-            $item->documentation_images = $item->documentation_images ? json_decode($item->documentation_images, true) : [];
+            $item->documentation_images = ! empty($item->documentation_images) ? json_decode($item->documentation_images, true) : [];
 
             return $item;
         });
@@ -50,7 +50,7 @@ class AnnouncementController extends Controller
             abort(404);
         }
 
-        $announcement->documentation_images = $announcement->documentation_images ? json_decode($announcement->documentation_images, true) : [];
+        $announcement->documentation_images = ! empty($announcement->documentation_images) ? json_decode($announcement->documentation_images, true) : [];
 
         $recentAnnouncements = DB::table('announcements')
             ->where('id', '!=', $id)

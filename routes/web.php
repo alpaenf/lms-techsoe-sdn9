@@ -33,7 +33,7 @@ Route::get('/', function () {
         ->take(6)
         ->get()
         ->map(function ($item) {
-            $item->documentation_images = $item->documentation_images ? json_decode($item->documentation_images, true) : [];
+            $item->documentation_images = ! empty($item->documentation_images) ? json_decode($item->documentation_images, true) : [];
 
             return $item;
         });
