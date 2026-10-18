@@ -33,7 +33,8 @@ export default function PresensiIndex({
     students = [], 
     teachers = [],
     monthlyRecap = {},
-    permissions = []
+    permissions = [],
+    teacherReligion = null
 }) {
     const { auth } = usePage().props;
     const userRole = auth?.user?.role || 'siswa';
@@ -246,11 +247,22 @@ export default function PresensiIndex({
             header={
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900 leading-tight">
-                            {isSiswa ? 'Catatan Kehadiran Saya' : (isGuru ? 'Presensi Tenaga Pendidik & Pegawai' : 'Presensi Siswa Harian')}
-                        </h2>
+                        <div className="flex items-center space-x-2">
+                            <h2 className="text-xl font-bold text-slate-900 leading-tight">
+                                {isSiswa ? 'Catatan Kehadiran Saya' : (isGuru ? 'Presensi Tenaga Pendidik & Pegawai' : 'Presensi Siswa Harian')}
+                            </h2>
+                            {teacherReligion && !isGuru && (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                    Khusus Siswa Agama {teacherReligion}
+                                </span>
+                            )}
+                        </div>
                         <p className="text-xs text-slate-500 font-medium mt-0.5">
-                            {isSiswa ? 'Rekapitulasi riwayat presensi mandiri peserta didik UPT SDN 9 Gandangbatu Sillanan' : 'Pencatatan Kehadiran, Rekapitulasi Bulanan, & Pengajuan Surat Izin'}
+                            {isSiswa 
+                                ? 'Rekapitulasi riwayat presensi mandiri peserta didik UPT SDN 9 Gandangbatu Sillanan' 
+                                : (teacherReligion && !isGuru 
+                                    ? `Pencatatan kehadiran khusus siswa beragama ${teacherReligion} yang diampu oleh Guru Agama.` 
+                                    : 'Pencatatan Kehadiran, Rekapitulasi Bulanan, & Pengajuan Surat Izin')}
                         </p>
                     </div>
 

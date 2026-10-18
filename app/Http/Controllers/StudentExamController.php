@@ -8,6 +8,7 @@ use App\Models\ExamQuestion;
 use App\Models\Student;
 use App\Models\StudentAnswer;
 use App\Models\StudentExamAttempt;
+use App\Services\ReligionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -43,6 +44,12 @@ class StudentExamController extends Controller
             ->where('status', 'published')
             ->orderBy('start_time', 'desc')
             ->get()
+            ->filter(function ($exam) use ($student) {
+                $subjRel = ReligionService::getSubjectReligion($exam->subject);
+
+                return ReligionService::studentCanAccessSubject($student->religion, $subjRel);
+            })
+            ->values()
             ->map(function ($exam) use ($student) {
                 $attempts = StudentExamAttempt::where('exam_id', $exam->id)
                     ->where('student_id', $student->id)
@@ -99,6 +106,11 @@ class StudentExamController extends Controller
 
         $exam->load(['subject', 'teacher.user', 'class']);
 
+        $subjRel = ReligionService::getSubjectReligion($exam->subject);
+        if ($subjRel && ! ReligionService::studentCanAccessSubject($student->religion, $subjRel)) {
+            return redirect()->route('student.exams.index')->with('error', "Ujian ini khusus untuk siswa beragama {$subjRel}.");
+        }
+
         $attempts = StudentExamAttempt::where('exam_id', $exam->id)
             ->where('student_id', $student->id)
             ->orderBy('attempt_number', 'desc')
@@ -129,6 +141,11 @@ class StudentExamController extends Controller
 
         if ($exam->class_id === null && $exam->exam_category === 'ujian_sekolah' && $student->class?->grade_level != 6) {
             return redirect()->route('student.exams.index')->with('error', 'Ujian Sekolah ini khusus untuk siswa Kelas 6 (Kelas Akhir).');
+        }
+
+        $subjRel = ReligionService::getSubjectReligion($exam->subject);
+        if ($subjRel && ! ReligionService::studentCanAccessSubject($student->religion, $subjRel)) {
+            return redirect()->route('student.exams.index')->with('error', "Ujian ini khusus untuk siswa beragama {$subjRel}.");
         }
 
         if (! $exam->isAvailable()) {

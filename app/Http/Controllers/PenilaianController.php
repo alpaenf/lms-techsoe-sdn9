@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AcademicGradebook;
 use App\Models\AcademicGradebookScore;
+use App\Services\ReligionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -105,7 +106,14 @@ class PenilaianController extends Controller
             }
 
             $studentClass = DB::table('classes')->where('id', $student->class_id)->first();
-            $subjects = DB::table('subjects')->orderBy('name')->get();
+            $allSubjects = DB::table('subjects')->orderBy('name')->get();
+            $studentRel = ReligionService::normalize($student->religion);
+
+            $subjects = $allSubjects->filter(function ($subj) use ($studentRel) {
+                $subjRel = ReligionService::getSubjectReligion($subj);
+
+                return ReligionService::studentCanAccessSubject($studentRel, $subjRel);
+            })->values();
 
             // Fetch gradebooks for this class
             $gradebooks = AcademicGradebook::where('class_id', $student->class_id)
@@ -180,12 +188,24 @@ class PenilaianController extends Controller
                 ->unique()
                 ->toArray();
 
-            if ($userRole === 'guru_mapel' && ! empty($claimedSubjectIds)) {
-                $subjects = DB::table('subjects')
-                    ->whereIn('id', $claimedSubjectIds)
-                    ->orderBy('name')
-                    ->get();
-                $defaultSubjectId = $subjects->first()?->id ?? $defaultSubjectId;
+            if ($userRole === 'guru_mapel') {
+                if (! empty($claimedSubjectIds)) {
+                    $subjects = DB::table('subjects')
+                        ->whereIn('id', $claimedSubjectIds)
+                        ->orderBy('name')
+                        ->get();
+                    $defaultSubjectId = $subjects->first()?->id ?? $defaultSubjectId;
+                } elseif ($teacher->subject_specialization) {
+                    $specRel = ReligionService::detectReligion($teacher->subject_specialization);
+                    $matchedSubj = $allSubjects->filter(function ($s) use ($specRel, $teacher) {
+                        return (stripos($s->name, $teacher->subject_specialization) !== false)
+                            || ($specRel && ReligionService::getSubjectReligion($s) === $specRel);
+                    });
+                    if ($matchedSubj->isNotEmpty()) {
+                        $subjects = $matchedSubj->values();
+                        $defaultSubjectId = $subjects->first()->id;
+                    }
+                }
             }
         }
 
@@ -234,9 +254,18 @@ class PenilaianController extends Controller
         $students = DB::table('students')
             ->where('class_id', $selectedClassId)
             ->where('status', 'aktif')
-            ->select('id', 'nisn', 'nis', 'full_name', 'gender')
+            ->select('id', 'nisn', 'nis', 'full_name', 'gender', 'religion')
             ->orderBy('full_name')
             ->get();
+
+        $targetReligion = ReligionService::getSubjectReligion($selectedSubject);
+        if (! $targetReligion && $teacher && ! $isStaffOrAdmin) {
+            $targetReligion = ReligionService::getTeacherReligion($teacher);
+        }
+
+        if ($targetReligion) {
+            $students = ReligionService::filterStudentsByReligion($students, $targetReligion);
+        }
 
         // Load existing scores for this gradebook
         $scoresMap = AcademicGradebookScore::where('gradebook_id', $gradebook->id)
@@ -526,9 +555,14 @@ class PenilaianController extends Controller
         $students = DB::table('students')
             ->where('class_id', $classId)
             ->where('status', 'aktif')
-            ->select('id', 'nisn', 'nis', 'full_name')
+            ->select('id', 'nisn', 'nis', 'full_name', 'religion')
             ->orderBy('full_name')
             ->get();
+
+        $subjRel = ReligionService::getSubjectReligion($subject);
+        if ($subjRel) {
+            $students = ReligionService::filterStudentsByReligion($students, $subjRel);
+        }
 
         $scoresMap = AcademicGradebookScore::where('gradebook_id', $gradebook->id)
             ->get()
@@ -801,8 +835,13 @@ class PenilaianController extends Controller
         // Load all class students
         $classStudents = DB::table('students')
             ->where('class_id', $classId)
-            ->select('id', 'nisn', 'nis', 'full_name')
+            ->select('id', 'nisn', 'nis', 'full_name', 'religion')
             ->get();
+
+        $subjRel = ReligionService::getSubjectReligion($targetSubject);
+        if ($subjRel) {
+            $classStudents = ReligionService::filterStudentsByReligion($classStudents, $subjRel);
+        }
 
         $spreadsheet = IOFactory::load($file->getRealPath());
 

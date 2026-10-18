@@ -203,6 +203,7 @@ class DatabaseSeeder extends Seeder
         // 6. Seed Subjects (Katalog Mapel SD)
         $subjects = [
             ['code' => 'PAI-SD', 'name' => 'Pendidikan Agama Islam', 'category' => 'wajib', 'kkm' => 75.00],
+            ['code' => 'PAK-SD', 'name' => 'Pendidikan Agama Kristen', 'category' => 'wajib', 'kkm' => 75.00],
             ['code' => 'BIN-SD', 'name' => 'Bahasa Indonesia', 'category' => 'wajib', 'kkm' => 75.00],
             ['code' => 'MAT-SD', 'name' => 'Matematika', 'category' => 'wajib', 'kkm' => 70.00],
             ['code' => 'IPA-SD', 'name' => 'Ilmu Pengetahuan Alam', 'category' => 'wajib', 'kkm' => 75.00],

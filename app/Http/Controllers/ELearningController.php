@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ReligionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -82,6 +83,16 @@ class ELearningController extends Controller
         $availableClasses = ($teacher && $teacherClasses->isNotEmpty()) ? $teacherClasses : $classes;
         $availableSubjects = ($teacher && $teacherSubjects->isNotEmpty()) ? $teacherSubjects : $subjects;
 
+        if ($userRole === 'siswa' && $student) {
+            $studentRel = ReligionService::normalize($student->religion);
+            $subjects = $subjects->filter(function ($s) use ($studentRel) {
+                $sRel = ReligionService::getSubjectReligion($s);
+
+                return ReligionService::studentCanAccessSubject($studentRel, $sRel);
+            })->values();
+            $availableSubjects = $subjects;
+        }
+
         // Query Materials
         $materialsQuery = DB::table('materials')
             ->join('topics', 'materials.topic_id', '=', 'topics.id')
@@ -103,6 +114,15 @@ class ELearningController extends Controller
         }
 
         $materials = $materialsQuery->orderBy('materials.created_at', 'desc')->get();
+
+        if ($userRole === 'siswa' && $student) {
+            $studentRel = ReligionService::normalize($student->religion);
+            $materials = $materials->filter(function ($mat) use ($studentRel) {
+                $sRel = ReligionService::detectReligion($mat->subject_name) ?: ReligionService::detectReligion($mat->subject_code);
+
+                return ReligionService::studentCanAccessSubject($studentRel, $sRel);
+            })->values();
+        }
 
         // Query Assignments
         $rawAssignmentsQuery = DB::table('assignments')
@@ -126,11 +146,31 @@ class ELearningController extends Controller
 
         $rawAssignments = $rawAssignmentsQuery->orderBy('assignments.created_at', 'desc')->get();
 
+        if ($userRole === 'siswa' && $student) {
+            $studentRel = ReligionService::normalize($student->religion);
+            $rawAssignments = $rawAssignments->filter(function ($asg) use ($studentRel) {
+                $sRel = ReligionService::detectReligion($asg->subject_name) ?: ReligionService::detectReligion($asg->subject_code);
+
+                return ReligionService::studentCanAccessSubject($studentRel, $sRel);
+            })->values();
+        }
+
         $assignments = $rawAssignments->map(function ($assignment) use ($student) {
-            $classStudentCount = DB::table('students')
-                ->where('class_id', $assignment->class_id)
-                ->where('status', 'aktif')
-                ->count();
+            $subjRel = ReligionService::detectReligion($assignment->subject_name) ?: ReligionService::detectReligion($assignment->subject_code);
+
+            if ($subjRel) {
+                $classStudentCount = DB::table('students')
+                    ->where('class_id', $assignment->class_id)
+                    ->where('status', 'aktif')
+                    ->get()
+                    ->filter(fn ($st) => ReligionService::normalize($st->religion) === $subjRel)
+                    ->count();
+            } else {
+                $classStudentCount = DB::table('students')
+                    ->where('class_id', $assignment->class_id)
+                    ->where('status', 'aktif')
+                    ->count();
+            }
 
             $submissionCount = DB::table('assignment_submissions')
                 ->where('assignment_id', $assignment->id)
@@ -438,6 +478,19 @@ class ELearningController extends Controller
             'file' => 'nullable|file|max:10240',
         ]);
 
+        $targetAssignment = DB::table('assignments')
+            ->join('topics', 'assignments.topic_id', '=', 'topics.id')
+            ->join('teacher_subjects', 'topics.teacher_subject_id', '=', 'teacher_subjects.id')
+            ->join('subjects', 'teacher_subjects.subject_id', '=', 'subjects.id')
+            ->where('assignments.id', $validated['assignment_id'])
+            ->select('subjects.name as subject_name', 'subjects.code as subject_code')
+            ->first();
+
+        $subjRel = ReligionService::detectReligion($targetAssignment?->subject_name) ?: ReligionService::detectReligion($targetAssignment?->subject_code);
+        if ($subjRel && ! ReligionService::studentCanAccessSubject($student->religion, $subjRel)) {
+            return back()->withErrors(['error' => 'Tugas ini khusus untuk siswa beragama ' . $subjRel . '.']);
+        }
+
         $existing = DB::table('assignment_submissions')
             ->where('assignment_id', $validated['assignment_id'])
             ->where('student_id', $student->id)
@@ -477,6 +530,7 @@ class ELearningController extends Controller
             ->select(
                 'assignments.*',
                 'subjects.name as subject_name',
+                'subjects.code as subject_code',
                 'classes.id as class_id',
                 'classes.name as class_name'
             )
@@ -490,9 +544,14 @@ class ELearningController extends Controller
         $students = DB::table('students')
             ->where('class_id', $assignment->class_id)
             ->where('status', 'aktif')
-            ->select('id', 'nisn', 'nis', 'full_name', 'gender')
+            ->select('id', 'nisn', 'nis', 'full_name', 'gender', 'religion')
             ->orderBy('full_name')
             ->get();
+
+        $subjRel = ReligionService::detectReligion($assignment->subject_name) ?: ReligionService::detectReligion($assignment->subject_code);
+        if ($subjRel) {
+            $students = ReligionService::filterStudentsByReligion($students, $subjRel);
+        }
 
         $submissions = DB::table('assignment_submissions')
             ->where('assignment_id', $id)

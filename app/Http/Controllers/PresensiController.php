@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ReligionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -24,8 +25,12 @@ class PresensiController extends Controller
         $defaultClassId = null;
         $isTeacher = in_array($role, ['guru', 'guru_mapel']);
 
+        $teacher = null;
+        $teacherRel = null;
+
         if ($isTeacher) {
             $teacher = DB::table('teachers')->where('user_id', $user->id)->first();
+            $teacherRel = ReligionService::getTeacherReligion($teacher);
             if ($teacher) {
                 // 1. Homeroom class
                 $homeroomClassIds = DB::table('classes')
@@ -136,6 +141,10 @@ class PresensiController extends Controller
                 ->orderBy('students.full_name')
                 ->get();
 
+            if ($isTeacher && $teacherRel) {
+                $students = $students->filter(fn ($s) => ReligionService::normalize($s->religion) === $teacherRel)->values();
+            }
+
             // Monthly Recap for Students in Class
             $studentIds = $students->pluck('id')->toArray();
 
@@ -197,6 +206,7 @@ class PresensiController extends Controller
             'monthlyRecap' => $monthlyRecap,
             'permissions' => $permissions,
             'isTeacher' => $isTeacher,
+            'teacherReligion' => $teacherRel,
             'teacherClassesCount' => $teacherClasses->count(),
         ]);
     }

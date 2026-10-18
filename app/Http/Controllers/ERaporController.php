@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ReligionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -31,7 +32,12 @@ class ERaporController extends Controller
                 ->select('classes.*', 'teachers.full_name as homeroom_teacher_name', 'teachers.nip as homeroom_teacher_nip')
                 ->first();
 
-            $subjects = DB::table('subjects')->orderBy('code')->get();
+            $studentRel = ReligionService::normalize($student->religion);
+            $subjects = DB::table('subjects')->orderBy('code')->get()->filter(function ($s) use ($studentRel) {
+                $sRel = ReligionService::getSubjectReligion($s);
+
+                return ReligionService::studentCanAccessSubject($studentRel, $sRel);
+            })->values();
 
             // Get grades for this student only
             $grades = DB::table('student_grades')

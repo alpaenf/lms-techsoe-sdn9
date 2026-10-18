@@ -494,9 +494,28 @@ export default function TabPenilaian({
 
                     {/* Mata Pelajaran */}
                     <div>
-                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                            Mata Pelajaran
-                        </label>
+                        <div className="flex items-center justify-between mb-1">
+                            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                Mata Pelajaran
+                            </label>
+                            {(() => {
+                                const sName = (selectedSubject?.name || '').toLowerCase();
+                                const sCode = (selectedSubject?.code || '').toLowerCase();
+                                let rel = null;
+                                if (sName.includes('katolik')) rel = 'Katolik';
+                                else if (sName.includes('islam') || sCode.includes('pai')) rel = 'Islam';
+                                else if (sName.includes('kristen') || sName.includes('protestan') || sCode.includes('pak')) rel = 'Kristen';
+                                else if (sName.includes('hindu')) rel = 'Hindu';
+                                else if (sName.includes('buddh') || sName.includes('budh')) rel = 'Buddha';
+                                else if (sName.includes('khonghucu') || sName.includes('konghucu')) rel = 'Khonghucu';
+
+                                return rel ? (
+                                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                                        Khusus Siswa {rel}
+                                    </span>
+                                ) : null;
+                            })()}
+                        </div>
                         <div className="relative">
                             <select
                                 value={selectedSubject?.id || ''}

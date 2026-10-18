@@ -141,7 +141,30 @@ export default function ModalPrintRapor({
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-900">
-                                {subjects.map((sbj, idx) => {
+                                {(subjects || []).filter(sbj => {
+                                    const sName = (sbj.name || '').toLowerCase();
+                                    const sCode = (sbj.code || '').toLowerCase();
+                                    const sRel = (student?.religion || '').toLowerCase();
+
+                                    let subjRel = null;
+                                    if (sName.includes('katolik')) subjRel = 'katolik';
+                                    else if (sName.includes('islam') || sCode.includes('pai')) subjRel = 'islam';
+                                    else if (sName.includes('kristen') || sName.includes('protestan') || sCode.includes('pak')) subjRel = 'kristen';
+                                    else if (sName.includes('hindu')) subjRel = 'hindu';
+                                    else if (sName.includes('buddh') || sName.includes('budh')) subjRel = 'buddha';
+                                    else if (sName.includes('khonghucu') || sName.includes('konghucu')) subjRel = 'khonghucu';
+
+                                    if (!subjRel) return true;
+
+                                    if (subjRel === 'katolik') return sRel.includes('katolik');
+                                    if (subjRel === 'islam') return sRel.includes('islam');
+                                    if (subjRel === 'kristen') return sRel.includes('kristen') || sRel.includes('protestan');
+                                    if (subjRel === 'hindu') return sRel.includes('hindu');
+                                    if (subjRel === 'buddha') return sRel.includes('buddh') || sRel.includes('budh');
+                                    if (subjRel === 'khonghucu') return sRel.includes('khonghucu') || sRel.includes('konghucu');
+
+                                    return true;
+                                }).map((sbj, idx) => {
                                     const g = studentGrades[sbj.id];
                                     const score = g ? g.final_score : '85.00';
                                     const grade = g ? g.letter_grade : 'B';

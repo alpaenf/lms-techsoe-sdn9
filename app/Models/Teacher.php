@@ -19,6 +19,8 @@ class Teacher extends Model
         'gender',
         'employment_status',
         'education_level',
+        'teacher_type',
+        'subject_specialization',
         'photo',
     ];
 

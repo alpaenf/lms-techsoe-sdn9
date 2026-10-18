@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ReligionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -350,28 +351,61 @@ class DashboardController extends Controller
             ];
 
             $avgScore = $studentId ? DB::table('student_grades')->where('student_id', $studentId)->avg('final_score') : null;
+            $studentRel = ReligionService::normalize($student?->religion);
+
+            $classAssignments = collect();
+            $classMaterialsCount = 0;
+
+            if ($student?->class_id) {
+                $rawClassAssignments = DB::table('assignments')
+                    ->join('topics', 'assignments.topic_id', '=', 'topics.id')
+                    ->join('teacher_subjects', 'topics.teacher_subject_id', '=', 'teacher_subjects.id')
+                    ->join('subjects', 'teacher_subjects.subject_id', '=', 'subjects.id')
+                    ->where('teacher_subjects.class_id', $student->class_id)
+                    ->select(
+                        'assignments.*',
+                        'subjects.name as subject_name',
+                        'subjects.code as subject_code'
+                    )
+                    ->orderByDesc('assignments.due_date')
+                    ->get();
+
+                $classAssignments = $rawClassAssignments->filter(function ($asg) use ($studentRel) {
+                    $subjRel = ReligionService::detectReligion($asg->subject_name) ?: ReligionService::detectReligion($asg->subject_code);
+
+                    return ReligionService::studentCanAccessSubject($studentRel, $subjRel);
+                })->values();
+
+                $rawClassMaterials = DB::table('materials')
+                    ->join('topics', 'materials.topic_id', '=', 'topics.id')
+                    ->join('teacher_subjects', 'topics.teacher_subject_id', '=', 'teacher_subjects.id')
+                    ->join('subjects', 'teacher_subjects.subject_id', '=', 'subjects.id')
+                    ->where('teacher_subjects.class_id', $student->class_id)
+                    ->select(
+                        'materials.id',
+                        'subjects.name as subject_name',
+                        'subjects.code as subject_code'
+                    )
+                    ->get();
+
+                $classMaterialsCount = $rawClassMaterials->filter(function ($mat) use ($studentRel) {
+                    $subjRel = ReligionService::detectReligion($mat->subject_name) ?: ReligionService::detectReligion($mat->subject_code);
+
+                    return ReligionService::studentCanAccessSubject($studentRel, $subjRel);
+                })->count();
+            }
 
             $data['student'] = $student;
             $data['attendance'] = $attendanceCounts;
             $data['metrics'] = [
                 'class_name' => $student?->class_name ?? 'Kelas 6',
                 'nisn' => $student?->nisn ?? $user?->username ?? '-',
-                'total_materials' => DB::table('materials')->count(),
-                'active_assignments' => DB::table('assignments')->count(),
+                'total_materials' => $classMaterialsCount,
+                'active_assignments' => $classAssignments->count(),
                 'gpa_avg' => $avgScore ? number_format($avgScore, 1) : '88.5',
             ];
 
-            $data['assignments'] = DB::table('assignments')
-                ->join('topics', 'assignments.topic_id', '=', 'topics.id')
-                ->join('teacher_subjects', 'topics.teacher_subject_id', '=', 'teacher_subjects.id')
-                ->join('subjects', 'teacher_subjects.subject_id', '=', 'subjects.id')
-                ->select(
-                    'assignments.*',
-                    'subjects.name as subject_name'
-                )
-                ->orderByDesc('assignments.due_date')
-                ->limit(3)
-                ->get();
+            $data['assignments'] = $classAssignments->take(3)->values();
         }
 
         return Inertia::render('Dashboard/Index', $data);
