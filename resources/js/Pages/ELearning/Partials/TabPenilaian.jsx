@@ -55,6 +55,8 @@ export default function TabPenilaian({
 }) {
     // Determine student mode
     const isStudentMode = isSiswa || isStudentView;
+    const userRole = auth?.user?.role || '';
+    const isStaffOrAdmin = ['admin', 'pimpinan'].includes(userRole);
 
     // =========================================================================
     // SISWA VIEW: TAMPILAN REKAP NILAI SISWA
@@ -448,17 +450,46 @@ export default function TabPenilaian({
                         <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                             Kelas
                         </label>
-                        <div className="relative">
-                            <select
-                                value={selectedClass?.id || ''}
-                                onChange={(e) => handleFilterChange(e.target.value, selectedSubject?.id, selectedSemester)}
-                                className="w-full pl-3 pr-8 py-2 text-xs font-semibold rounded-xl border-slate-200 focus:border-[#800020] focus:ring-[#800020] bg-slate-50 cursor-pointer"
-                            >
-                                {classes.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
-                            </select>
-                        </div>
+                        {classes.length === 1 && !isStaffOrAdmin ? (
+                            <div className="h-[38px] px-3.5 bg-rose-50 border border-rose-200/80 rounded-xl flex items-center justify-between text-xs font-bold text-[#800020] shadow-2xs">
+                                <span className="truncate">{selectedClass?.name || classes[0]?.name}</span>
+                                <span className="text-[10px] font-semibold px-2 py-0.5 bg-white text-[#800020] border border-rose-200 rounded-full shrink-0">
+                                    Kelas Ampuan
+                                </span>
+                            </div>
+                        ) : classes.length > 1 && !isStaffOrAdmin && classes.length <= 6 ? (
+                            <div className="flex flex-wrap gap-1.5 items-center min-h-[38px]">
+                                {classes.map(c => {
+                                    const isSelected = String(selectedClass?.id) === String(c.id);
+                                    return (
+                                        <button
+                                            key={c.id}
+                                            type="button"
+                                            onClick={() => handleFilterChange(c.id, selectedSubject?.id, selectedSemester)}
+                                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                                                isSelected
+                                                    ? 'bg-[#800020] text-white shadow-xs'
+                                                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                                            }`}
+                                        >
+                                            {c.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="relative">
+                                <select
+                                    value={selectedClass?.id || ''}
+                                    onChange={(e) => handleFilterChange(e.target.value, selectedSubject?.id, selectedSemester)}
+                                    className="w-full pl-3 pr-8 py-2 text-xs font-semibold rounded-xl border-slate-200 focus:border-[#800020] focus:ring-[#800020] bg-slate-50 cursor-pointer"
+                                >
+                                    {classes.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                     </div>
 
                     {/* Mata Pelajaran */}
@@ -665,13 +696,13 @@ export default function TabPenilaian({
                         <thead>
                             {/* Tier 1 Header: Groups */}
                             <tr className="bg-slate-800 text-white font-bold text-center border-b border-slate-700">
-                                <th rowSpan={3} className="sticky left-0 z-30 bg-slate-800 px-3 py-3 w-10 border-r border-slate-700 text-center">
+                                <th rowSpan={3} className="sticky left-0 z-20 bg-slate-800 px-3 py-3 w-10 border-r border-slate-700 text-center">
                                     No
                                 </th>
-                                <th rowSpan={3} className="sticky left-10 z-30 bg-slate-800 px-3 py-3 w-28 border-r border-slate-700 text-center">
+                                <th rowSpan={3} className="sticky left-10 z-20 bg-slate-800 px-3 py-3 w-28 border-r border-slate-700 text-center">
                                     NISN / NIS
                                 </th>
-                                <th rowSpan={3} className="sticky left-38 z-30 bg-slate-800 px-4 py-3 min-w-[200px] border-r border-slate-700 text-left">
+                                <th rowSpan={3} className="sticky left-38 z-20 bg-slate-800 px-4 py-3 min-w-[200px] border-r border-slate-700 text-left">
                                     Nama Lengkap Siswa
                                 </th>
 
@@ -814,13 +845,13 @@ export default function TabPenilaian({
                                     return (
                                         <tr key={st.student_id} className="hover:bg-slate-50 transition-colors">
                                             {/* Sticky Columns */}
-                                            <td className="sticky left-0 z-20 bg-inherit px-3 py-2 text-center text-slate-500 font-semibold border-r border-slate-200">
+                                            <td className="sticky left-0 z-10 bg-inherit px-3 py-2 text-center text-slate-500 font-semibold border-r border-slate-200">
                                                 {idx + 1}
                                             </td>
-                                            <td className="sticky left-10 z-20 bg-inherit px-3 py-2 text-slate-600 font-mono text-[11px] border-r border-slate-200">
+                                            <td className="sticky left-10 z-10 bg-inherit px-3 py-2 text-slate-600 font-mono text-[11px] border-r border-slate-200">
                                                 {st.nisn || st.nis || '-'}
                                             </td>
-                                            <td className="sticky left-38 z-20 bg-inherit px-4 py-2 font-bold text-slate-800 border-r border-slate-200 whitespace-nowrap">
+                                            <td className="sticky left-38 z-10 bg-inherit px-4 py-2 font-bold text-slate-800 border-r border-slate-200 whitespace-nowrap">
                                                 {st.full_name}
                                             </td>
 

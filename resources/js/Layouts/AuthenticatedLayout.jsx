@@ -449,7 +449,7 @@ export default function AuthenticatedLayout({ header, children }) {
         <div className="min-h-screen bg-[#F8F9FB] text-slate-800 flex font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#800020] selection:text-white">
             {/* Mobile Sidebar Overlay Backdrop */}
             <div
-                className={`fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden transition-opacity duration-300 ${
+                className={`fixed inset-0 z-45 bg-slate-900/50 backdrop-blur-sm lg:hidden transition-opacity duration-300 ${
                     sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                 }`}
                 onClick={(e) => {
@@ -609,7 +609,7 @@ export default function AuthenticatedLayout({ header, children }) {
             {/* Main Content Wrapper */}
             <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
                 {/* Top Navigation Bar */}
-                <header className="sticky top-0 z-30 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+                <header className="sticky top-0 z-40 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center space-x-3">
                         <button
                             type="button"

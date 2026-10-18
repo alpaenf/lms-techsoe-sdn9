@@ -51,7 +51,13 @@ class ELearningController extends Controller
                 ->unique()
                 ->toArray();
 
-            $teacherClassIds = array_values(array_unique(array_merge($homeroomClassIds, $claimedClassIds)));
+            $scheduledClassIds = DB::table('teaching_schedules')
+                ->where('teacher_id', $teacher->id)
+                ->pluck('class_id')
+                ->unique()
+                ->toArray();
+
+            $teacherClassIds = array_values(array_unique(array_merge($homeroomClassIds, $claimedClassIds, $scheduledClassIds)));
 
             if (! empty($teacherClassIds)) {
                 $teacherClasses = DB::table('classes')

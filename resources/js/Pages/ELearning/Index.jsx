@@ -428,37 +428,74 @@ export default function ELearningIndex({
                 )}
 
                 {/* Filter Bar */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                        <div className="relative inline-block w-full sm:w-auto">
-                            <select 
-                                value={selectedSubject}
-                                onChange={(e) => setSelectedSubject(e.target.value)}
-                                className="w-full sm:w-auto h-10 pl-3.5 pr-9 min-w-[200px] bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 focus:border-[#800020] focus:ring-[#800020] appearance-none cursor-pointer shadow-sm"
-                            >
-                                <option value="">Semua Mata Pelajaran</option>
-                                {(isTeacher && modalSubjects.length < subjects.length ? modalSubjects : subjects).map(s => (
-                                    <option key={s.id} value={s.id}>{s.name}</option>
-                                ))}
-                            </select>
-                            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        </div>
+                {tab !== 'penilaian' && (
+                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                            <div className="relative inline-block w-full sm:w-auto">
+                                <select 
+                                    value={selectedSubject}
+                                    onChange={(e) => setSelectedSubject(e.target.value)}
+                                    className="w-full sm:w-auto h-10 pl-3.5 pr-9 min-w-[200px] bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 focus:border-[#800020] focus:ring-[#800020] appearance-none cursor-pointer shadow-sm"
+                                >
+                                    <option value="">Semua Mata Pelajaran</option>
+                                    {(isTeacher && modalSubjects.length < subjects.length ? modalSubjects : subjects).map(s => (
+                                        <option key={s.id} value={s.id}>{s.name}</option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            </div>
 
-                        <div className="relative inline-block w-full sm:w-auto">
-                            <select 
-                                value={selectedClass}
-                                onChange={(e) => setSelectedClass(e.target.value)}
-                                className="w-full sm:w-auto h-10 pl-3.5 pr-9 min-w-[170px] bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 focus:border-[#800020] focus:ring-[#800020] appearance-none cursor-pointer shadow-sm"
-                            >
-                                <option value="">{isTeacher ? 'Semua Kelas Ampuan' : 'Semua Tingkat Kelas'}</option>
-                                {(isTeacher && modalClasses.length < classes.length ? modalClasses : classes).map(c => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
-                            </select>
-                            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        </div>
+                            {isTeacher && modalClasses.length === 1 ? (
+                                <div className="h-10 px-3.5 bg-rose-50 border border-rose-200/80 rounded-xl flex items-center space-x-2 text-xs font-bold text-[#800020] shadow-sm">
+                                    <span>{modalClasses[0]?.name}</span>
+                                    <span className="text-[10px] font-semibold px-2 py-0.5 bg-white text-[#800020] border border-rose-200 rounded-full">
+                                        Kelas Ampuan
+                                    </span>
+                                </div>
+                            ) : isTeacher && modalClasses.length > 1 && modalClasses.length <= 4 ? (
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedClass('')}
+                                        className={`px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                                            !selectedClass
+                                                ? 'bg-[#800020] text-white shadow-xs'
+                                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                                        }`}
+                                    >
+                                        Semua Kelas
+                                    </button>
+                                    {modalClasses.map(c => (
+                                        <button
+                                            key={c.id}
+                                            type="button"
+                                            onClick={() => setSelectedClass(String(c.id))}
+                                            className={`px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                                                String(selectedClass) === String(c.id)
+                                                    ? 'bg-[#800020] text-white shadow-xs'
+                                                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                                            }`}
+                                        >
+                                            {c.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="relative inline-block w-full sm:w-auto">
+                                    <select 
+                                        value={selectedClass}
+                                        onChange={(e) => setSelectedClass(e.target.value)}
+                                        className="w-full sm:w-auto h-10 pl-3.5 pr-9 min-w-[170px] bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 focus:border-[#800020] focus:ring-[#800020] appearance-none cursor-pointer shadow-sm"
+                                    >
+                                        <option value="">{isTeacher ? 'Semua Kelas Ampuan' : 'Semua Tingkat Kelas'}</option>
+                                        {(isTeacher && modalClasses.length < classes.length ? modalClasses : classes).map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                </div>
+                            )}
 
-                        {tab !== 'penilaian' && (
                             <div className="relative w-full sm:w-64">
                                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                                 <input
@@ -469,31 +506,31 @@ export default function ELearningIndex({
                                     className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-300 text-xs text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
                                 />
                             </div>
+                        </div>
+
+                        {canManage && (
+                            <div className="w-full sm:w-auto flex justify-end">
+                                {tab === 'materi' ? (
+                                    <button 
+                                        onClick={openCreateMaterialModal}
+                                        className="px-4 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition cursor-pointer"
+                                    >
+                                        <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
+                                        <span>Tambah Bahan Ajar</span>
+                                    </button>
+                                ) : (
+                                    <button 
+                                        onClick={openCreateAssignmentModal}
+                                        className="px-4 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition cursor-pointer"
+                                    >
+                                        <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
+                                        <span>Buat Tugas Baru</span>
+                                    </button>
+                                )}
+                            </div>
                         )}
                     </div>
-
-                    {canManage && (
-                        <div className="w-full sm:w-auto flex justify-end">
-                            {tab === 'materi' ? (
-                                <button 
-                                    onClick={openCreateMaterialModal}
-                                    className="px-4 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition cursor-pointer"
-                                >
-                                    <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
-                                    <span>Tambah Bahan Ajar</span>
-                                </button>
-                            ) : (
-                                <button 
-                                    onClick={openCreateAssignmentModal}
-                                    className="px-4 py-2 bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-semibold rounded-xl inline-flex items-center shadow-sm transition cursor-pointer"
-                                >
-                                    <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
-                                    <span>Buat Tugas Baru</span>
-                                </button>
-                            )}
-                        </div>
-                    )}
-                </div>
+                )}
 
                 {/* TAB 1: MODUL BAHAN AJAR */}
                 {tab === 'materi' && (

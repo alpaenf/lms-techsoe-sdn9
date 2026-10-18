@@ -205,7 +205,13 @@ class PenilaianController extends Controller
             $selectedSubjectId = (int) $defaultSubjectId;
         }
 
-        $selectedSemester = (int) $request->query('semester', $activeAcademicYear->semester ?? 2);
+        $semQuery = $request->query('semester');
+        if ($semQuery !== null && in_array((int) $semQuery, [1, 2], true)) {
+            $selectedSemester = (int) $semQuery;
+        } else {
+            $activeSemStr = strtolower((string) ($activeAcademicYear->semester ?? 'ganjil'));
+            $selectedSemester = in_array($activeSemStr, ['2', 'genap'], true) ? 2 : 1;
+        }
 
         $selectedClass = $classes->firstWhere('id', $selectedClassId) ?? $allClasses->firstWhere('id', $selectedClassId);
         $selectedSubject = $subjects->firstWhere('id', $selectedSubjectId) ?? $allSubjects->firstWhere('id', $selectedSubjectId);
