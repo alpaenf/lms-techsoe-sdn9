@@ -48,7 +48,7 @@ export default function TabGuru({
                                     <td className="px-4 py-3.5 text-slate-600">{t.education_level}</td>
                                     <td className="px-4 py-3.5 font-mono text-slate-500">{t.email || '-'}</td>
                                     <td className="px-4 py-3.5 text-right space-x-1">
-                                        {canManageMaster && (
+                                        {canManageMaster ? (
                                             <>
                                                 <button 
                                                     onClick={() => onEdit(t)}
@@ -65,6 +65,8 @@ export default function TabGuru({
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
                                             </>
+                                        ) : (
+                                            <span className="text-slate-400 text-xs">-</span>
                                         )}
                                     </td>
                                 </tr>

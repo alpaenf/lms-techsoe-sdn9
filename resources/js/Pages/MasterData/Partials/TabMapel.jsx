@@ -34,7 +34,7 @@ export default function TabMapel({
                                     {parseFloat(sub.kkm).toFixed(2)}
                                 </td>
                                 <td className="px-4 py-3.5 text-right space-x-1">
-                                    {canManageMaster && (
+                                    {canManageMaster ? (
                                         <>
                                             <button 
                                                 onClick={() => onEdit(sub)}
@@ -51,6 +51,8 @@ export default function TabMapel({
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </>
+                                    ) : (
+                                        <span className="text-slate-400 text-xs">-</span>
                                     )}
                                 </td>
                             </tr>

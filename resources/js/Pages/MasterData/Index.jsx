@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Search, Download, PlusCircle, CheckCircle2, AlertCircle, Upload, Filter } from 'lucide-react';
@@ -28,8 +28,17 @@ export default function MasterDataIndex({
     const { auth } = usePage().props;
     const userRole = auth?.user?.role || 'siswa';
     const canManageMaster = userRole === 'admin' || userRole === 'pimpinan';
+    const canViewAllTabs = userRole === 'admin' || userRole === 'pimpinan' || userRole === 'tendik';
 
-    const [tab, setTab] = useState(canManageMaster ? currentTab : 'siswa');
+    const validTabs = ['siswa', 'guru', 'rombel', 'mapel'];
+    const initialTab = (canViewAllTabs && validTabs.includes(currentTab)) ? currentTab : 'siswa';
+    const [tab, setTab] = useState(initialTab);
+
+    useEffect(() => {
+        if (canViewAllTabs && currentTab && validTabs.includes(currentTab)) {
+            setTab(currentTab);
+        }
+    }, [currentTab, canViewAllTabs]);
     const [search, setSearch] = useState('');
     const [selectedClassFilter, setSelectedClassFilter] = useState('');
     const [notification, setNotification] = useState(null);
@@ -392,7 +401,7 @@ export default function MasterDataIndex({
                         >
                             Buku Induk Siswa ({studentList.length})
                         </button>
-                        {canManageMaster && (
+                        {canViewAllTabs && (
                             <>
                                 <button
                                     onClick={() => setTab('guru')}

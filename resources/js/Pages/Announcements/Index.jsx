@@ -30,7 +30,7 @@ import {
 
 export default function AnnouncementsIndex({ auth, announcements = { data: [] } }) {
     const userRole = auth?.user?.role || 'siswa';
-    const canManage = Boolean(auth?.user && (userRole === 'admin' || userRole === 'pimpinan'));
+    const canManage = Boolean(auth?.user && (userRole === 'admin' || userRole === 'pimpinan' || userRole === 'tendik'));
 
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);

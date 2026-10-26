@@ -254,8 +254,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/attempts/{attempt}/result', [StudentExamController::class, 'result'])->name('student.exams.result');
     });
 
-    // 10. Pengumuman & Berita Sekolah - Admin only manage
-    Route::middleware(['role:admin,pimpinan'])->group(function () {
+    // 10. Pengumuman & Berita Sekolah - Admin, Pimpinan & Tendik can manage
+    Route::middleware(['role:admin,pimpinan,tendik'])->group(function () {
         Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
         Route::put('/announcements/{id}', [AnnouncementController::class, 'update'])->name('announcements.update');
         Route::delete('/announcements/{id}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
