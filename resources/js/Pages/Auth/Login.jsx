@@ -130,7 +130,7 @@ export default function Login({ status, canResetPassword }) {
 
                         {/* Right Login Card (Col 8 to 12) */}
                         <div className="lg:col-span-5 flex items-center justify-center lg:justify-end h-full">
-                            <div className="bg-white rounded-[24px] sm:rounded-[28px] p-6 sm:p-9 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] w-full max-w-[440px] min-h-[492px] border border-white/20 relative my-auto flex flex-col justify-between">
+                            <div className="bg-white rounded-[24px] sm:rounded-[28px] p-6 sm:px-9 sm:py-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] w-full max-w-[440px] min-h-[492px] border border-white/20 relative my-auto flex flex-col justify-center">
 
                                 {status && (
                                     <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800">
@@ -147,90 +147,88 @@ export default function Login({ status, canResetPassword }) {
                                     </p>
                                 </div>
 
-                                <form onSubmit={submit} className="space-y-4 flex-1 flex flex-col justify-between">
-                                    <div className="space-y-4">
-                                        {/* Identifier Input */}
-                                        <div>
-                                            <label htmlFor="login" className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-                                                EMAIL, NIP, NISN, ATAU USERNAME
-                                            </label>
-                                            <div className="relative flex items-center bg-[#EDF2F7] rounded-xl border border-slate-200/80 focus-within:border-slate-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#740D1E]/20 transition-all">
-                                                <User className="w-4.5 h-4.5 text-slate-400 ml-3.5 shrink-0 pointer-events-none" />
-                                                <input
-                                                    id="login"
-                                                    type="text"
-                                                    name="login"
-                                                    value={data.login}
-                                                    onChange={(e) => setData('login', e.target.value)}
-                                                    placeholder="admin@gandasil.id"
-                                                    className="w-full bg-transparent py-3 pl-3 pr-4 text-slate-800 placeholder-slate-400 text-sm font-normal focus:outline-none rounded-xl"
-                                                    required
-                                                    autoComplete="username"
-                                                />
-                                            </div>
-                                            <InputError message={errors.login || errors.email} className="mt-1 text-xs" />
+                                <form onSubmit={submit} className="space-y-4">
+                                    {/* Identifier Input */}
+                                    <div>
+                                        <label htmlFor="login" className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                                            EMAIL, NIP, NISN, ATAU USERNAME
+                                        </label>
+                                        <div className="relative flex items-center bg-[#EDF2F7] rounded-xl border border-slate-200/80 focus-within:border-slate-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#740D1E]/20 transition-all">
+                                            <User className="w-4.5 h-4.5 text-slate-400 ml-3.5 shrink-0 pointer-events-none" />
+                                            <input
+                                                id="login"
+                                                type="text"
+                                                name="login"
+                                                value={data.login}
+                                                onChange={(e) => setData('login', e.target.value)}
+                                                placeholder="admin@gandasil.id"
+                                                className="w-full bg-transparent py-3 pl-3 pr-4 text-slate-800 placeholder-slate-400 text-sm font-normal focus:outline-none rounded-xl"
+                                                required
+                                                autoComplete="username"
+                                            />
                                         </div>
+                                        <InputError message={errors.login || errors.email} className="mt-1 text-xs" />
+                                    </div>
 
-                                        {/* Password Input */}
-                                        <div>
-                                            <div className="flex justify-between items-center mb-1.5">
-                                                <label htmlFor="password" className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                                                    KATA SANDI
-                                                </label>
-                                                {canResetPassword && (
-                                                    <Link
-                                                        href={route('password.request')}
-                                                        className="text-xs font-semibold text-[#800020] hover:text-[#5a0017] hover:underline transition"
-                                                    >
-                                                        Lupa kata sandi?
-                                                    </Link>
-                                                )}
-                                            </div>
-                                            <div className="relative flex items-center bg-[#EDF2F7] rounded-xl border border-slate-200/80 focus-within:border-slate-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#740D1E]/20 transition-all">
-                                                <Lock className="w-4.5 h-4.5 text-slate-400 ml-3.5 shrink-0 pointer-events-none" />
-                                                <input
-                                                    id="password"
-                                                    type={showPassword ? 'text' : 'password'}
-                                                    name="password"
-                                                    value={data.password}
-                                                    onChange={(e) => setData('password', e.target.value)}
-                                                    placeholder="••••••••"
-                                                    className="w-full bg-transparent py-3 pl-3 pr-10 text-slate-800 placeholder-slate-400 text-sm font-normal focus:outline-none rounded-xl"
-                                                    required
-                                                    autoComplete="current-password"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowPassword(!showPassword)}
-                                                    className="absolute right-3.5 text-slate-400 hover:text-slate-600 transition"
-                                                    tabIndex={-1}
-                                                    aria-label="Tampilkan atau sembunyikan kata sandi"
+                                    {/* Password Input */}
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1.5">
+                                            <label htmlFor="password" className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                                                KATA SANDI
+                                            </label>
+                                            {canResetPassword && (
+                                                <Link
+                                                    href={route('password.request')}
+                                                    className="text-xs font-semibold text-[#800020] hover:text-[#5a0017] hover:underline transition"
                                                 >
-                                                    {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
-                                                </button>
-                                            </div>
-                                            <InputError message={errors.password} className="mt-1 text-xs" />
+                                                    Lupa kata sandi?
+                                                </Link>
+                                            )}
                                         </div>
+                                        <div className="relative flex items-center bg-[#EDF2F7] rounded-xl border border-slate-200/80 focus-within:border-slate-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#740D1E]/20 transition-all">
+                                            <Lock className="w-4.5 h-4.5 text-slate-400 ml-3.5 shrink-0 pointer-events-none" />
+                                            <input
+                                                id="password"
+                                                type={showPassword ? 'text' : 'password'}
+                                                name="password"
+                                                value={data.password}
+                                                onChange={(e) => setData('password', e.target.value)}
+                                                placeholder="••••••••"
+                                                className="w-full bg-transparent py-3 pl-3 pr-10 text-slate-800 placeholder-slate-400 text-sm font-normal focus:outline-none rounded-xl"
+                                                required
+                                                autoComplete="current-password"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute right-3.5 text-slate-400 hover:text-slate-600 transition"
+                                                tabIndex={-1}
+                                                aria-label="Tampilkan atau sembunyikan kata sandi"
+                                            >
+                                                {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                                            </button>
+                                        </div>
+                                        <InputError message={errors.password} className="mt-1 text-xs" />
+                                    </div>
 
-                                        {/* Remember Me Checkbox */}
-                                        <div className="flex items-center pt-1 pb-1">
-                                            <label className="flex items-center cursor-pointer select-none">
-                                                <input
-                                                    type="checkbox"
-                                                    name="remember"
-                                                    checked={data.remember}
-                                                    onChange={(e) => setData('remember', e.target.checked)}
-                                                    className="w-4.5 h-4.5 rounded border-slate-300 text-[#6a0918] focus:ring-[#6a0918] cursor-pointer"
-                                                />
-                                                <span className="ml-2.5 text-xs sm:text-sm text-slate-600 font-medium">
-                                                    Ingat sesi masuk di perangkat ini
-                                                </span>
-                                            </label>
-                                        </div>
+                                    {/* Remember Me Checkbox */}
+                                    <div className="flex items-center pt-1 pb-1">
+                                        <label className="flex items-center cursor-pointer select-none">
+                                            <input
+                                                type="checkbox"
+                                                name="remember"
+                                                checked={data.remember}
+                                                onChange={(e) => setData('remember', e.target.checked)}
+                                                className="w-4.5 h-4.5 rounded border-slate-300 text-[#6a0918] focus:ring-[#6a0918] cursor-pointer"
+                                            />
+                                            <span className="ml-2.5 text-xs sm:text-sm text-slate-600 font-medium">
+                                                Ingat sesi masuk di perangkat ini
+                                            </span>
+                                        </label>
                                     </div>
 
                                     {/* Submit Button */}
-                                    <div className="pt-4">
+                                    <div className="pt-2">
                                         <button
                                             type="submit"
                                             disabled={processing}
