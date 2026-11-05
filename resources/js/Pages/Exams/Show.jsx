@@ -18,7 +18,9 @@ import {
     X,
     Activity,
     Award,
-    HelpCircle
+    HelpCircle,
+    Loader2,
+    ZoomIn
 } from 'lucide-react';
 
 export default function ExamsShow({ auth, exam, statistics = {} }) {
@@ -34,6 +36,17 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         correct_answer: 'A',
     });
 
+    const [questionImageFile, setQuestionImageFile] = useState(null);
+    const [questionImagePreview, setQuestionImagePreview] = useState(null);
+    const [removeQuestionImage, setRemoveQuestionImage] = useState(false);
+
+    const [optionImageFiles, setOptionImageFiles] = useState({ A: null, B: null, C: null, D: null });
+    const [optionImagePreviews, setOptionImagePreviews] = useState({ A: null, B: null, C: null, D: null });
+    const [removeOptionImages, setRemoveOptionImages] = useState({ A: false, B: false, C: false, D: false });
+
+    const [isSubmittingQuestion, setIsSubmittingQuestion] = useState(false);
+    const [lightboxImage, setLightboxImage] = useState(null);
+
     const [imageUploadQuestionId, setImageUploadQuestionId] = useState(null);
     const [selectedImageFile, setSelectedImageFile] = useState(null);
 
@@ -46,6 +59,12 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
             options: { A: '', B: '', C: '', D: '' },
             correct_answer: 'A',
         });
+        setQuestionImageFile(null);
+        setQuestionImagePreview(null);
+        setRemoveQuestionImage(false);
+        setOptionImageFiles({ A: null, B: null, C: null, D: null });
+        setOptionImagePreviews({ A: null, B: null, C: null, D: null });
+        setRemoveOptionImages({ A: false, B: false, C: false, D: false });
         setIsQuestionModalOpen(true);
     };
 
@@ -56,22 +75,122 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
             question_text: q.question_text,
             points: q.points || 10,
             options: q.options || { A: '', B: '', C: '', D: '' },
-            correct_answer: q.correct_answer || '',
+            correct_answer: q.correct_answer || 'A',
         });
+        setQuestionImageFile(null);
+        setQuestionImagePreview(q.question_image ? `/storage/${q.question_image}` : null);
+        setRemoveQuestionImage(false);
+        setOptionImageFiles({ A: null, B: null, C: null, D: null });
+        setOptionImagePreviews({
+            A: q.option_images?.A ? `/storage/${q.option_images.A}` : null,
+            B: q.option_images?.B ? `/storage/${q.option_images.B}` : null,
+            C: q.option_images?.C ? `/storage/${q.option_images.C}` : null,
+            D: q.option_images?.D ? `/storage/${q.option_images.D}` : null,
+        });
+        setRemoveOptionImages({ A: false, B: false, C: false, D: false });
         setIsQuestionModalOpen(true);
+    };
+
+    const handleQuestionImageChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Ukuran gambar maksimal adalah 5MB.');
+            return;
+        }
+
+        setQuestionImageFile(file);
+        setQuestionImagePreview(URL.createObjectURL(file));
+        setRemoveQuestionImage(false);
+    };
+
+    const handleRemoveQuestionImage = () => {
+        setQuestionImageFile(null);
+        setQuestionImagePreview(null);
+        setRemoveQuestionImage(true);
+    };
+
+    const handleOptionImageChange = (opt, e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert(`Ukuran berkas gambar pilihan ${opt} maksimal adalah 5MB.`);
+            return;
+        }
+
+        setOptionImageFiles(prev => ({ ...prev, [opt]: file }));
+        setOptionImagePreviews(prev => ({ ...prev, [opt]: URL.createObjectURL(file) }));
+        setRemoveOptionImages(prev => ({ ...prev, [opt]: false }));
+    };
+
+    const handleRemoveOptionImage = (opt) => {
+        setOptionImageFiles(prev => ({ ...prev, [opt]: null }));
+        setOptionImagePreviews(prev => ({ ...prev, [opt]: null }));
+        setRemoveOptionImages(prev => ({ ...prev, [opt]: true }));
     };
 
     const handleSaveQuestion = (e) => {
         e.preventDefault();
+
+        if (questionForm.question_type === 'multiple_choice') {
+            for (const opt of ['A', 'B', 'C', 'D']) {
+                const textVal = questionForm.options?.[opt];
+                const hasText = textVal !== undefined && textVal !== null && String(textVal).trim() !== '';
+                const hasImg = Boolean(optionImagePreviews[opt]);
+                if (!hasText && !hasImg) {
+                    alert(`Pilihan ${opt} belum memiliki teks jawaban atau gambar.`);
+                    return;
+                }
+            }
+        }
+
+        const formData = new FormData();
         if (editingQuestion) {
-            router.put(route('exams.questions.update', editingQuestion.id), questionForm, {
-                onSuccess: () => setIsQuestionModalOpen(false)
-            });
-        } else {
-            router.post(route('exams.questions.add', exam.id), questionForm, {
-                onSuccess: () => setIsQuestionModalOpen(false)
+            formData.append('_method', 'PUT');
+        }
+        formData.append('question_type', questionForm.question_type);
+        formData.append('points', questionForm.points);
+        formData.append('question_text', questionForm.question_text);
+        formData.append('correct_answer', questionForm.correct_answer || '');
+
+        if (questionForm.question_type === 'multiple_choice') {
+            ['A', 'B', 'C', 'D'].forEach((opt) => {
+                formData.append(`options[${opt}]`, questionForm.options?.[opt] || '');
+                if (optionImageFiles[opt]) {
+                    formData.append(`option_image_files[${opt}]`, optionImageFiles[opt]);
+                }
+                if (removeOptionImages[opt]) {
+                    formData.append(`remove_option_images[${opt}]`, '1');
+                }
             });
         }
+
+        if (questionImageFile) {
+            formData.append('question_image_file', questionImageFile);
+        }
+        if (removeQuestionImage) {
+            formData.append('remove_question_image', '1');
+        }
+
+        setIsSubmittingQuestion(true);
+        const targetRoute = editingQuestion
+            ? route('exams.questions.update', editingQuestion.id)
+            : route('exams.questions.add', exam.id);
+
+        router.post(targetRoute, formData, {
+            forceFormData: true,
+            onSuccess: () => {
+                setIsQuestionModalOpen(false);
+                setIsSubmittingQuestion(false);
+            },
+            onError: (errors) => {
+                setIsSubmittingQuestion(false);
+                const firstErr = Object.values(errors)[0];
+                if (firstErr) alert(firstErr);
+            }
+        });
     };
 
     const handleDeleteQuestion = (qId, num) => {
@@ -264,7 +383,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
 
                                 {/* Question Text */}
                                 <div>
-                                    <p className="text-sm text-slate-900 leading-relaxed font-medium">
+                                    <p className="text-sm text-slate-900 leading-relaxed font-medium whitespace-pre-wrap">
                                         {q.question_text}
                                     </p>
                                     {q.question_image && (
@@ -272,7 +391,9 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                             <img
                                                 src={`/storage/${q.question_image}`}
                                                 alt={`Gambar Soal #${idx + 1}`}
-                                                className="rounded-xl border border-slate-200 max-h-56 object-contain"
+                                                onClick={() => setLightboxImage(`/storage/${q.question_image}`)}
+                                                className="rounded-xl border border-slate-200 max-h-56 object-contain cursor-pointer hover:opacity-95 transition bg-white p-1"
+                                                title="Klik untuk melihat ukuran penuh"
                                             />
                                         </div>
                                     )}
@@ -280,21 +401,36 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
 
                                 {/* Options & Answer Preview */}
                                 {q.question_type === 'multiple_choice' && q.options && (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                                         {Object.entries(q.options).map(([key, val]) => (
                                             <div
                                                 key={key}
-                                                className={`p-2.5 rounded-xl border text-xs flex items-center justify-between ${
+                                                className={`p-3 rounded-xl border text-xs space-y-2 ${
                                                     q.correct_answer === key
-                                                        ? 'bg-emerald-50 border-emerald-300 font-semibold text-emerald-900'
+                                                        ? 'bg-emerald-50/70 border-emerald-300 font-medium text-emerald-900'
                                                         : 'bg-slate-50 border-slate-200 text-slate-700'
                                                 }`}
                                             >
-                                                <span><strong>{key}.</strong> {val}</span>
-                                                {q.correct_answer === key && (
-                                                    <span className="text-[10px] bg-emerald-200 text-emerald-800 font-bold px-1.5 py-0.5 rounded">
-                                                        Kunci
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-bold text-slate-900">
+                                                        {key}. <span className="font-normal">{val || <span className="italic text-slate-400 font-normal">(Hanya Gambar)</span>}</span>
                                                     </span>
+                                                    {q.correct_answer === key && (
+                                                        <span className="text-[10px] bg-emerald-200 text-emerald-800 font-bold px-1.5 py-0.5 rounded shrink-0">
+                                                            Kunci Benar
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {q.option_images?.[key] && (
+                                                    <div className="pt-1">
+                                                        <img
+                                                            src={`/storage/${q.option_images[key]}`}
+                                                            alt={`Gambar Pilihan ${key}`}
+                                                            onClick={() => setLightboxImage(`/storage/${q.option_images[key]}`)}
+                                                            className="max-h-28 rounded-lg border border-slate-200 bg-white object-contain p-1 cursor-pointer hover:opacity-95 transition"
+                                                            title="Klik untuk perbesar"
+                                                        />
+                                                    </div>
                                                 )}
                                             </div>
                                         ))}
@@ -394,40 +530,151 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                     value={questionForm.question_text}
                                     onChange={(e) => setQuestionForm({ ...questionForm, question_text: e.target.value })}
                                     placeholder="Tuliskan butir pertanyaan di sini..."
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] resize-none"
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] resize-none font-medium"
                                 />
+                            </div>
+
+                            {/* Unggah Gambar / Foto Soal */}
+                            <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 space-y-3">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                        <Image className="w-4 h-4 text-[#800020]" />
+                                        Unggah Gambar / Foto Soal (Opsional)
+                                    </label>
+                                    <span className="text-[11px] font-semibold text-[#800020] bg-[#FDF2F4] px-2.5 py-0.5 rounded-full self-start sm:self-auto">
+                                        Format Foto: JPG / JPEG (Maks. 5MB)
+                                    </span>
+                                </div>
+
+                                {questionImagePreview ? (
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                                        <img
+                                            src={questionImagePreview}
+                                            alt="Pratinjau Gambar Soal"
+                                            className="max-h-36 max-w-[240px] rounded-lg object-contain border border-slate-100 bg-slate-50 cursor-pointer hover:opacity-90 transition"
+                                            onClick={() => setLightboxImage(questionImagePreview)}
+                                            title="Klik untuk melihat ukuran penuh"
+                                        />
+                                        <div className="space-y-1.5">
+                                            <p className="text-xs font-bold text-slate-800">Foto Soal Terlampir (JPG)</p>
+                                            <p className="text-[11px] text-slate-500">Klik gambar untuk melihat ukuran penuh</p>
+                                            <button
+                                                type="button"
+                                                onClick={handleRemoveQuestionImage}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold transition"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                                Hapus Foto Soal
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#800020] bg-white text-xs font-bold text-slate-700 hover:text-[#800020] cursor-pointer transition shadow-sm">
+                                            <Upload className="w-4 h-4 text-slate-400" />
+                                            <span>Pilih Foto Soal (Format JPG)</span>
+                                            <input
+                                                type="file"
+                                                accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                                                onChange={handleQuestionImageChange}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                        <p className="text-[11px] text-slate-400 mt-1.5">
+                                            Cocok untuk soal TKA dengan diagram, denah pola, bangun ruang, atau ilustrasi.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Multiple Choice Options */}
                             {questionForm.question_type === 'multiple_choice' && (
                                 <div className="space-y-3 pt-2">
-                                    <p className="text-xs font-bold text-slate-700">Pilihan Jawaban & Kunci Benar:</p>
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 pb-1">
+                                        <p className="text-xs font-bold text-slate-800">
+                                            Pilihan Jawaban & Kunci Benar:
+                                        </p>
+                                        <span className="text-[11px] font-semibold text-slate-500">
+                                            Mendukung teks jawaban, foto pilihan (JPG), atau keduanya
+                                        </span>
+                                    </div>
+
                                     {['A', 'B', 'C', 'D'].map((opt) => (
-                                        <div key={opt} className="flex items-center gap-2">
-                                            <label className="flex items-center gap-1.5 cursor-pointer shrink-0">
+                                        <div
+                                            key={opt}
+                                            className="bg-slate-50/80 border border-slate-200 rounded-2xl p-3.5 space-y-2.5"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <label className="flex items-center gap-1.5 cursor-pointer shrink-0" title={`Pilih ${opt} sebagai kunci jawaban`}>
+                                                    <input
+                                                        type="radio"
+                                                        name="correct_answer_radio"
+                                                        checked={questionForm.correct_answer === opt}
+                                                        onChange={() => setQuestionForm({ ...questionForm, correct_answer: opt })}
+                                                        className="text-[#800020] focus:ring-[#800020] w-4 h-4"
+                                                    />
+                                                    <span className="text-xs font-extrabold text-[#800020] w-5">{opt}.</span>
+                                                </label>
+
                                                 <input
-                                                    type="radio"
-                                                    name="correct_answer_radio"
-                                                    checked={questionForm.correct_answer === opt}
-                                                    onChange={() => setQuestionForm({ ...questionForm, correct_answer: opt })}
-                                                    className="text-[#800020] focus:ring-[#800020]"
+                                                    type="text"
+                                                    value={questionForm.options[opt] || ''}
+                                                    onChange={(e) => setQuestionForm({
+                                                        ...questionForm,
+                                                        options: { ...questionForm.options, [opt]: e.target.value }
+                                                    })}
+                                                    placeholder={`Jawaban pilihan ${opt} (opsional jika foto diunggah)...`}
+                                                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] bg-white font-medium"
                                                 />
-                                                <span className="text-xs font-bold text-slate-700 w-5">{opt}.</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={questionForm.options[opt] || ''}
-                                                onChange={(e) => setQuestionForm({
-                                                    ...questionForm,
-                                                    options: { ...questionForm.options, [opt]: e.target.value }
-                                                })}
-                                                placeholder={`Jawaban pilihan ${opt}...`}
-                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020]"
-                                            />
+
+                                                {/* Upload button for option */}
+                                                <label
+                                                    className="px-3 py-2.5 rounded-xl border border-slate-200 hover:border-[#800020] bg-white hover:bg-[#FDF2F4] text-slate-700 hover:text-[#800020] text-xs font-bold cursor-pointer flex items-center gap-1.5 transition shrink-0 shadow-sm"
+                                                    title={`Unggah foto gambar pilihan ${opt} (format JPG)`}
+                                                >
+                                                    <Upload className="w-3.5 h-3.5 text-slate-400" />
+                                                    <span className="hidden sm:inline">Foto {opt} (JPG)</span>
+                                                    <span className="sm:hidden">Foto</span>
+                                                    <input
+                                                        type="file"
+                                                        accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                                                        onChange={(e) => handleOptionImageChange(opt, e)}
+                                                        className="hidden"
+                                                    />
+                                                </label>
+                                            </div>
+
+                                            {/* Option Image Preview if present */}
+                                            {optionImagePreviews[opt] && (
+                                                <div className="flex items-center gap-3 pl-8 pt-1">
+                                                    <img
+                                                        src={optionImagePreviews[opt]}
+                                                        alt={`Gambar Opsi ${opt}`}
+                                                        className="h-20 max-w-[180px] object-contain rounded-xl border border-slate-200 bg-white p-1 cursor-pointer hover:opacity-90 shadow-sm"
+                                                        onClick={() => setLightboxImage(optionImagePreviews[opt])}
+                                                        title="Klik untuk perbesar foto"
+                                                    />
+                                                    <div className="space-y-1">
+                                                        <span className="text-[11px] font-bold text-slate-700 block">
+                                                            Foto Pilihan {opt} Terlampir (JPG)
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRemoveOptionImage(opt)}
+                                                            className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 hover:text-rose-800 transition"
+                                                        >
+                                                            <Trash2 className="w-3 h-3" />
+                                                            Hapus Foto Opsi {opt}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
-                                    <p className="text-[11px] text-slate-400">Tandai tombol lingkaran pada opsi yang merupakan kunci jawaban benar.</p>
+
+                                    <p className="text-[11px] text-slate-400">
+                                        Tandai tombol lingkaran pada opsi yang merupakan kunci jawaban benar. Format foto: JPG / JPEG.
+                                    </p>
                                 </div>
                             )}
 
@@ -461,8 +708,10 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-5 py-2 rounded-xl bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-bold transition shadow-sm"
+                                    disabled={isSubmittingQuestion}
+                                    className="inline-flex items-center px-5 py-2 rounded-xl bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-bold transition shadow-sm disabled:opacity-50"
                                 >
+                                    {isSubmittingQuestion && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
                                     {editingQuestion ? 'Simpan Perubahan' : 'Tambahkan ke Paket'}
                                 </button>
                             </div>
@@ -488,11 +737,11 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                         <form onSubmit={handleImageUpload} className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-2">
-                                    Pilih Berkas Gambar (PNG, JPG, JPEG maks 2MB)
+                                    Pilih Berkas Gambar (Format JPG / JPEG / PNG, maks 5MB)
                                 </label>
                                 <input
                                     type="file"
-                                    accept="image/*"
+                                    accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                                     required
                                     onChange={(e) => setSelectedImageFile(e.target.files[0])}
                                     className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#FDF2F4] file:text-[#800020] hover:file:bg-[#FCE8EB]"
@@ -515,6 +764,29 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Lightbox Preview */}
+            {lightboxImage && (
+                <div
+                    onClick={() => setLightboxImage(null)}
+                    className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out"
+                >
+                    <div className="relative max-w-4xl max-h-[90vh] flex flex-col items-center">
+                        <img
+                            src={lightboxImage}
+                            alt="Ukuran Penuh"
+                            className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl bg-white/10 p-2"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setLightboxImage(null)}
+                            className="absolute top-2 right-2 sm:-top-4 sm:-right-4 bg-black/70 hover:bg-black text-white p-2 rounded-full transition shadow-lg"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                     </div>
                 </div>
             )}

@@ -25,6 +25,7 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
     const [showSubmitModal, setShowSubmitModal] = useState(false);
     const [showFiveMinWarning, setShowFiveMinWarning] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [lightboxImage, setLightboxImage] = useState(null);
 
     // Keep studentAnswers in a ref so periodic autosave always has latest answers without re-creating timers
     const answersRef = useRef(studentAnswers);
@@ -288,7 +289,9 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
                                             <img 
                                                 src={`/storage/${currentQuestion.question_image}`}
                                                 alt="Gambar Soal"
-                                                className="rounded-2xl border border-slate-200 max-h-72 object-contain"
+                                                onClick={() => setLightboxImage(`/storage/${currentQuestion.question_image}`)}
+                                                className="rounded-2xl border border-slate-200 max-h-80 object-contain cursor-pointer hover:opacity-95 transition bg-white p-1"
+                                                title="Klik untuk perbesar gambar soal"
                                             />
                                         </div>
                                     )}
@@ -297,9 +300,10 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
                                 {/* Answer Input Section */}
                                 <div className="space-y-3 pt-2">
                                     {currentQuestion.question_type === 'multiple_choice' && (
-                                        <div className="space-y-2.5">
+                                        <div className="space-y-3">
                                             {Object.entries(currentQuestion.options || {}).map(([key, value]) => {
                                                 const isSelected = studentAnswers[currentQuestion.id] === key;
+                                                const optionImage = currentQuestion.option_images?.[key];
                                                 return (
                                                     <label
                                                         key={key}
@@ -315,11 +319,28 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
                                                             value={key}
                                                             checked={isSelected}
                                                             onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
-                                                            className="mt-1 text-[#800020] focus:ring-[#800020]"
+                                                            className="mt-1 text-[#800020] focus:ring-[#800020] w-4 h-4 shrink-0"
                                                         />
-                                                        <div className="ml-3 text-sm font-medium text-slate-900 leading-relaxed">
-                                                            <span className="font-extrabold text-[#800020] mr-2">{key}.</span>
-                                                            {value}
+                                                        <div className="ml-3 text-sm font-medium text-slate-900 leading-relaxed flex-1 space-y-2.5">
+                                                            <div className="flex items-start">
+                                                                <span className="font-extrabold text-[#800020] mr-2 text-base shrink-0">{key}.</span>
+                                                                {value ? <span>{value}</span> : null}
+                                                            </div>
+                                                            {optionImage && (
+                                                                <div className="pt-1">
+                                                                    <img
+                                                                        src={`/storage/${optionImage}`}
+                                                                        alt={`Pilihan ${key}`}
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault();
+                                                                            e.stopPropagation();
+                                                                            setLightboxImage(`/storage/${optionImage}`);
+                                                                        }}
+                                                                        className="rounded-xl border border-slate-200 max-h-56 max-w-full object-contain bg-white p-1.5 hover:opacity-95 shadow-sm transition cursor-zoom-in"
+                                                                        title="Klik untuk perbesar gambar opsi"
+                                                                    />
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </label>
                                                 );
@@ -543,6 +564,29 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
                                 {isSubmitting ? 'Mengumpulkan...' : 'Ya, Kumpulkan'}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Lightbox Preview */}
+            {lightboxImage && (
+                <div
+                    onClick={() => setLightboxImage(null)}
+                    className="fixed inset-0 z-[70] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out"
+                >
+                    <div className="relative max-w-4xl max-h-[90vh] flex flex-col items-center">
+                        <img
+                            src={lightboxImage}
+                            alt="Ukuran Penuh"
+                            className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl bg-white/10 p-2"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setLightboxImage(null)}
+                            className="absolute top-2 right-2 sm:-top-4 sm:-right-4 bg-black/70 hover:bg-black text-white p-2 rounded-full transition shadow-lg"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                     </div>
                 </div>
             )}

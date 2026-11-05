@@ -227,7 +227,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Questions management
         Route::post('/{exam}/questions', [ExamController::class, 'addQuestion'])->name('exams.questions.add');
-        Route::put('/questions/{question}', [ExamController::class, 'updateQuestion'])->name('exams.questions.update');
+        Route::match(['put', 'post'], '/questions/{question}', [ExamController::class, 'updateQuestion'])->name('exams.questions.update');
         Route::delete('/questions/{question}', [ExamController::class, 'deleteQuestion'])->name('exams.questions.delete');
         Route::post('/questions/{question}/upload-image', [ExamController::class, 'uploadQuestionImage'])->name('exams.questions.image');
 

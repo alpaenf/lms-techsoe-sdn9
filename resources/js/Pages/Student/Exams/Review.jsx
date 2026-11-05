@@ -11,11 +11,13 @@ import {
     ChevronLeft,
     ChevronRight,
     MessageSquare,
-    Eye
+    Eye,
+    X
 } from 'lucide-react';
 
 export default function StudentExamReview({ auth, attempt, questions = [], answers = {} }) {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [lightboxImage, setLightboxImage] = useState(null);
     const exam = attempt.exam;
     const currentQuestion = questions[currentIndex];
     const currentAnswer = currentQuestion ? answers[currentQuestion.id] : null;
@@ -113,11 +115,15 @@ export default function StudentExamReview({ auth, attempt, questions = [], answe
                                         {currentQuestion.question_text}
                                     </p>
                                     {currentQuestion.question_image && (
-                                        <img 
-                                            src={`/storage/${currentQuestion.question_image}`} 
-                                            alt="Soal"
-                                            className="mt-4 rounded-xl border border-slate-200 max-h-64 object-contain"
-                                        />
+                                        <div className="mt-4">
+                                            <img 
+                                                src={`/storage/${currentQuestion.question_image}`} 
+                                                alt="Soal"
+                                                onClick={() => setLightboxImage(`/storage/${currentQuestion.question_image}`)}
+                                                className="rounded-xl border border-slate-200 max-h-72 object-contain cursor-pointer hover:opacity-95 transition bg-white p-1"
+                                                title="Klik untuk melihat ukuran penuh"
+                                            />
+                                        </div>
                                     )}
                                 </div>
 
@@ -125,10 +131,11 @@ export default function StudentExamReview({ auth, attempt, questions = [], answe
                                 <div className="space-y-4 pt-2">
                                     {/* Multiple choice options */}
                                     {currentQuestion.question_type === 'multiple_choice' && (
-                                        <div className="space-y-2">
+                                        <div className="space-y-2.5">
                                             {Object.entries(currentQuestion.options || {}).map(([key, val]) => {
                                                 const isStudentChoice = currentAnswer?.answer_text === key;
                                                 const isRightAnswer = currentQuestion.correct_answer === key;
+                                                const optionImage = currentQuestion.option_images?.[key];
 
                                                 let style = 'border-slate-200 bg-white text-slate-700';
                                                 if (isRightAnswer) {
@@ -140,24 +147,37 @@ export default function StudentExamReview({ auth, attempt, questions = [], answe
                                                 return (
                                                     <div 
                                                         key={key} 
-                                                        className={`p-3.5 rounded-xl border-2 flex items-center justify-between text-sm ${style}`}
+                                                        className={`p-3.5 rounded-xl border-2 space-y-2 text-sm ${style}`}
                                                     >
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="font-bold w-6">{key}.</span>
-                                                            <span>{val}</span>
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-2.5">
+                                                                <span className="font-bold w-6 text-base">{key}.</span>
+                                                                {val ? <span>{val}</span> : (!optionImage && <span className="italic text-slate-400 font-normal">(Tidak ada teks)</span>)}
+                                                            </div>
+                                                            <div className="flex items-center gap-2 text-xs">
+                                                                {isStudentChoice && (
+                                                                    <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-bold">
+                                                                        Jawaban Anda
+                                                                    </span>
+                                                                )}
+                                                                {isRightAnswer && (
+                                                                    <span className="px-2 py-0.5 rounded bg-emerald-200 text-emerald-800 font-bold">
+                                                                        Kunci Benar
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2 text-xs">
-                                                            {isStudentChoice && (
-                                                                <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-medium">
-                                                                    Jawaban Anda
-                                                                </span>
-                                                            )}
-                                                            {isRightAnswer && (
-                                                                <span className="px-2 py-0.5 rounded bg-emerald-200 text-emerald-800 font-bold">
-                                                                    Kunci Benar
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                                        {optionImage && (
+                                                            <div className="pl-8 pt-1">
+                                                                <img
+                                                                    src={`/storage/${optionImage}`}
+                                                                    alt={`Pilihan ${key}`}
+                                                                    onClick={() => setLightboxImage(`/storage/${optionImage}`)}
+                                                                    className="rounded-lg border border-slate-200 max-h-48 max-w-full object-contain bg-white p-1 cursor-pointer hover:opacity-95 shadow-sm transition"
+                                                                    title="Klik untuk perbesar gambar"
+                                                                />
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 );
                                             })}
@@ -293,6 +313,29 @@ export default function StudentExamReview({ auth, attempt, questions = [], answe
                     </div>
                 </div>
             </div>
+
+            {/* Lightbox Preview */}
+            {lightboxImage && (
+                <div
+                    onClick={() => setLightboxImage(null)}
+                    className="fixed inset-0 z-[70] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out"
+                >
+                    <div className="relative max-w-4xl max-h-[90vh] flex flex-col items-center">
+                        <img
+                            src={lightboxImage}
+                            alt="Ukuran Penuh"
+                            className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl bg-white/10 p-2"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setLightboxImage(null)}
+                            className="absolute top-2 right-2 sm:-top-4 sm:-right-4 bg-black/70 hover:bg-black text-white p-2 rounded-full transition shadow-lg"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }

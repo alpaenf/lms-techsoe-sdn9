@@ -14,6 +14,7 @@ class ExamQuestion extends Model
         'question_text',
         'question_image',
         'options',
+        'option_images',
         'correct_answer',
         'points',
         'order_number',
@@ -21,6 +22,7 @@ class ExamQuestion extends Model
 
     protected $casts = [
         'options' => 'array',
+        'option_images' => 'array',
         'points' => 'integer',
     ];
 

@@ -13,6 +13,7 @@ use App\Models\Subject;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class ExamController extends Controller
@@ -122,6 +123,7 @@ class ExamController extends Controller
                     'question_text' => $q['text'],
                     'question_image' => $q['image'] ?? null,
                     'options' => $q['options'] ?? null,
+                    'option_images' => $q['option_images'] ?? null,
                     'correct_answer' => $q['correct_answer'] ?? null,
                     'points' => $q['points'] ?? 10,
                     'order_number' => $index + 1,
@@ -217,10 +219,29 @@ class ExamController extends Controller
             'question_type' => 'required|in:multiple_choice,short_answer,essay',
             'question_text' => 'required|string',
             'question_image' => 'nullable|string',
+            'question_image_file' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
             'options' => 'required_if:question_type,multiple_choice|array',
+            'option_image_files' => 'nullable|array',
+            'option_image_files.*' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
             'correct_answer' => 'required_unless:question_type,essay',
             'points' => 'required|integer|min:1',
         ]);
+
+        if ($request->hasFile('question_image_file')) {
+            $path = $request->file('question_image_file')->store('exam-questions', 'public');
+            $validated['question_image'] = $path;
+        }
+
+        $optionImages = [];
+        if ($request->hasFile('option_image_files')) {
+            foreach ($request->file('option_image_files') as $optKey => $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('exam-options', 'public');
+                    $optionImages[$optKey] = $path;
+                }
+            }
+        }
+        $validated['option_images'] = ! empty($optionImages) ? $optionImages : null;
 
         $lastOrder = $exam->questions()->max('order_number') ?? 0;
         $validated['exam_id'] = $exam->id;
@@ -234,12 +255,56 @@ class ExamController extends Controller
     public function updateQuestion(Request $request, ExamQuestion $question)
     {
         $validated = $request->validate([
+            'question_type' => 'nullable|in:multiple_choice,short_answer,essay',
             'question_text' => 'required|string',
             'question_image' => 'nullable|string',
+            'question_image_file' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+            'remove_question_image' => 'nullable',
             'options' => 'required_if:question_type,multiple_choice|array',
+            'option_image_files' => 'nullable|array',
+            'option_image_files.*' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+            'remove_option_images' => 'nullable|array',
             'correct_answer' => 'required_unless:question_type,essay',
             'points' => 'required|integer|min:1',
         ]);
+
+        if ($request->filled('remove_question_image') && $request->input('remove_question_image') !== '0') {
+            if ($question->question_image && Storage::disk('public')->exists($question->question_image)) {
+                Storage::disk('public')->delete($question->question_image);
+            }
+            $validated['question_image'] = null;
+        } elseif ($request->hasFile('question_image_file')) {
+            if ($question->question_image && Storage::disk('public')->exists($question->question_image)) {
+                Storage::disk('public')->delete($question->question_image);
+            }
+            $path = $request->file('question_image_file')->store('exam-questions', 'public');
+            $validated['question_image'] = $path;
+        }
+
+        $currentOptionImages = $question->option_images ?? [];
+        if ($request->has('remove_option_images') && is_array($request->remove_option_images)) {
+            foreach ($request->remove_option_images as $optKey => $shouldRemove) {
+                if (! empty($shouldRemove) && $shouldRemove !== '0' && ! empty($currentOptionImages[$optKey])) {
+                    if (Storage::disk('public')->exists($currentOptionImages[$optKey])) {
+                        Storage::disk('public')->delete($currentOptionImages[$optKey]);
+                    }
+                    unset($currentOptionImages[$optKey]);
+                }
+            }
+        }
+
+        if ($request->hasFile('option_image_files')) {
+            foreach ($request->file('option_image_files') as $optKey => $file) {
+                if ($file && $file->isValid()) {
+                    if (! empty($currentOptionImages[$optKey]) && Storage::disk('public')->exists($currentOptionImages[$optKey])) {
+                        Storage::disk('public')->delete($currentOptionImages[$optKey]);
+                    }
+                    $path = $file->store('exam-options', 'public');
+                    $currentOptionImages[$optKey] = $path;
+                }
+            }
+        }
+        $validated['option_images'] = ! empty($currentOptionImages) ? $currentOptionImages : null;
 
         $question->update($validated);
 
@@ -248,6 +313,17 @@ class ExamController extends Controller
 
     public function deleteQuestion(ExamQuestion $question)
     {
+        if ($question->question_image && Storage::disk('public')->exists($question->question_image)) {
+            Storage::disk('public')->delete($question->question_image);
+        }
+        if (! empty($question->option_images) && is_array($question->option_images)) {
+            foreach ($question->option_images as $path) {
+                if ($path && Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+            }
+        }
+
         $question->delete();
 
         return back()->with('success', 'Butir soal berhasil dihapus.');
@@ -256,8 +332,12 @@ class ExamController extends Controller
     public function uploadQuestionImage(Request $request, ExamQuestion $question)
     {
         $request->validate([
-            'image' => 'required|image|max:2048',
+            'image' => 'required|image|mimes:jpg,jpeg,png|max:5120',
         ]);
+
+        if ($question->question_image && Storage::disk('public')->exists($question->question_image)) {
+            Storage::disk('public')->delete($question->question_image);
+        }
 
         $path = $request->file('image')->store('exam-questions', 'public');
         $question->update(['question_image' => $path]);
