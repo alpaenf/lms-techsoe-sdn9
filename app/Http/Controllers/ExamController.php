@@ -213,16 +213,41 @@ class ExamController extends Controller
             ->with('success', 'Paket ujian berhasil dihapus.');
     }
 
+    protected function getImageValidationRule(bool $required = false): array
+    {
+        $rules = [
+            $required ? 'required' : 'nullable',
+            'file',
+            'max:10240',
+            function ($attribute, $value, $fail) {
+                if (! $value instanceof \Illuminate\Http\UploadedFile) {
+                    return;
+                }
+                $extension = strtolower($value->getClientOriginalExtension());
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg', 'jfif', 'avif', 'heic', 'heif', 'tif', 'tiff'];
+                $mime = strtolower((string) $value->getMimeType());
+                $clientMime = strtolower((string) $value->getClientMimeType());
+                $isImageMime = str_starts_with($mime, 'image/') || str_starts_with($clientMime, 'image/');
+
+                if (! in_array($extension, $allowedExtensions) && ! $isImageMime) {
+                    $fail('Berkas yang diunggah harus berupa format foto/gambar (JPG, JPEG, PNG, WEBP, GIF, dll).');
+                }
+            },
+        ];
+
+        return $rules;
+    }
+
     public function addQuestion(Request $request, Exam $exam)
     {
         $validated = $request->validate([
             'question_type' => 'required|in:multiple_choice,short_answer,essay',
             'question_text' => 'required|string',
             'question_image' => 'nullable|string',
-            'question_image_file' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+            'question_image_file' => $this->getImageValidationRule(),
             'options' => 'required_if:question_type,multiple_choice|array',
             'option_image_files' => 'nullable|array',
-            'option_image_files.*' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+            'option_image_files.*' => $this->getImageValidationRule(),
             'correct_answer' => 'required_unless:question_type,essay',
             'points' => 'required|integer|min:1',
         ]);
@@ -258,11 +283,11 @@ class ExamController extends Controller
             'question_type' => 'nullable|in:multiple_choice,short_answer,essay',
             'question_text' => 'required|string',
             'question_image' => 'nullable|string',
-            'question_image_file' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+            'question_image_file' => $this->getImageValidationRule(),
             'remove_question_image' => 'nullable',
             'options' => 'required_if:question_type,multiple_choice|array',
             'option_image_files' => 'nullable|array',
-            'option_image_files.*' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+            'option_image_files.*' => $this->getImageValidationRule(),
             'remove_option_images' => 'nullable|array',
             'correct_answer' => 'required_unless:question_type,essay',
             'points' => 'required|integer|min:1',
@@ -332,7 +357,7 @@ class ExamController extends Controller
     public function uploadQuestionImage(Request $request, ExamQuestion $question)
     {
         $request->validate([
-            'image' => 'required|image|mimes:jpg,jpeg,png|max:5120',
+            'image' => $this->getImageValidationRule(true),
         ]);
 
         if ($question->question_image && Storage::disk('public')->exists($question->question_image)) {

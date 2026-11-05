@@ -95,8 +95,8 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Ukuran gambar maksimal adalah 5MB.');
+        if (file.size > 10 * 1024 * 1024) {
+            alert('Ukuran gambar maksimal adalah 10MB.');
             return;
         }
 
@@ -115,8 +115,8 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (file.size > 5 * 1024 * 1024) {
-            alert(`Ukuran berkas gambar pilihan ${opt} maksimal adalah 5MB.`);
+        if (file.size > 10 * 1024 * 1024) {
+            alert(`Ukuran berkas gambar pilihan ${opt} maksimal adalah 10MB.`);
             return;
         }
 
@@ -542,7 +542,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                         Unggah Gambar / Foto Soal (Opsional)
                                     </label>
                                     <span className="text-[11px] font-semibold text-[#800020] bg-[#FDF2F4] px-2.5 py-0.5 rounded-full self-start sm:self-auto">
-                                        Format Foto: JPG / JPEG (Maks. 5MB)
+                                        Semua Format Foto Didukung (Maks. 10MB)
                                     </span>
                                 </div>
 
@@ -556,7 +556,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                             title="Klik untuk melihat ukuran penuh"
                                         />
                                         <div className="space-y-1.5">
-                                            <p className="text-xs font-bold text-slate-800">Foto Soal Terlampir (JPG)</p>
+                                            <p className="text-xs font-bold text-slate-800">Foto Soal Terlampir</p>
                                             <p className="text-[11px] text-slate-500">Klik gambar untuk melihat ukuran penuh</p>
                                             <button
                                                 type="button"
@@ -572,16 +572,16 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                     <div>
                                         <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#800020] bg-white text-xs font-bold text-slate-700 hover:text-[#800020] cursor-pointer transition shadow-sm">
                                             <Upload className="w-4 h-4 text-slate-400" />
-                                            <span>Pilih Foto Soal (Format JPG)</span>
+                                            <span>Pilih Foto / Gambar Soal</span>
                                             <input
                                                 type="file"
-                                                accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                                                accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.svg,.jfif,.avif"
                                                 onChange={handleQuestionImageChange}
                                                 className="hidden"
                                             />
                                         </label>
                                         <p className="text-[11px] text-slate-400 mt-1.5">
-                                            Cocok untuk soal TKA dengan diagram, denah pola, bangun ruang, atau ilustrasi.
+                                            Mendukung JPG, JPEG, PNG, WEBP, GIF, SVG, BMP, dll. Cocok untuk soal TKA dengan diagram, pola, atau grafik.
                                         </p>
                                     </div>
                                 )}
@@ -595,7 +595,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                             Pilihan Jawaban & Kunci Benar:
                                         </p>
                                         <span className="text-[11px] font-semibold text-slate-500">
-                                            Mendukung teks jawaban, foto pilihan (JPG), atau keduanya
+                                            Mendukung teks jawaban, foto pilihan (semua format), atau keduanya
                                         </span>
                                     </div>
 
@@ -630,14 +630,14 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                                 {/* Upload button for option */}
                                                 <label
                                                     className="px-3 py-2.5 rounded-xl border border-slate-200 hover:border-[#800020] bg-white hover:bg-[#FDF2F4] text-slate-700 hover:text-[#800020] text-xs font-bold cursor-pointer flex items-center gap-1.5 transition shrink-0 shadow-sm"
-                                                    title={`Unggah foto gambar pilihan ${opt} (format JPG)`}
+                                                    title={`Unggah foto gambar pilihan ${opt} (semua format)`}
                                                 >
                                                     <Upload className="w-3.5 h-3.5 text-slate-400" />
-                                                    <span className="hidden sm:inline">Foto {opt} (JPG)</span>
+                                                    <span className="hidden sm:inline">Foto {opt}</span>
                                                     <span className="sm:hidden">Foto</span>
                                                     <input
                                                         type="file"
-                                                        accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                                                        accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.svg,.jfif,.avif"
                                                         onChange={(e) => handleOptionImageChange(opt, e)}
                                                         className="hidden"
                                                     />
@@ -656,7 +656,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                                     />
                                                     <div className="space-y-1">
                                                         <span className="text-[11px] font-bold text-slate-700 block">
-                                                            Foto Pilihan {opt} Terlampir (JPG)
+                                                            Foto Pilihan {opt} Terlampir
                                                         </span>
                                                         <button
                                                             type="button"
@@ -673,7 +673,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                     ))}
 
                                     <p className="text-[11px] text-slate-400">
-                                        Tandai tombol lingkaran pada opsi yang merupakan kunci jawaban benar. Format foto: JPG / JPEG.
+                                        Tandai tombol lingkaran pada opsi yang merupakan kunci jawaban benar. Mendukung semua format gambar.
                                     </p>
                                 </div>
                             )}
@@ -737,11 +737,11 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                         <form onSubmit={handleImageUpload} className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-2">
-                                    Pilih Berkas Gambar (Format JPG / JPEG / PNG, maks 5MB)
+                                    Pilih Berkas Gambar (Semua Format Foto: JPG, PNG, WEBP, GIF, dll. Maks. 10MB)
                                 </label>
                                 <input
                                     type="file"
-                                    accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                                    accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.svg,.jfif,.avif"
                                     required
                                     onChange={(e) => setSelectedImageFile(e.target.files[0])}
                                     className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#FDF2F4] file:text-[#800020] hover:file:bg-[#FCE8EB]"
