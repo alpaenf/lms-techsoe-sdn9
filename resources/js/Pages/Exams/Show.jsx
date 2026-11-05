@@ -134,6 +134,13 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
     const handleSaveQuestion = (e) => {
         e.preventDefault();
 
+        const hasText = Boolean(questionForm.question_text && questionForm.question_text.trim());
+        const hasImg = Boolean(questionImagePreview);
+        if (!hasText && !hasImg) {
+            alert('Silakan tuliskan teks soal atau unggah foto/gambar soal terlebih dahulu.');
+            return;
+        }
+
         if (questionForm.question_type === 'multiple_choice') {
             for (const opt of ['A', 'B', 'C', 'D']) {
                 const textVal = questionForm.options?.[opt];
@@ -181,6 +188,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
 
         router.post(targetRoute, formData, {
             forceFormData: true,
+            preserveScroll: true,
             onSuccess: () => {
                 setIsQuestionModalOpen(false);
                 setIsSubmittingQuestion(false);
@@ -189,6 +197,9 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                 setIsSubmittingQuestion(false);
                 const firstErr = Object.values(errors)[0];
                 if (firstErr) alert(firstErr);
+            },
+            onFinish: () => {
+                setIsSubmittingQuestion(false);
             }
         });
     };
@@ -342,16 +353,14 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                                     <div className="flex items-center gap-3">
                                         <span className="w-8 h-8 rounded-lg bg-[#FDF2F4] text-[#800020] text-xs font-bold flex items-center justify-center">
-                                            #{idx + 1}
+                                            <span>#{idx + 1}</span>
                                         </span>
                                         <div>
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 uppercase">
-                                                {q.question_type === 'multiple_choice' && 'Pilihan Ganda'}
-                                                {q.question_type === 'short_answer' && 'Isian Singkat'}
-                                                {q.question_type === 'essay' && 'Essay / Uraian'}
+                                                <span>{q.question_type === 'multiple_choice' ? 'Pilihan Ganda' : (q.question_type === 'short_answer' ? 'Isian Singkat' : 'Essay / Uraian')}</span>
                                             </span>
                                             <span className="ml-2 text-xs font-bold text-[#800020]">
-                                                {q.points} Poin
+                                                <span>{q.points} Poin</span>
                                             </span>
                                         </div>
                                     </div>
@@ -412,11 +421,14 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                                 }`}
                                             >
                                                 <div className="flex items-center justify-between">
-                                                    <span className="font-bold text-slate-900">
-                                                        {key}. <span className="font-normal">{val || <span className="italic text-slate-400 font-normal">(Hanya Gambar)</span>}</span>
-                                                    </span>
+                                                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                                        <span className="font-bold text-slate-900">{key}.</span>
+                                                        <span className="font-normal text-slate-700 truncate">
+                                                            {val ? String(val) : <span className="italic text-slate-400 font-normal">(Hanya Gambar)</span>}
+                                                        </span>
+                                                    </div>
                                                     {q.correct_answer === key && (
-                                                        <span className="text-[10px] bg-emerald-200 text-emerald-800 font-bold px-1.5 py-0.5 rounded shrink-0">
+                                                        <span className="text-[10px] bg-emerald-200 text-emerald-800 font-bold px-1.5 py-0.5 rounded shrink-0 ml-2">
                                                             Kunci Benar
                                                         </span>
                                                     )}
@@ -711,8 +723,14 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                     disabled={isSubmittingQuestion}
                                     className="inline-flex items-center px-5 py-2 rounded-xl bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-bold transition shadow-sm disabled:opacity-50"
                                 >
-                                    {isSubmittingQuestion && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
-                                    {editingQuestion ? 'Simpan Perubahan' : 'Tambahkan ke Paket'}
+                                    {isSubmittingQuestion ? (
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <span>Menyimpan...</span>
+                                        </span>
+                                    ) : (
+                                        <span>{editingQuestion ? 'Simpan Perubahan' : 'Tambahkan ke Paket'}</span>
+                                    )}
                                 </button>
                             </div>
                         </form>

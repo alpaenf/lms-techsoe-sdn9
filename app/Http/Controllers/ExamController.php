@@ -242,7 +242,7 @@ class ExamController extends Controller
     {
         $validated = $request->validate([
             'question_type' => 'required|in:multiple_choice,short_answer,essay',
-            'question_text' => 'required|string',
+            'question_text' => 'nullable|string',
             'question_image' => 'nullable|string',
             'question_image_file' => $this->getImageValidationRule(),
             'options' => 'required_if:question_type,multiple_choice|array',
@@ -251,6 +251,17 @@ class ExamController extends Controller
             'correct_answer' => 'required_unless:question_type,essay',
             'points' => 'required|integer|min:1',
         ]);
+
+        $hasText = ! empty(trim((string) ($validated['question_text'] ?? '')));
+        $hasImage = $request->hasFile('question_image_file') || ! empty($validated['question_image'] ?? null);
+
+        if (! $hasText && ! $hasImage) {
+            return back()->withErrors(['question_text' => 'Teks pertanyaan atau gambar soal wajib diisi.']);
+        }
+
+        if (! $hasText) {
+            $validated['question_text'] = '(Lihat gambar soal)';
+        }
 
         if ($request->hasFile('question_image_file')) {
             $path = $request->file('question_image_file')->store('exam-questions', 'public');
@@ -281,7 +292,7 @@ class ExamController extends Controller
     {
         $validated = $request->validate([
             'question_type' => 'nullable|in:multiple_choice,short_answer,essay',
-            'question_text' => 'required|string',
+            'question_text' => 'nullable|string',
             'question_image' => 'nullable|string',
             'question_image_file' => $this->getImageValidationRule(),
             'remove_question_image' => 'nullable',
@@ -292,6 +303,17 @@ class ExamController extends Controller
             'correct_answer' => 'required_unless:question_type,essay',
             'points' => 'required|integer|min:1',
         ]);
+
+        $hasText = ! empty(trim((string) ($validated['question_text'] ?? '')));
+        $hasImage = $request->hasFile('question_image_file') || (! empty($question->question_image) && ! $request->filled('remove_question_image'));
+
+        if (! $hasText && ! $hasImage) {
+            return back()->withErrors(['question_text' => 'Teks pertanyaan atau gambar soal wajib diisi.']);
+        }
+
+        if (! $hasText) {
+            $validated['question_text'] = '(Lihat gambar soal)';
+        }
 
         if ($request->filled('remove_question_image') && $request->input('remove_question_image') !== '0') {
             if ($question->question_image && Storage::disk('public')->exists($question->question_image)) {

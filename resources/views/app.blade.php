@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="id" class="notranslate" translate="no">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="google" content="notranslate">
 
         <title inertia>{{ config('app.name', 'UPT SDN 9 Gandangbatu Sillanan') }}</title>
         <link rel="icon" type="image/webp" href="/logo.webp">
@@ -18,7 +19,7 @@
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
         @inertiaHead
     </head>
-    <body class="font-sans antialiased">
+    <body class="font-sans antialiased notranslate" translate="no">
         @inertia
     </body>
 </html>
