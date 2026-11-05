@@ -11,6 +11,7 @@
 #
 # Opsi Tambahan:
 #   ./deploy.sh --skip-build    (Lewati proses build frontend / npm)
+#   ./deploy.sh --skip-composer (Lewati instalasi composer / dependensi PHP)
 #   ./deploy.sh --skip-migrate  (Lewati proses migrasi database)
 #   ./deploy.sh --seed          (Jalankan seeder database jika inisialisasi)
 # ==============================================================================
@@ -41,6 +42,7 @@ NPM_BIN="npm"
 
 # Flag Opsi Default
 SKIP_BUILD=false
+SKIP_COMPOSER=false
 SKIP_MIGRATE=false
 RUN_SEED=false
 
@@ -48,6 +50,10 @@ for arg in "$@"; do
     case $arg in
         --skip-build|--skip-npm)
             SKIP_BUILD=true
+            shift
+            ;;
+        --skip-composer)
+            SKIP_COMPOSER=true
             shift
             ;;
         --skip-migrate)
@@ -124,9 +130,16 @@ fi
 # 5. Composer Dependencies (Optimized for Production)
 # ------------------------------------------------------------------------------
 echo "📦 [4/8] Menginstall dependensi Composer (PHP)..."
-if command -v $COMPOSER_BIN >/dev/null 2>&1; then
-    $COMPOSER_BIN install --no-dev --prefer-dist --optimize-autoloader --no-interaction --ignore-platform-req=ext-fileinfo || \
-    $COMPOSER_BIN install --no-dev --prefer-dist --optimize-autoloader --no-interaction --ignore-platform-reqs
+if [ "$SKIP_COMPOSER" = true ]; then
+    echo "   ⏭️ Melewati instalasi composer (--skip-composer aktif)."
+elif command -v $COMPOSER_BIN >/dev/null 2>&1; then
+    # Menggunakan --no-scripts agar tidak gagal di shared hosting yang membatasi proc_open
+    $COMPOSER_BIN install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-fileinfo || \
+    $COMPOSER_BIN install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-scripts --ignore-platform-reqs || \
+    echo "   ⚠️ Composer install dibatasi pada hosting ini, melanjutkan proses..."
+
+    # Jalankan package discovery secara native via PHP CLI (aman tanpa proc_open)
+    $PHP_BIN artisan package:discover --ansi 2>/dev/null || true
 else
     echo "   ⚠️ $COMPOSER_BIN tidak ditemukan di PATH sistem. Melewati composer install."
 fi
