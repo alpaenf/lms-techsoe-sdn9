@@ -109,6 +109,50 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
         }
     };
 
+    // Helpers untuk PGK MCMA (Kotak Centang)
+    const getMcmaSelected = (qId) => {
+        const val = studentAnswers[qId];
+        if (!val) return [];
+        if (Array.isArray(val)) return val;
+        try {
+            const parsed = JSON.parse(val);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            return val ? [val] : [];
+        }
+    };
+
+    const toggleMcmaOption = (qId, key) => {
+        const currentList = getMcmaSelected(qId);
+        const updated = currentList.includes(key)
+            ? currentList.filter(k => k !== key)
+            : [...currentList, key];
+        const serialized = updated.length > 0 ? JSON.stringify(updated) : '';
+        setStudentAnswers(prev => ({ ...prev, [qId]: serialized }));
+        saveAnswerApi(qId, serialized);
+    };
+
+    // Helpers untuk PGK Kategori (Tabel Benar / Salah)
+    const getKategoriMap = (qId) => {
+        const val = studentAnswers[qId];
+        if (!val) return {};
+        if (typeof val === 'object' && !Array.isArray(val) && val !== null) return val;
+        try {
+            const parsed = JSON.parse(val);
+            return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+        } catch (e) {
+            return {};
+        }
+    };
+
+    const setKategoriRowChoice = (qId, rowId, category) => {
+        const currentMap = getKategoriMap(qId);
+        const updated = { ...currentMap, [rowId]: category };
+        const serialized = JSON.stringify(updated);
+        setStudentAnswers(prev => ({ ...prev, [qId]: serialized }));
+        saveAnswerApi(qId, serialized);
+    };
+
     const handleInputBlur = () => {
         if (currentQuestion) {
             saveAnswerApi(currentQuestion.id, studentAnswers[currentQuestion.id] || '');
@@ -160,8 +204,27 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
         }
     };
 
-    const isAnswered = (qId) => studentAnswers[qId] && studentAnswers[qId].trim();
-    const answeredCount = Object.values(studentAnswers).filter(a => a && a.trim()).length;
+    const isAnswered = (qId) => {
+        const val = studentAnswers[qId];
+        if (!val || !String(val).trim()) return false;
+        if (val === '[]' || val === '{}') return false;
+
+        const q = questions.find(item => item.id === Number(qId));
+        if (q && q.question_type === 'pgk_kategori') {
+            const rows = q.options?.rows || [];
+            if (rows.length === 0) return true;
+            try {
+                const parsed = typeof val === 'object' ? val : JSON.parse(val);
+                if (typeof parsed !== 'object' || parsed === null) return false;
+                return rows.every(r => parsed[r.id] && String(parsed[r.id]).trim());
+            } catch (e) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    const answeredCount = questions.filter(q => isAnswered(q.id)).length;
     const unansweredCount = questions.length - answeredCount;
 
     // Timer color based on remaining time
@@ -269,6 +332,8 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
                                         <div>
                                             <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                                                 {currentQuestion.question_type === 'multiple_choice' && 'Pilihan Ganda'}
+                                                {currentQuestion.question_type === 'pgk_mcma' && 'PGK MCMA (Kotak Centang)'}
+                                                {currentQuestion.question_type === 'pgk_kategori' && 'PGK Kategori (Tabel Benar / Salah)'}
                                                 {currentQuestion.question_type === 'short_answer' && 'Isian Singkat'}
                                                 {currentQuestion.question_type === 'essay' && 'Essay / Uraian'}
                                             </p>
@@ -347,6 +412,139 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
                                             })}
                                         </div>
                                     )}
+
+                                    {/* PGK MCMA (Kotak Centang) */}
+                                    {currentQuestion.question_type === 'pgk_mcma' && (
+                                        <div className="space-y-3">
+                                            <p className="text-xs font-semibold text-indigo-900 bg-indigo-50 border border-indigo-200 p-3 rounded-xl">
+                                                💡 <strong>Petunjuk:</strong> Pilihlah satu atau lebih jawaban yang benar sesuai dengan pertanyaan di atas. (Kotak centang)
+                                            </p>
+
+                                            {Object.entries(currentQuestion.options || {}).map(([key, value]) => {
+                                                const selectedList = getMcmaSelected(currentQuestion.id);
+                                                const isSelected = selectedList.includes(key);
+                                                const optionImage = currentQuestion.option_images?.[key];
+                                                return (
+                                                    <label
+                                                        key={key}
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            toggleMcmaOption(currentQuestion.id, key);
+                                                        }}
+                                                        className={`flex items-start p-4 rounded-2xl border-2 cursor-pointer transition duration-150 ${
+                                                            isSelected
+                                                                ? 'border-indigo-600 bg-indigo-50/70 shadow-sm'
+                                                                : 'border-slate-200 hover:border-slate-300 bg-white'
+                                                        }`}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isSelected}
+                                                            onChange={() => {}}
+                                                            className="mt-1 text-indigo-600 focus:ring-indigo-500 rounded w-4 h-4 shrink-0"
+                                                        />
+                                                        <div className="ml-3 text-sm font-medium text-slate-900 leading-relaxed flex-1 space-y-2.5">
+                                                            <div className="flex items-start">
+                                                                <span className="font-extrabold text-indigo-900 mr-2 text-base shrink-0">{key}.</span>
+                                                                {value ? <span>{value}</span> : null}
+                                                            </div>
+                                                            {optionImage && (
+                                                                <div className="pt-1">
+                                                                    <img
+                                                                        src={`/storage/${optionImage}`}
+                                                                        alt={`Pilihan ${key}`}
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault();
+                                                                            e.stopPropagation();
+                                                                            setLightboxImage(`/storage/${optionImage}`);
+                                                                        }}
+                                                                        className="rounded-xl border border-slate-200 max-h-56 max-w-full object-contain bg-white p-1.5 hover:opacity-95 shadow-sm transition cursor-zoom-in"
+                                                                        title="Klik untuk perbesar gambar opsi"
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {/* PGK Kategori (Tabel Benar / Salah) */}
+                                    {currentQuestion.question_type === 'pgk_kategori' && (() => {
+                                        const rows = currentQuestion.options?.rows || [];
+                                        const answersMap = getKategoriMap(currentQuestion.id);
+
+                                        return (
+                                            <div className="space-y-4">
+                                                <p className="text-xs font-semibold text-teal-900 bg-teal-50 border border-teal-200 p-3 rounded-xl">
+                                                    💡 <strong>Petunjuk:</strong> Tentukan <strong>Benar</strong> atau <strong>Salah</strong> untuk setiap pernyataan pada tabel berikut!
+                                                </p>
+
+                                                <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                                    <table className="w-full text-sm text-left border-collapse">
+                                                        <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                                                            <tr>
+                                                                <th className="py-3.5 px-3 w-12 text-center">#</th>
+                                                                <th className="py-3.5 px-4 min-w-[240px]">Pernyataan</th>
+                                                                <th className="py-3.5 px-3 w-28 text-center text-emerald-800 bg-emerald-50/50">Benar</th>
+                                                                <th className="py-3.5 px-3 w-28 text-center text-rose-800 bg-rose-50/50">Salah</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-slate-100">
+                                                            {rows.map((row) => {
+                                                                const currentChoice = answersMap[row.id];
+                                                                return (
+                                                                    <tr key={row.id} className="hover:bg-slate-50/50 transition">
+                                                                        <td className="py-4 px-3 text-center font-bold text-slate-900 align-middle">
+                                                                            <span className="w-7 h-7 rounded-lg bg-slate-100 inline-flex items-center justify-center text-xs font-extrabold text-slate-800">
+                                                                                {row.id}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="py-4 px-4 text-slate-800 font-medium leading-relaxed align-middle">
+                                                                            {row.text}
+                                                                        </td>
+                                                                        <td 
+                                                                            onClick={() => setKategoriRowChoice(currentQuestion.id, row.id, 'Benar')}
+                                                                            className={`py-4 px-3 text-center align-middle cursor-pointer transition ${
+                                                                                currentChoice === 'Benar' ? 'bg-emerald-50/80 font-bold' : 'hover:bg-slate-50'
+                                                                            }`}
+                                                                        >
+                                                                            <div className="flex items-center justify-center">
+                                                                                <input
+                                                                                    type="radio"
+                                                                                    name={`kategori_${currentQuestion.id}_${row.id}`}
+                                                                                    checked={currentChoice === 'Benar'}
+                                                                                    onChange={() => setKategoriRowChoice(currentQuestion.id, row.id, 'Benar')}
+                                                                                    className="w-5 h-5 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                                                                                />
+                                                                            </div>
+                                                                        </td>
+                                                                        <td 
+                                                                            onClick={() => setKategoriRowChoice(currentQuestion.id, row.id, 'Salah')}
+                                                                            className={`py-4 px-3 text-center align-middle cursor-pointer transition ${
+                                                                                currentChoice === 'Salah' ? 'bg-rose-50/80 font-bold' : 'hover:bg-slate-50'
+                                                                            }`}
+                                                                        >
+                                                                            <div className="flex items-center justify-center">
+                                                                                <input
+                                                                                    type="radio"
+                                                                                    name={`kategori_${currentQuestion.id}_${row.id}`}
+                                                                                    checked={currentChoice === 'Salah'}
+                                                                                    onChange={() => setKategoriRowChoice(currentQuestion.id, row.id, 'Salah')}
+                                                                                    className="w-5 h-5 text-rose-600 focus:ring-rose-500 cursor-pointer"
+                                                                                />
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
 
                                     {currentQuestion.question_type === 'short_answer' && (
                                         <div className="space-y-2">

@@ -45,6 +45,7 @@ class AppNotification extends Model
             $q->where('user_id', $user->id)
                 ->orWhere(function ($q2) use ($user) {
                     $q2->whereNull('user_id')
+                        ->where('type', '!=', 'exam') // Notifikasi ujian wajib spesifik user_id
                         ->where(function ($q3) use ($user) {
                             $q3->whereNull('role')
                                 ->orWhere('role', $user->role);

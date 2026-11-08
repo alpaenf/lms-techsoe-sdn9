@@ -103,7 +103,12 @@ class StudentExamAttempt extends Model
 
     public function getAnsweredCount(): int
     {
-        return $this->answers()->whereNotNull('answer_text')->count();
+        return $this->answers()
+            ->whereNotNull('answer_text')
+            ->where('answer_text', '!=', '')
+            ->where('answer_text', '!=', '[]')
+            ->where('answer_text', '!=', '{}')
+            ->count();
     }
 
     public function isPassed(): bool

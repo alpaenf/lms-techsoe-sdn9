@@ -72,6 +72,8 @@ export default function StudentExamReview({ auth, attempt, questions = [], answe
                                         <div>
                                             <p className="text-xs font-bold text-slate-700 uppercase">
                                                 {currentQuestion.question_type === 'multiple_choice' && 'Pilihan Ganda'}
+                                                {currentQuestion.question_type === 'pgk_mcma' && 'PGK MCMA (Kotak Centang)'}
+                                                {currentQuestion.question_type === 'pgk_kategori' && 'PGK Kategori (Tabel Benar / Salah)'}
                                                 {currentQuestion.question_type === 'short_answer' && 'Isian Singkat'}
                                                 {currentQuestion.question_type === 'essay' && 'Essay / Uraian'}
                                             </p>
@@ -183,6 +185,189 @@ export default function StudentExamReview({ auth, attempt, questions = [], answe
                                             })}
                                         </div>
                                     )}
+
+                                    {/* PGK MCMA Review */}
+                                    {currentQuestion.question_type === 'pgk_mcma' && (() => {
+                                        let correctKeys = [];
+                                        try {
+                                            correctKeys = typeof currentQuestion.correct_answer === 'string'
+                                                ? JSON.parse(currentQuestion.correct_answer)
+                                                : (currentQuestion.correct_answer || []);
+                                        } catch (e) {
+                                            correctKeys = [String(currentQuestion.correct_answer)];
+                                        }
+                                        if (!Array.isArray(correctKeys)) correctKeys = [];
+
+                                        let studentKeys = [];
+                                        try {
+                                            studentKeys = typeof currentAnswer?.answer_text === 'string'
+                                                ? JSON.parse(currentAnswer.answer_text)
+                                                : (currentAnswer?.answer_text || []);
+                                        } catch (e) {
+                                            studentKeys = currentAnswer?.answer_text ? [currentAnswer.answer_text] : [];
+                                        }
+                                        if (!Array.isArray(studentKeys)) studentKeys = [];
+
+                                        return (
+                                            <div className="space-y-3">
+                                                <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl text-xs text-indigo-900 font-medium">
+                                                    Pilihan Ganda Kompleks (Kotak Centang): periksa pilihan jawaban Anda dengan kunci benar di bawah ini.
+                                                </div>
+                                                <div className="space-y-2.5">
+                                                    {Object.entries(currentQuestion.options || {}).map(([key, val]) => {
+                                                        const isStudentChoice = studentKeys.includes(key);
+                                                        const isRightAnswer = correctKeys.includes(key);
+                                                        const optionImage = currentQuestion.option_images?.[key];
+
+                                                        let cardStyle = 'border-slate-200 bg-white text-slate-700';
+                                                        if (isRightAnswer && isStudentChoice) {
+                                                            cardStyle = 'border-emerald-500 bg-emerald-50 text-emerald-900 font-semibold';
+                                                        } else if (isStudentChoice && !isRightAnswer) {
+                                                            cardStyle = 'border-rose-400 bg-rose-50 text-rose-900 font-medium';
+                                                        } else if (isRightAnswer && !isStudentChoice) {
+                                                            cardStyle = 'border-amber-400 bg-amber-50/80 text-amber-900';
+                                                        }
+
+                                                        return (
+                                                            <div 
+                                                                key={key} 
+                                                                className={`p-3.5 rounded-xl border-2 space-y-2 text-sm ${cardStyle}`}
+                                                            >
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-2.5">
+                                                                        <span className={`w-4 h-4 rounded border flex items-center justify-center font-bold text-[10px] shrink-0 ${
+                                                                            isStudentChoice ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-300 bg-white'
+                                                                        }`}>
+                                                                            {isStudentChoice ? '✓' : ''}
+                                                                        </span>
+                                                                        <span className="font-bold w-6 text-base">{key}.</span>
+                                                                        {val ? <span>{val}</span> : (!optionImage && <span className="italic text-slate-400 font-normal">(Tidak ada teks)</span>)}
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 text-xs">
+                                                                        {isStudentChoice && (
+                                                                            <span className={`px-2 py-0.5 rounded font-bold ${
+                                                                                isRightAnswer ? 'bg-emerald-200 text-emerald-800' : 'bg-rose-200 text-rose-800'
+                                                                            }`}>
+                                                                                Pilihan Anda {isRightAnswer ? '✓' : '✗'}
+                                                                            </span>
+                                                                        )}
+                                                                        {isRightAnswer && (
+                                                                            <span className="px-2 py-0.5 rounded bg-emerald-200 text-emerald-800 font-bold">
+                                                                                Kunci Benar
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                {optionImage && (
+                                                                    <div className="pl-8 pt-1">
+                                                                        <img
+                                                                            src={`/storage/${optionImage}`}
+                                                                            alt={`Pilihan ${key}`}
+                                                                            onClick={() => setLightboxImage(`/storage/${optionImage}`)}
+                                                                            className="rounded-lg border border-slate-200 max-h-48 max-w-full object-contain bg-white p-1 cursor-pointer hover:opacity-95 shadow-sm transition"
+                                                                            title="Klik untuk perbesar gambar"
+                                                                        />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* PGK Kategori Review */}
+                                    {currentQuestion.question_type === 'pgk_kategori' && (() => {
+                                        const rows = currentQuestion.options?.rows || [];
+                                        let correctMap = {};
+                                        try {
+                                            correctMap = typeof currentQuestion.correct_answer === 'string'
+                                                ? JSON.parse(currentQuestion.correct_answer)
+                                                : (currentQuestion.correct_answer || {});
+                                        } catch (e) {
+                                            correctMap = {};
+                                        }
+
+                                        let studentMap = {};
+                                        try {
+                                            studentMap = typeof currentAnswer?.answer_text === 'string'
+                                                ? JSON.parse(currentAnswer.answer_text)
+                                                : (currentAnswer?.answer_text || {});
+                                        } catch (e) {
+                                            studentMap = {};
+                                        }
+
+                                        return (
+                                            <div className="space-y-3">
+                                                <div className="p-3 bg-teal-50/70 border border-teal-200 rounded-xl text-xs text-teal-900 font-medium">
+                                                    PGK Kategori (Tabel Benar / Salah): periksa pilihan pernyataan Anda dengan kunci jawaban benar pada tabel di bawah ini.
+                                                </div>
+                                                <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                                    <table className="w-full text-xs text-left border-collapse">
+                                                        <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                                                            <tr>
+                                                                <th className="py-3 px-3 w-12 text-center">#</th>
+                                                                <th className="py-3 px-4 min-w-[220px]">Pernyataan</th>
+                                                                <th className="py-3 px-3 w-28 text-center">Pilihan Anda</th>
+                                                                <th className="py-3 px-3 w-28 text-center">Kunci Benar</th>
+                                                                <th className="py-3 px-3 w-20 text-center">Status</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-slate-100">
+                                                            {rows.map((row) => {
+                                                                const studentChoice = studentMap[row.id] || '(Kosong)';
+                                                                const rightChoice = correctMap[row.id] || '-';
+                                                                const isRowCorrect = studentChoice === rightChoice;
+
+                                                                return (
+                                                                    <tr key={row.id} className={isRowCorrect ? 'bg-emerald-50/30' : 'bg-rose-50/30'}>
+                                                                        <td className="py-3 px-3 text-center font-bold text-slate-900">
+                                                                            <span className="w-6 h-6 rounded bg-slate-100 inline-flex items-center justify-center font-bold">
+                                                                                {row.id}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="py-3 px-4 text-slate-800 font-medium">
+                                                                            {row.text}
+                                                                        </td>
+                                                                        <td className="py-3 px-3 text-center">
+                                                                            <span className={`px-2 py-0.5 rounded font-bold ${
+                                                                                studentChoice === 'Benar' ? 'bg-emerald-100 text-emerald-800' :
+                                                                                studentChoice === 'Salah' ? 'bg-rose-100 text-rose-800' :
+                                                                                'bg-slate-100 text-slate-500'
+                                                                            }`}>
+                                                                                {studentChoice}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="py-3 px-3 text-center font-extrabold text-slate-900">
+                                                                            <span className={`px-2 py-0.5 rounded ${
+                                                                                rightChoice === 'Benar' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                                                                            }`}>
+                                                                                {rightChoice}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="py-3 px-3 text-center">
+                                                                            {isRowCorrect ? (
+                                                                                <span className="inline-flex items-center text-emerald-600 font-bold">
+                                                                                    <CheckCircle2 className="w-4 h-4 mr-1" />
+                                                                                    Tepat
+                                                                                </span>
+                                                                            ) : (
+                                                                                <span className="inline-flex items-center text-rose-600 font-bold">
+                                                                                    <XCircle className="w-4 h-4 mr-1" />
+                                                                                    Keliru
+                                                                                </span>
+                                                                            )}
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
 
                                     {/* Short answer */}
                                     {currentQuestion.question_type === 'short_answer' && (

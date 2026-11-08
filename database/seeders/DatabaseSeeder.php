@@ -631,6 +631,45 @@ class DatabaseSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'exam_id' => $examId,
+                'question_type' => 'pgk_mcma',
+                'question_text' => 'Setiap bulan Ramadan, SD Harapan mengadakan bakti sosial. Mereka membagi paket sembako. Pilihlah pernyataan yang benar sesuai dengan informasi tersebut! Jawaban benar lebih dari satu.',
+                'question_image' => null,
+                'options' => json_encode([
+                    'A' => 'Total berat semua isi paket adalah 4.425 gram.',
+                    'B' => 'Berat mi instan dalam paket tersebut lebih dari 0,5 kilogram.',
+                    'C' => 'Satu kemasan gula pasir lebih berat dibandingkan seluruh mi instan.',
+                ]),
+                'correct_answer' => json_encode(['A', 'C']),
+                'points' => 10,
+                'order_number' => 7,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'exam_id' => $examId,
+                'question_type' => 'pgk_kategori',
+                'question_text' => 'Pak Bondan seorang penjual susu kedelai memproduksi 7 wadah susu kedelai. Tentukan Benar atau Salah untuk setiap pernyataan berikut tentang hasil produksi susu kedelai Pak Bondan!',
+                'question_image' => null,
+                'options' => json_encode([
+                    'categories' => ['Benar', 'Salah'],
+                    'rows' => [
+                        ['id' => 'A', 'text' => 'Pada hari itu Pak Bondan memproduksi 43 3/4 liter susu kedelai.'],
+                        ['id' => 'B', 'text' => 'Setiap botol besar diisi susu kedelai sebanyak 35/46 liter.'],
+                        ['id' => 'C', 'text' => 'Total susu kedelai yang dikemas dalam botol kecil adalah 525/46 liter.'],
+                    ],
+                ]),
+                'correct_answer' => json_encode([
+                    'A' => 'Benar',
+                    'B' => 'Benar',
+                    'C' => 'Salah',
+                ]),
+                'points' => 10,
+                'order_number' => 8,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

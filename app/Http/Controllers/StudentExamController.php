@@ -256,12 +256,11 @@ class StudentExamController extends Controller
         $question = ExamQuestion::find($validated['question_id']);
 
         $isCorrect = $question->checkAnswer($validated['answer_text'] ?? '');
-        $pointsEarned = 0;
+        $pointsEarned = $question->getPointsForAnswer($validated['answer_text'] ?? '');
 
-        if ($isCorrect === true) {
-            $pointsEarned = $question->points;
-        } elseif ($isCorrect === null) {
+        if ($question->question_type === 'essay') {
             $isCorrect = null;
+            $pointsEarned = 0;
         }
 
         StudentAnswer::updateOrCreate(
@@ -383,6 +382,18 @@ class StudentExamController extends Controller
             ->where('is_correct', true)
             ->count();
 
+        $pgkMcmaCount = $attempt->exam->questions()->where('question_type', 'pgk_mcma')->count();
+        $pgkMcmaCorrect = $attempt->answers()
+            ->whereHas('question', fn ($q) => $q->where('question_type', 'pgk_mcma'))
+            ->where('is_correct', true)
+            ->count();
+
+        $pgkKategoriCount = $attempt->exam->questions()->where('question_type', 'pgk_kategori')->count();
+        $pgkKategoriCorrect = $attempt->answers()
+            ->whereHas('question', fn ($q) => $q->where('question_type', 'pgk_kategori'))
+            ->where('is_correct', true)
+            ->count();
+
         $shortCount = $attempt->exam->questions()->where('question_type', 'short_answer')->count();
         $shortCorrect = $attempt->answers()
             ->whereHas('question', fn ($q) => $q->where('question_type', 'short_answer'))
@@ -399,6 +410,8 @@ class StudentExamController extends Controller
             'total_questions' => $totalQuestions,
             'answered' => $answeredCount,
             'mc_correct' => $mcCorrect.'/'.$mcCount,
+            'pgk_mcma_correct' => $pgkMcmaCorrect.'/'.$pgkMcmaCount,
+            'pgk_kategori_correct' => $pgkKategoriCorrect.'/'.$pgkKategoriCount,
             'short_correct' => $shortCorrect.'/'.$shortCount,
             'essay_graded' => $essayGraded.'/'.$essayCount,
             'is_passed' => $attempt->isPassed(),

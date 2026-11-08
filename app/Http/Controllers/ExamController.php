@@ -11,6 +11,7 @@ use App\Models\StudentAnswer;
 use App\Models\StudentExamAttempt;
 use App\Models\Subject;
 use App\Models\Teacher;
+use App\Services\ReligionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -98,9 +99,9 @@ class ExamController extends Controller
             'passing_score' => 'nullable|numeric|min:0|max:100',
             'exam_category' => 'required|in:uts,uas,ulangan_harian,ujian_sekolah,kuis',
             'questions' => 'nullable|array',
-            'questions.*.type' => 'required|in:multiple_choice,short_answer,essay',
+            'questions.*.type' => 'required|in:multiple_choice,pgk_mcma,pgk_kategori,short_answer,essay',
             'questions.*.text' => 'required|string',
-            'questions.*.options' => 'required_if:questions.*.type,multiple_choice|array',
+            'questions.*.options' => 'nullable',
             'questions.*.correct_answer' => 'required_unless:questions.*.type,essay',
             'questions.*.points' => 'required|integer|min:1',
         ]);
@@ -130,15 +131,6 @@ class ExamController extends Controller
                 ]);
             }
         }
-
-        // Notify students
-        AppNotification::create([
-            'role' => 'siswa',
-            'title' => 'Ujian Baru: '.$exam->title,
-            'message' => 'Ujian baru telah diterbitkan untuk mata pelajaran '.($exam->subject?->name ?? 'Mata Pelajaran').'.',
-            'type' => 'exam',
-            'link' => route('student.exams.index'),
-        ]);
 
         return redirect()->route('exams.show', $exam->id)
             ->with('success', 'Ujian berhasil dibuat. Silakan tambahkan butir-butir soal.');
@@ -207,6 +199,10 @@ class ExamController extends Controller
 
     public function destroy(Exam $exam)
     {
+        AppNotification::where('type', 'exam')
+            ->where('title', 'Ujian Baru: '.$exam->title)
+            ->delete();
+
         $exam->delete();
 
         return redirect()->route('exams.index')
@@ -241,16 +237,27 @@ class ExamController extends Controller
     public function addQuestion(Request $request, Exam $exam)
     {
         $validated = $request->validate([
-            'question_type' => 'required|in:multiple_choice,short_answer,essay',
+            'question_type' => 'required|in:multiple_choice,pgk_mcma,pgk_kategori,short_answer,essay',
             'question_text' => 'nullable|string',
             'question_image' => 'nullable|string',
             'question_image_file' => $this->getImageValidationRule(),
-            'options' => 'required_if:question_type,multiple_choice|array',
+            'options' => 'nullable',
             'option_image_files' => 'nullable|array',
             'option_image_files.*' => $this->getImageValidationRule(),
             'correct_answer' => 'required_unless:question_type,essay',
             'points' => 'required|integer|min:1',
         ]);
+
+        if (isset($validated['options']) && is_string($validated['options'])) {
+            $decodedOptions = json_decode($validated['options'], true);
+            if (is_array($decodedOptions)) {
+                $validated['options'] = $decodedOptions;
+            }
+        }
+
+        if (isset($validated['correct_answer']) && is_array($validated['correct_answer'])) {
+            $validated['correct_answer'] = json_encode($validated['correct_answer']);
+        }
 
         $hasText = ! empty(trim((string) ($validated['question_text'] ?? '')));
         $hasImage = $request->hasFile('question_image_file') || ! empty($validated['question_image'] ?? null);
@@ -291,18 +298,30 @@ class ExamController extends Controller
     public function updateQuestion(Request $request, ExamQuestion $question)
     {
         $validated = $request->validate([
-            'question_type' => 'nullable|in:multiple_choice,short_answer,essay',
+            'question_type' => 'nullable|in:multiple_choice,pgk_mcma,pgk_kategori,short_answer,essay',
             'question_text' => 'nullable|string',
             'question_image' => 'nullable|string',
             'question_image_file' => $this->getImageValidationRule(),
             'remove_question_image' => 'nullable',
-            'options' => 'required_if:question_type,multiple_choice|array',
+            'options' => 'nullable',
             'option_image_files' => 'nullable|array',
             'option_image_files.*' => $this->getImageValidationRule(),
+            'existing_option_images' => 'nullable|array',
             'remove_option_images' => 'nullable|array',
             'correct_answer' => 'required_unless:question_type,essay',
             'points' => 'required|integer|min:1',
         ]);
+
+        if (isset($validated['options']) && is_string($validated['options'])) {
+            $decodedOptions = json_decode($validated['options'], true);
+            if (is_array($decodedOptions)) {
+                $validated['options'] = $decodedOptions;
+            }
+        }
+
+        if (isset($validated['correct_answer']) && is_array($validated['correct_answer'])) {
+            $validated['correct_answer'] = json_encode($validated['correct_answer']);
+        }
 
         $hasText = ! empty(trim((string) ($validated['question_text'] ?? '')));
         $hasImage = $request->hasFile('question_image_file') || (! empty($question->question_image) && ! $request->filled('remove_question_image'));
@@ -329,6 +348,26 @@ class ExamController extends Controller
         }
 
         $currentOptionImages = $question->option_images ?? [];
+
+        if ($request->has('existing_option_images') && is_array($request->input('existing_option_images'))) {
+            $submittedExisting = $request->input('existing_option_images');
+            $newImages = [];
+            foreach ($submittedExisting as $k => $imgPath) {
+                if (! empty($imgPath) && Storage::disk('public')->exists($imgPath)) {
+                    $newImages[$k] = $imgPath;
+                }
+            }
+            // Hapus file gambar lama yang tidak dipertahankan lagi
+            foreach ($currentOptionImages as $oldKey => $oldPath) {
+                if (! in_array($oldPath, $newImages, true)) {
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
+                }
+            }
+            $currentOptionImages = $newImages;
+        }
+
         if ($request->has('remove_option_images') && is_array($request->remove_option_images)) {
             foreach ($request->remove_option_images as $optKey => $shouldRemove) {
                 if (! empty($shouldRemove) && $shouldRemove !== '0' && ! empty($currentOptionImages[$optKey])) {
@@ -351,6 +390,18 @@ class ExamController extends Controller
                 }
             }
         }
+
+        if (is_array($validated['options'] ?? null) && is_array($currentOptionImages)) {
+            foreach (array_keys($currentOptionImages) as $imgKey) {
+                if (! array_key_exists($imgKey, $validated['options'])) {
+                    if (Storage::disk('public')->exists($currentOptionImages[$imgKey])) {
+                        Storage::disk('public')->delete($currentOptionImages[$imgKey]);
+                    }
+                    unset($currentOptionImages[$imgKey]);
+                }
+            }
+        }
+
         $validated['option_images'] = ! empty($currentOptionImages) ? $currentOptionImages : null;
 
         $question->update($validated);
@@ -400,7 +451,83 @@ class ExamController extends Controller
 
         $exam->update(['status' => 'published']);
 
+        $this->notifyEligibleStudents($exam);
+
         return back()->with('success', 'Ujian berhasil diterbitkan.');
+    }
+
+    /**
+     * Kirim notifikasi ujian baru hanya kepada siswa yang berhak/ditargetkan.
+     */
+    protected function notifyEligibleStudents(Exam $exam): void
+    {
+        if ($exam->status !== 'published') {
+            return;
+        }
+
+        $exam->loadMissing(['subject', 'class']);
+
+        $studentsQuery = Student::query()
+            ->whereNotNull('user_id')
+            ->with('class');
+
+        if ($exam->class_id) {
+            // Ujian khusus untuk rombel tertentu
+            $studentsQuery->where('class_id', $exam->class_id);
+        } elseif ($exam->exam_category === 'ujian_sekolah') {
+            // Ujian Sekolah khusus untuk seluruh siswa Kelas 6 (Kelas Akhir)
+            $studentsQuery->whereHas('class', fn ($c) => $c->where('grade_level', 6));
+        }
+
+        $students = $studentsQuery->get();
+
+        // Validasi kesesuaian agama jika mata pelajaran terkait keagamaan
+        $subjRel = ReligionService::getSubjectReligion($exam->subject);
+        if ($subjRel) {
+            $students = $students->filter(function ($student) use ($subjRel) {
+                return ReligionService::studentCanAccessSubject($student->religion, $subjRel);
+            });
+        }
+
+        if ($students->isEmpty()) {
+            return;
+        }
+
+        $targetUserIds = $students->pluck('user_id')->unique()->filter()->values();
+
+        // Cegah duplikasi notifikasi untuk ujian yang sama
+        $existingNotified = AppNotification::where('type', 'exam')
+            ->where('title', 'Ujian Baru: '.$exam->title)
+            ->whereIn('user_id', $targetUserIds)
+            ->pluck('user_id')
+            ->all();
+
+        $newUserIds = $targetUserIds->diff($existingNotified);
+
+        if ($newUserIds->isEmpty()) {
+            return;
+        }
+
+        $now = now();
+        $records = [];
+        $subjectName = $exam->subject?->name ?? 'Mata Pelajaran';
+
+        foreach ($newUserIds as $userId) {
+            $records[] = [
+                'user_id' => $userId,
+                'role' => 'siswa',
+                'title' => 'Ujian Baru: '.$exam->title,
+                'message' => 'Ujian baru telah diterbitkan untuk mata pelajaran '.$subjectName.'.',
+                'type' => 'exam',
+                'link' => route('student.exams.index'),
+                'is_read' => false,
+                'read_at' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        AppNotification::insert($records);
     }
 
     public function close(Exam $exam)

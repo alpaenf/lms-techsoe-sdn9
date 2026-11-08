@@ -42,6 +42,14 @@ export default function StudentExamResult({ auth, attempt, statistics }) {
     const attemptNum = Number(attempt?.attempt_number || 1);
     const canRetry = maxAttempts === 999 || attemptNum < maxAttempts;
 
+    const hasTypeBreakdown = Boolean(
+        (statistics?.mc_correct && !statistics.mc_correct.endsWith('/0')) ||
+        (statistics?.pgk_mcma_correct && !statistics.pgk_mcma_correct.endsWith('/0')) ||
+        (statistics?.pgk_kategori_correct && !statistics.pgk_kategori_correct.endsWith('/0')) ||
+        (statistics?.short_correct && !statistics.short_correct.endsWith('/0')) ||
+        (statistics?.essay_graded && !statistics.essay_graded.endsWith('/0'))
+    );
+
     return (
         <AuthenticatedLayout
             header={
@@ -170,66 +178,112 @@ export default function StudentExamResult({ auth, attempt, statistics }) {
                 </div>
 
                 {/* Detailed Breakdown */}
-                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                        Rincian Hasil Pengerjaan per Jenis Soal
-                    </h3>
-                    <div className="space-y-3">
-                        {/* Multiple Choice */}
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-blue-50/70 border border-blue-200">
-                            <div className="flex items-center">
-                                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center mr-3 text-blue-700">
-                                    <CheckCircle2 className="w-5 h-5" />
+                {hasTypeBreakdown && (
+                    <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+                        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                            Rincian Hasil Pengerjaan per Jenis Soal
+                        </h3>
+                        <div className="space-y-3">
+                            {/* Multiple Choice */}
+                            {statistics?.mc_correct && !statistics.mc_correct.endsWith('/0') && (
+                                <div className="flex items-center justify-between p-4 rounded-2xl bg-blue-50/70 border border-blue-200">
+                                    <div className="flex items-center">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center mr-3 text-blue-700">
+                                            <CheckCircle2 className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900">Pilihan Ganda</p>
+                                            <p className="text-xs text-slate-500">Penilaian otomatis oleh sistem</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-base font-extrabold text-blue-700">{statistics.mc_correct}</p>
+                                        <p className="text-[11px] font-semibold text-slate-400">benar</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-sm font-bold text-slate-900">Pilihan Ganda</p>
-                                    <p className="text-xs text-slate-500">Penilaian otomatis oleh sistem</p>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-base font-extrabold text-blue-700">{statistics?.mc_correct || '0/0'}</p>
-                                <p className="text-[11px] font-semibold text-slate-400">benar</p>
-                            </div>
-                        </div>
+                            )}
 
-                        {/* Short Answer */}
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200">
-                            <div className="flex items-center">
-                                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center mr-3 text-emerald-700">
-                                    <FileText className="w-5 h-5" />
+                            {/* PGK MCMA */}
+                            {statistics?.pgk_mcma_correct && !statistics.pgk_mcma_correct.endsWith('/0') && (
+                                <div className="flex items-center justify-between p-4 rounded-2xl bg-indigo-50/70 border border-indigo-200">
+                                    <div className="flex items-center">
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center mr-3 text-indigo-700 font-bold text-xs">
+                                            ✓✓
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900">PGK MCMA (Kotak Centang)</p>
+                                            <p className="text-xs text-slate-500">Penilaian otomatis oleh sistem</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-base font-extrabold text-indigo-700">{statistics.pgk_mcma_correct}</p>
+                                        <p className="text-[11px] font-semibold text-slate-400">benar</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-sm font-bold text-slate-900">Isian Singkat</p>
-                                    <p className="text-xs text-slate-500">Pencocokan kata otomatis</p>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-base font-extrabold text-emerald-700">{statistics?.short_correct || '0/0'}</p>
-                                <p className="text-[11px] font-semibold text-slate-400">benar</p>
-                            </div>
-                        </div>
+                            )}
 
-                        {/* Essay */}
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-amber-50/70 border border-amber-200">
-                            <div className="flex items-center">
-                                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center mr-3 text-amber-700">
-                                    <Award className="w-5 h-5" />
+                            {/* PGK Kategori */}
+                            {statistics?.pgk_kategori_correct && !statistics.pgk_kategori_correct.endsWith('/0') && (
+                                <div className="flex items-center justify-between p-4 rounded-2xl bg-teal-50/70 border border-teal-200">
+                                    <div className="flex items-center">
+                                        <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center mr-3 text-teal-700 font-bold text-xs">
+                                            B/S
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900">PGK Kategori (Tabel Benar/Salah)</p>
+                                            <p className="text-xs text-slate-500">Penilaian otomatis oleh sistem</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-base font-extrabold text-teal-700">{statistics.pgk_kategori_correct}</p>
+                                        <p className="text-[11px] font-semibold text-slate-400">benar</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-sm font-bold text-slate-900">Essay / Uraian</p>
-                                    <p className="text-xs text-slate-500">Koreksi & penilaian langsung oleh guru</p>
+                            )}
+
+                            {/* Short Answer */}
+                            {statistics?.short_correct && !statistics.short_correct.endsWith('/0') && (
+                                <div className="flex items-center justify-between p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+                                    <div className="flex items-center">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center mr-3 text-emerald-700">
+                                            <FileText className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900">Isian Singkat</p>
+                                            <p className="text-xs text-slate-500">Pencocokan kata otomatis</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-base font-extrabold text-emerald-700">{statistics.short_correct}</p>
+                                        <p className="text-[11px] font-semibold text-slate-400">benar</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-base font-extrabold text-amber-700">{statistics?.essay_graded || '0/0'}</p>
-                                <p className="text-[11px] font-semibold text-slate-400">telah dinilai</p>
-                            </div>
+                            )}
+
+                            {/* Essay */}
+                            {statistics?.essay_graded && !statistics.essay_graded.endsWith('/0') && (
+                                <div className="flex items-center justify-between p-4 rounded-2xl bg-amber-50/70 border border-amber-200">
+                                    <div className="flex items-center">
+                                        <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center mr-3 text-amber-700">
+                                            <Award className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900">Essay / Uraian</p>
+                                            <p className="text-xs text-slate-500">Koreksi & penilaian langsung oleh guru</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-base font-extrabold text-amber-700">{statistics.essay_graded}</p>
+                                        <p className="text-[11px] font-semibold text-slate-400">telah dinilai</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Waiting for Essay Grading */}
-                {statistics?.essay_graded && statistics.essay_graded.includes('/') && statistics.essay_graded.split('/')[0] !== statistics.essay_graded.split('/')[1] && (
+                {statistics?.essay_graded && !statistics.essay_graded.endsWith('/0') && statistics.essay_graded.includes('/') && statistics.essay_graded.split('/')[0] !== statistics.essay_graded.split('/')[1] && (
                     <div className="bg-amber-50 border-l-4 border-amber-500 rounded-2xl p-5 shadow-sm">
                         <div className="flex items-start">
                             <Clock className="w-5 h-5 text-amber-600 mr-3 mt-0.5 flex-shrink-0" />
