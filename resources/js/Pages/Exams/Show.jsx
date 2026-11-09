@@ -112,13 +112,60 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         } : opt));
     };
 
-    // State untuk PGK Kategori (Tabel Benar / Salah)
+    // State untuk PGK Kategori (Tabel Matriks Pilihan Kategori)
+    const [kategoriCategories, setKategoriCategories] = useState(['Benar', 'Salah']);
     const [kategoriRows, setKategoriRows] = useState([
         { id: 'A', text: '' },
         { id: 'B', text: '' },
         { id: 'C', text: '' }
     ]);
     const [kategoriAnswers, setKategoriAnswers] = useState({ A: 'Benar', B: 'Benar', C: 'Salah' });
+
+    const KATEGORI_PRESETS = [
+        { label: 'Benar / Salah', cat1: 'Benar', cat2: 'Salah' },
+        { label: 'Setuju / Tidak Setuju', cat1: 'Setuju', cat2: 'Tidak Setuju' },
+        { label: 'Sesuai / Tidak Sesuai', cat1: 'Sesuai', cat2: 'Tidak Sesuai' },
+        { label: 'Sebelum / Sesudah', cat1: 'Sebelum', cat2: 'Sesudah' },
+    ];
+
+    const applyKategoriPreset = (c1, c2) => {
+        const old1 = kategoriCategories[0];
+        const old2 = kategoriCategories[1];
+        setKategoriCategories([c1, c2]);
+
+        setKategoriAnswers(prev => {
+            const copy = { ...prev };
+            Object.keys(copy).forEach(key => {
+                if (copy[key] === old1) {
+                    copy[key] = c1;
+                } else if (copy[key] === old2) {
+                    copy[key] = c2;
+                } else if (!copy[key] || (copy[key] !== c1 && copy[key] !== c2)) {
+                    copy[key] = c1;
+                }
+            });
+            return copy;
+        });
+    };
+
+    const handleKategoriCategoryChange = (index, value) => {
+        const oldVal = kategoriCategories[index];
+        const updated = [...kategoriCategories];
+        updated[index] = value;
+        setKategoriCategories(updated);
+
+        if (oldVal && oldVal !== value) {
+            setKategoriAnswers(prev => {
+                const copy = { ...prev };
+                Object.keys(copy).forEach(k => {
+                    if (copy[k] === oldVal) {
+                        copy[k] = value;
+                    }
+                });
+                return copy;
+            });
+        }
+    };
 
     const [isSubmittingQuestion, setIsSubmittingQuestion] = useState(false);
     const [lightboxImage, setLightboxImage] = useState(null);
@@ -140,6 +187,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
             { id: 'B', text: '', isCorrect: false, imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null },
             { id: 'C', text: '', isCorrect: false, imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null },
         ]);
+        setKategoriCategories(['Benar', 'Salah']);
         setKategoriRows([
             { id: 'A', text: '' },
             { id: 'B', text: '' },
@@ -208,6 +256,12 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
 
         // Initialize PGK Kategori
         if (q.question_type === 'pgk_kategori') {
+            let cats = ['Benar', 'Salah'];
+            if (Array.isArray(q.options?.categories) && q.options.categories.length >= 2) {
+                cats = [String(q.options.categories[0]), String(q.options.categories[1])];
+            }
+            setKategoriCategories(cats);
+
             let rows = [
                 { id: 'A', text: '' },
                 { id: 'B', text: '' },
@@ -226,6 +280,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
             }
             setKategoriAnswers(parsedKategori);
         } else {
+            setKategoriCategories(['Benar', 'Salah']);
             setKategoriRows([
                 { id: 'A', text: '' },
                 { id: 'B', text: '' },
@@ -331,6 +386,17 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         }
 
         if (questionForm.question_type === 'pgk_kategori') {
+            const cat1 = (kategoriCategories[0] || '').trim();
+            const cat2 = (kategoriCategories[1] || '').trim();
+
+            if (!cat1 || !cat2) {
+                alert('Kedua label kategori wajib diisi (misal: Benar dan Salah, Setuju dan Tidak Setuju).');
+                return;
+            }
+            if (cat1.toLowerCase() === cat2.toLowerCase()) {
+                alert('Label kolom kategori 1 dan kolom 2 tidak boleh sama.');
+                return;
+            }
             if (kategoriRows.length < 2) {
                 alert('Tipe soal PGK Kategori minimal harus memiliki 2 baris pernyataan.');
                 return;
@@ -341,7 +407,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                     return;
                 }
                 if (!kategoriAnswers[row.id]) {
-                    alert(`Silakan pilih kunci (Benar / Salah) untuk pernyataan baris ${row.id}.`);
+                    alert(`Silakan pilih kunci (${cat1} / ${cat2}) untuk pernyataan baris ${row.id}.`);
                     return;
                 }
             }
@@ -381,7 +447,9 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                 }
             });
         } else if (questionForm.question_type === 'pgk_kategori') {
-            formData.append('options', JSON.stringify({ categories: ['Benar', 'Salah'], rows: kategoriRows }));
+            const cat1 = (kategoriCategories[0] || '').trim();
+            const cat2 = (kategoriCategories[1] || '').trim();
+            formData.append('options', JSON.stringify({ categories: [cat1, cat2], rows: kategoriRows }));
             formData.append('correct_answer', JSON.stringify(kategoriAnswers));
         } else {
             formData.append('correct_answer', questionForm.correct_answer || '');
@@ -572,7 +640,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                             <span className="inline-flex items-center text-[10px] font-bold uppercase">
                                                 {q.question_type === 'multiple_choice' && <span className="bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full">Pilihan Ganda</span>}
                                                 {q.question_type === 'pgk_mcma' && <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-0.5 rounded-full">PGK MCMA (Kotak Centang)</span>}
-                                                {q.question_type === 'pgk_kategori' && <span className="bg-teal-50 text-teal-700 border border-teal-200 px-2.5 py-0.5 rounded-full">PGK Kategori (Benar / Salah)</span>}
+                                                {q.question_type === 'pgk_kategori' && <span className="bg-teal-50 text-teal-700 border border-teal-200 px-2.5 py-0.5 rounded-full">PGK Kategori</span>}
                                                 {q.question_type === 'short_answer' && <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full">Isian Singkat</span>}
                                                 {q.question_type === 'essay' && <span className="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-0.5 rounded-full">Essay / Uraian</span>}
                                             </span>
@@ -730,6 +798,9 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                 {/* PGK Kategori Preview */}
                                 {q.question_type === 'pgk_kategori' && (() => {
                                     let rows = q.options?.rows || [];
+                                    let categories = (Array.isArray(q.options?.categories) && q.options.categories.length >= 2)
+                                        ? q.options.categories
+                                        : ['Benar', 'Salah'];
                                     let correctMap = {};
                                     try {
                                         correctMap = typeof q.correct_answer === 'string' ? JSON.parse(q.correct_answer) : (q.correct_answer || {});
@@ -740,7 +811,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                     return (
                                         <div className="pt-2 space-y-2">
                                             <p className="text-[11px] font-bold text-teal-900 flex items-center gap-1.5 mb-1.5">
-                                                <span>Tabel Pernyataan & Kunci Kategori (Benar / Salah):</span>
+                                                <span>Tabel Pernyataan & Kunci Kategori ({categories.join(' / ')}):</span>
                                             </p>
                                             <div className="overflow-x-auto rounded-xl border border-teal-100">
                                                 <table className="w-full text-xs text-left">
@@ -748,7 +819,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                                         <tr>
                                                             <th className="py-2.5 px-3 w-12 text-center">#</th>
                                                             <th className="py-2.5 px-3">Pernyataan</th>
-                                                            <th className="py-2.5 px-3 w-28 text-center">Kunci Kategori</th>
+                                                            <th className="py-2.5 px-3 w-36 text-center">Kunci ({categories.join(' / ')})</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-teal-50 bg-white">
@@ -758,9 +829,9 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                                                 <td className="py-2.5 px-3 text-slate-800 font-medium">{row.text}</td>
                                                                 <td className="py-2.5 px-3 text-center">
                                                                     <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-extrabold ${
-                                                                        correctMap[row.id] === 'Benar'
-                                                                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                                                                            : 'bg-rose-100 text-rose-800 border border-rose-200'
+                                                                        correctMap[row.id] === categories[0]
+                                                                            ? 'bg-teal-100 text-teal-800 border border-teal-200'
+                                                                            : 'bg-slate-100 text-slate-700 border border-slate-200'
                                                                     }`}>
                                                                         {correctMap[row.id] || '-'}
                                                                     </span>
@@ -837,7 +908,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                     >
                                         <option value="multiple_choice">Pilihan Ganda (A/B/C/D)</option>
                                         <option value="pgk_mcma">PGK MCMA (Kotak Centang - Jawaban Lebih dari Satu)</option>
-                                        <option value="pgk_kategori">PGK Kategori (Tabel Benar / Salah)</option>
+                                        <option value="pgk_kategori">PGK Kategori (Tabel Pilihan Kategori)</option>
                                         <option value="short_answer">Isian Singkat (Cocok Kata)</option>
                                         <option value="essay">Essay / Uraian Bebas</option>
                                     </select>
@@ -1138,16 +1209,79 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                 </div>
                             )}
 
-                            {/* PGK Kategori Builder (Tabel Matriks Benar / Salah) */}
+                            {/* PGK Kategori Builder (Tabel Matriks Kategori) */}
                             {questionForm.question_type === 'pgk_kategori' && (
-                                <div className="space-y-3 pt-2">
+                                <div className="space-y-4 pt-2">
+                                    {/* Category Label Configuration Card */}
+                                    <div className="p-4 rounded-2xl bg-teal-50/60 border border-teal-200/80 space-y-3">
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                                            <p className="text-xs font-bold text-teal-950 flex items-center gap-1.5">
+                                                <span>🏷️ Label Pilihan Kolom Kategori:</span>
+                                            </p>
+                                            <span className="text-[11px] text-teal-700 font-medium">
+                                                Pilih preset cepat atau ketik label sendiri
+                                            </span>
+                                        </div>
+
+                                        {/* Quick Presets */}
+                                        <div className="flex flex-wrap items-center gap-1.5">
+                                            <span className="text-[11px] font-bold text-slate-500 mr-1">Preset:</span>
+                                            {KATEGORI_PRESETS.map((p, idx) => {
+                                                const isActive = kategoriCategories[0] === p.cat1 && kategoriCategories[1] === p.cat2;
+                                                return (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        onClick={() => applyKategoriPreset(p.cat1, p.cat2)}
+                                                        className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition ${
+                                                            isActive
+                                                                ? 'bg-teal-750 bg-teal-800 text-white border-teal-800 shadow-sm'
+                                                                : 'bg-white text-teal-900 border-teal-200 hover:bg-teal-100/70'
+                                                        }`}
+                                                    >
+                                                        {p.label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* Editable Label Inputs */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                                            <div>
+                                                <label className="block text-[11px] font-bold text-teal-900 mb-1">
+                                                    Kolom 1 (Kategori Opsi 1):
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={kategoriCategories[0] || ''}
+                                                    onChange={(e) => handleKategoriCategoryChange(0, e.target.value)}
+                                                    placeholder="Contoh: Benar, Setuju, Sesuai, Sebelum..."
+                                                    className="w-full px-3 py-2 rounded-xl border border-teal-300 text-xs font-bold text-teal-950 focus:border-teal-600 focus:ring-teal-600 bg-white shadow-sm"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[11px] font-bold text-teal-900 mb-1">
+                                                    Kolom 2 (Kategori Opsi 2):
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={kategoriCategories[1] || ''}
+                                                    onChange={(e) => handleKategoriCategoryChange(1, e.target.value)}
+                                                    placeholder="Contoh: Salah, Tidak Setuju, Tidak Sesuai, Sesudah..."
+                                                    className="w-full px-3 py-2 rounded-xl border border-teal-300 text-xs font-bold text-teal-950 focus:border-teal-600 focus:ring-teal-600 bg-white shadow-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Statements and Keys */}
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 pb-1">
                                         <div>
                                             <p className="text-xs font-bold text-teal-950">
-                                                Daftar Pernyataan & Kunci Kategori (Benar / Salah):
+                                                Daftar Pernyataan & Kunci Jawaban:
                                             </p>
                                             <p className="text-[11px] text-slate-500">
-                                                Tuliskan butir pernyataan dan pilih radio Benar atau Salah sebagai kuncinya
+                                                Tuliskan butir pernyataan dan pilih radio {kategoriCategories[0] || 'Kolom 1'} atau {kategoriCategories[1] || 'Kolom 2'} sebagai kuncinya
                                             </p>
                                         </div>
                                         <button
@@ -1155,9 +1289,9 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                             onClick={() => {
                                                 const nextId = String.fromCharCode(65 + kategoriRows.length);
                                                 setKategoriRows(prev => [...prev, { id: nextId, text: '' }]);
-                                                setKategoriAnswers(prev => ({ ...prev, [nextId]: 'Benar' }));
+                                                setKategoriAnswers(prev => ({ ...prev, [nextId]: kategoriCategories[0] || 'Kategori 1' }));
                                             }}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200 transition self-start sm:self-auto"
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200 transition self-start sm:self-auto shadow-sm"
                                         >
                                             <Plus className="w-3.5 h-3.5" />
                                             Tambah Baris Pernyataan
@@ -1203,7 +1337,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                                     )}
                                                 </div>
 
-                                                {/* Radio Kunci Benar / Salah */}
+                                                {/* Radio Kunci Kategori Dinamis */}
                                                 <div className="flex items-center justify-end gap-6 pr-2 pt-1 border-t border-teal-100">
                                                     <span className="text-[11px] font-bold text-slate-600 mr-auto">
                                                         Kunci baris {row.id}:
@@ -1212,21 +1346,21 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                                         <input
                                                             type="radio"
                                                             name={`kategori_kunci_${row.id}`}
-                                                            checked={kategoriAnswers[row.id] === 'Benar'}
-                                                            onChange={() => setKategoriAnswers(prev => ({ ...prev, [row.id]: 'Benar' }))}
-                                                            className="text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                                                            checked={kategoriAnswers[row.id] === kategoriCategories[0]}
+                                                            onChange={() => setKategoriAnswers(prev => ({ ...prev, [row.id]: kategoriCategories[0] }))}
+                                                            className="text-teal-600 focus:ring-teal-500 w-4 h-4 cursor-pointer"
                                                         />
-                                                        <span className="text-xs font-bold text-emerald-800">Benar</span>
+                                                        <span className="text-xs font-bold text-teal-900">{kategoriCategories[0] || 'Kolom 1'}</span>
                                                     </label>
                                                     <label className="flex items-center gap-1.5 cursor-pointer">
                                                         <input
                                                             type="radio"
                                                             name={`kategori_kunci_${row.id}`}
-                                                            checked={kategoriAnswers[row.id] === 'Salah'}
-                                                            onChange={() => setKategoriAnswers(prev => ({ ...prev, [row.id]: 'Salah' }))}
-                                                            className="text-rose-600 focus:ring-rose-500 w-4 h-4"
+                                                            checked={kategoriAnswers[row.id] === kategoriCategories[1]}
+                                                            onChange={() => setKategoriAnswers(prev => ({ ...prev, [row.id]: kategoriCategories[1] }))}
+                                                            className="text-slate-600 focus:ring-slate-500 w-4 h-4 cursor-pointer"
                                                         />
-                                                        <span className="text-xs font-bold text-rose-800">Salah</span>
+                                                        <span className="text-xs font-bold text-slate-800">{kategoriCategories[1] || 'Kolom 2'}</span>
                                                     </label>
                                                 </div>
                                             </div>
@@ -1234,7 +1368,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                     </div>
 
                                     <p className="text-[11px] text-slate-400">
-                                        Tentukan pilihan Benar atau Salah pada setiap baris pernyataan yang menjadi kunci jawaban.
+                                        Tentukan pilihan {kategoriCategories[0] || 'Kolom 1'} atau {kategoriCategories[1] || 'Kolom 2'} pada setiap baris pernyataan yang menjadi kunci jawaban.
                                     </p>
                                 </div>
                             )}

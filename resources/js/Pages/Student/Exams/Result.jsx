@@ -226,11 +226,11 @@ export default function StudentExamResult({ auth, attempt, statistics }) {
                             {statistics?.pgk_kategori_correct && !statistics.pgk_kategori_correct.endsWith('/0') && (
                                 <div className="flex items-center justify-between p-4 rounded-2xl bg-teal-50/70 border border-teal-200">
                                     <div className="flex items-center">
-                                        <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center mr-3 text-teal-700 font-bold text-xs">
-                                            B/S
+                                        <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center mr-3 text-teal-700 font-bold text-xs tracking-wider">
+                                            KAT
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-slate-900">PGK Kategori (Tabel Benar/Salah)</p>
+                                            <p className="text-sm font-bold text-slate-900">PGK Kategori</p>
                                             <p className="text-xs text-slate-500">Penilaian otomatis oleh sistem</p>
                                         </div>
                                     </div>

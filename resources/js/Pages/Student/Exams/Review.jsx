@@ -73,7 +73,12 @@ export default function StudentExamReview({ auth, attempt, questions = [], answe
                                             <p className="text-xs font-bold text-slate-700 uppercase">
                                                 {currentQuestion.question_type === 'multiple_choice' && 'Pilihan Ganda'}
                                                 {currentQuestion.question_type === 'pgk_mcma' && 'PGK MCMA (Kotak Centang)'}
-                                                {currentQuestion.question_type === 'pgk_kategori' && 'PGK Kategori (Tabel Benar / Salah)'}
+                                                {currentQuestion.question_type === 'pgk_kategori' && (() => {
+                                                    const cats = (Array.isArray(currentQuestion.options?.categories) && currentQuestion.options.categories.length >= 2)
+                                                        ? currentQuestion.options.categories
+                                                        : ['Benar', 'Salah'];
+                                                    return `PGK Kategori (${cats[0]} / ${cats[1]})`;
+                                                })()}
                                                 {currentQuestion.question_type === 'short_answer' && 'Isian Singkat'}
                                                 {currentQuestion.question_type === 'essay' && 'Essay / Uraian'}
                                             </p>
@@ -280,6 +285,9 @@ export default function StudentExamReview({ auth, attempt, questions = [], answe
                                     {/* PGK Kategori Review */}
                                     {currentQuestion.question_type === 'pgk_kategori' && (() => {
                                         const rows = currentQuestion.options?.rows || [];
+                                        const categories = (Array.isArray(currentQuestion.options?.categories) && currentQuestion.options.categories.length >= 2)
+                                            ? currentQuestion.options.categories
+                                            : ['Benar', 'Salah'];
                                         let correctMap = {};
                                         try {
                                             correctMap = typeof currentQuestion.correct_answer === 'string'
@@ -301,7 +309,7 @@ export default function StudentExamReview({ auth, attempt, questions = [], answe
                                         return (
                                             <div className="space-y-3">
                                                 <div className="p-3 bg-teal-50/70 border border-teal-200 rounded-xl text-xs text-teal-900 font-medium">
-                                                    PGK Kategori (Tabel Benar / Salah): periksa pilihan pernyataan Anda dengan kunci jawaban benar pada tabel di bawah ini.
+                                                    PGK Kategori ({categories[0]} / {categories[1]}): periksa pilihan pernyataan Anda dengan kunci jawaban benar pada tabel di bawah ini.
                                                 </div>
                                                 <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
                                                     <table className="w-full text-xs text-left border-collapse">
@@ -331,18 +339,18 @@ export default function StudentExamReview({ auth, attempt, questions = [], answe
                                                                             {row.text}
                                                                         </td>
                                                                         <td className="py-3 px-3 text-center">
-                                                                            <span className={`px-2 py-0.5 rounded font-bold ${
-                                                                                studentChoice === 'Benar' ? 'bg-emerald-100 text-emerald-800' :
-                                                                                studentChoice === 'Salah' ? 'bg-rose-100 text-rose-800' :
-                                                                                'bg-slate-100 text-slate-500'
+                                                                            <span className={`px-2.5 py-1 rounded-md font-bold text-xs ${
+                                                                                studentChoice === '(Kosong)'
+                                                                                    ? 'bg-slate-100 text-slate-500'
+                                                                                    : isRowCorrect
+                                                                                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                                                                        : 'bg-rose-100 text-rose-800 border border-rose-200'
                                                                             }`}>
                                                                                 {studentChoice}
                                                                             </span>
                                                                         </td>
                                                                         <td className="py-3 px-3 text-center font-extrabold text-slate-900">
-                                                                            <span className={`px-2 py-0.5 rounded ${
-                                                                                rightChoice === 'Benar' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                                                                            }`}>
+                                                                            <span className="px-2.5 py-1 rounded-md text-xs font-extrabold bg-teal-100 text-teal-800 border border-teal-200">
                                                                                 {rightChoice}
                                                                             </span>
                                                                         </td>

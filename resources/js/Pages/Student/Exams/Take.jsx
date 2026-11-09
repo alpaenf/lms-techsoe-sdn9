@@ -333,7 +333,12 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
                                             <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                                                 {currentQuestion.question_type === 'multiple_choice' && 'Pilihan Ganda'}
                                                 {currentQuestion.question_type === 'pgk_mcma' && 'PGK MCMA (Kotak Centang)'}
-                                                {currentQuestion.question_type === 'pgk_kategori' && 'PGK Kategori (Tabel Benar / Salah)'}
+                                                {currentQuestion.question_type === 'pgk_kategori' && (() => {
+                                                    const categories = (Array.isArray(currentQuestion.options?.categories) && currentQuestion.options.categories.length >= 2)
+                                                        ? currentQuestion.options.categories
+                                                        : ['Benar', 'Salah'];
+                                                    return `PGK Kategori (${categories[0]} / ${categories[1]})`;
+                                                })()}
                                                 {currentQuestion.question_type === 'short_answer' && 'Isian Singkat'}
                                                 {currentQuestion.question_type === 'essay' && 'Essay / Uraian'}
                                             </p>
@@ -470,15 +475,20 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
                                         </div>
                                     )}
 
-                                    {/* PGK Kategori (Tabel Benar / Salah) */}
+                                    {/* PGK Kategori */}
                                     {currentQuestion.question_type === 'pgk_kategori' && (() => {
                                         const rows = currentQuestion.options?.rows || [];
+                                        const categories = (Array.isArray(currentQuestion.options?.categories) && currentQuestion.options.categories.length >= 2)
+                                            ? currentQuestion.options.categories
+                                            : ['Benar', 'Salah'];
+                                        const cat1 = categories[0] || 'Benar';
+                                        const cat2 = categories[1] || 'Salah';
                                         const answersMap = getKategoriMap(currentQuestion.id);
 
                                         return (
                                             <div className="space-y-4">
                                                 <p className="text-xs font-semibold text-teal-900 bg-teal-50 border border-teal-200 p-3 rounded-xl">
-                                                    💡 <strong>Petunjuk:</strong> Tentukan <strong>Benar</strong> atau <strong>Salah</strong> untuk setiap pernyataan pada tabel berikut!
+                                                    💡 <strong>Petunjuk:</strong> Tentukan <strong>{cat1}</strong> atau <strong>{cat2}</strong> untuk setiap pernyataan pada tabel berikut!
                                                 </p>
 
                                                 <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -487,8 +497,8 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
                                                             <tr>
                                                                 <th className="py-3.5 px-3 w-12 text-center">#</th>
                                                                 <th className="py-3.5 px-4 min-w-[240px]">Pernyataan</th>
-                                                                <th className="py-3.5 px-3 w-28 text-center text-emerald-800 bg-emerald-50/50">Benar</th>
-                                                                <th className="py-3.5 px-3 w-28 text-center text-rose-800 bg-rose-50/50">Salah</th>
+                                                                <th className="py-3.5 px-3 w-32 text-center text-teal-800 bg-teal-50/60 font-extrabold">{cat1}</th>
+                                                                <th className="py-3.5 px-3 w-32 text-center text-slate-700 bg-slate-100/60 font-extrabold">{cat2}</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-slate-100">
@@ -505,34 +515,34 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
                                                                             {row.text}
                                                                         </td>
                                                                         <td 
-                                                                            onClick={() => setKategoriRowChoice(currentQuestion.id, row.id, 'Benar')}
+                                                                            onClick={() => setKategoriRowChoice(currentQuestion.id, row.id, cat1)}
                                                                             className={`py-4 px-3 text-center align-middle cursor-pointer transition ${
-                                                                                currentChoice === 'Benar' ? 'bg-emerald-50/80 font-bold' : 'hover:bg-slate-50'
+                                                                                currentChoice === cat1 ? 'bg-teal-50/80 font-bold' : 'hover:bg-slate-50'
                                                                             }`}
                                                                         >
                                                                             <div className="flex items-center justify-center">
                                                                                 <input
                                                                                     type="radio"
                                                                                     name={`kategori_${currentQuestion.id}_${row.id}`}
-                                                                                    checked={currentChoice === 'Benar'}
-                                                                                    onChange={() => setKategoriRowChoice(currentQuestion.id, row.id, 'Benar')}
-                                                                                    className="w-5 h-5 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                                                                                    checked={currentChoice === cat1}
+                                                                                    onChange={() => setKategoriRowChoice(currentQuestion.id, row.id, cat1)}
+                                                                                    className="w-5 h-5 text-teal-600 focus:ring-teal-500 cursor-pointer"
                                                                                 />
                                                                             </div>
                                                                         </td>
                                                                         <td 
-                                                                            onClick={() => setKategoriRowChoice(currentQuestion.id, row.id, 'Salah')}
+                                                                            onClick={() => setKategoriRowChoice(currentQuestion.id, row.id, cat2)}
                                                                             className={`py-4 px-3 text-center align-middle cursor-pointer transition ${
-                                                                                currentChoice === 'Salah' ? 'bg-rose-50/80 font-bold' : 'hover:bg-slate-50'
+                                                                                currentChoice === cat2 ? 'bg-slate-100/80 font-bold' : 'hover:bg-slate-50'
                                                                             }`}
                                                                         >
                                                                             <div className="flex items-center justify-center">
                                                                                 <input
                                                                                     type="radio"
                                                                                     name={`kategori_${currentQuestion.id}_${row.id}`}
-                                                                                    checked={currentChoice === 'Salah'}
-                                                                                    onChange={() => setKategoriRowChoice(currentQuestion.id, row.id, 'Salah')}
-                                                                                    className="w-5 h-5 text-rose-600 focus:ring-rose-500 cursor-pointer"
+                                                                                    checked={currentChoice === cat2}
+                                                                                    onChange={() => setKategoriRowChoice(currentQuestion.id, row.id, cat2)}
+                                                                                    className="w-5 h-5 text-slate-700 focus:ring-slate-500 cursor-pointer"
                                                                                 />
                                                                             </div>
                                                                         </td>
