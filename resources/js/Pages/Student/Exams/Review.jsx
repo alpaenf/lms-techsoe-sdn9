@@ -14,6 +14,7 @@ import {
     Eye,
     X
 } from 'lucide-react';
+import QuestionContentRenderer from '@/Components/QuestionContentRenderer';
 
 export default function StudentExamReview({ auth, attempt, questions = [], answers = {} }) {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -116,22 +117,17 @@ export default function StudentExamReview({ auth, attempt, questions = [], answe
                                     </div>
                                 </div>
 
-                                {/* Question Text */}
+                                {/* Question Text & Image */}
                                 <div>
-                                    <p className="text-base text-slate-900 leading-relaxed font-medium">
-                                        {currentQuestion.question_text}
-                                    </p>
-                                    {currentQuestion.question_image && (
-                                        <div className="mt-4">
-                                            <img 
-                                                src={`/storage/${currentQuestion.question_image}`} 
-                                                alt="Soal"
-                                                onClick={() => setLightboxImage(`/storage/${currentQuestion.question_image}`)}
-                                                className="rounded-xl border border-slate-200 max-h-72 object-contain cursor-pointer hover:opacity-95 transition bg-white p-1"
-                                                title="Klik untuk melihat ukuran penuh"
-                                            />
-                                        </div>
-                                    )}
+                                    <QuestionContentRenderer
+                                        text={currentQuestion.question_text}
+                                        images={currentQuestion.question_images || (currentQuestion.question_image ? [currentQuestion.question_image] : [])}
+                                        alignment={currentQuestion.image_alignment || 'center'}
+                                        position={currentQuestion.image_position || 'bottom'}
+                                        className="text-base text-slate-900 leading-relaxed font-medium"
+                                        imageClassName="max-h-72 object-contain"
+                                        onImageClick={(src) => setLightboxImage(src)}
+                                    />
                                 </div>
 
                                 {/* Answer Content Breakdown */}
@@ -336,7 +332,20 @@ export default function StudentExamReview({ auth, attempt, questions = [], answe
                                                                             </span>
                                                                         </td>
                                                                         <td className="py-3 px-4 text-slate-800 font-medium">
-                                                                            {row.text}
+                                                                            <div className="space-y-1.5">
+                                                                                {currentQuestion.option_images?.[row.id] && (
+                                                                                    <div>
+                                                                                        <img
+                                                                                            src={`/storage/${currentQuestion.option_images[row.id]}`}
+                                                                                            alt={`Pilihan ${row.id}`}
+                                                                                            onClick={() => setLightboxImage(`/storage/${currentQuestion.option_images[row.id]}`)}
+                                                                                            className="rounded-lg border border-slate-200 max-h-36 max-w-full object-contain bg-white p-1 cursor-pointer hover:opacity-95 shadow-sm transition"
+                                                                                            title="Klik untuk perbesar gambar"
+                                                                                        />
+                                                                                    </div>
+                                                                                )}
+                                                                                {row.text && <div>{row.text}</div>}
+                                                                            </div>
                                                                         </td>
                                                                         <td className="py-3 px-3 text-center">
                                                                             <span className={`px-2.5 py-1 rounded-md font-bold text-xs ${

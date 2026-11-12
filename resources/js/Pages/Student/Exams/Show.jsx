@@ -258,12 +258,20 @@ export default function StudentExamsShow({ auth, exam, attempts = [], can_attemp
                                             </p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-2xl font-extrabold text-[#800020]">
-                                                {Math.round(Number(attempt.percentage || 0))}
-                                            </p>
-                                            <p className="text-[10px] font-semibold text-slate-500">
-                                                {attempt.status === 'graded' ? 'Dinilai' : 'Menunggu Koreksi'}
-                                            </p>
+                                            {attempt.percentage !== null && attempt.percentage !== undefined ? (
+                                                <>
+                                                    <p className="text-2xl font-extrabold text-[#800020]">
+                                                        {Math.round(Number(attempt.percentage || 0))}
+                                                    </p>
+                                                    <p className="text-[10px] font-semibold text-slate-500">
+                                                        {attempt.status === 'graded' ? 'Dinilai' : 'Menunggu Koreksi'}
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                                                    Tersimpan
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </Link>

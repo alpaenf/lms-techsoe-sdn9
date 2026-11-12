@@ -26,11 +26,13 @@ class StudentExamController extends Controller
 
         $studentGradeLevel = $student->class?->grade_level;
 
-        $exams = Exam::with(['subject', 'teacher.user', 'class'])
+        $exams = Exam::with(['subject', 'teacher.user', 'class', 'classes'])
             ->where(function ($q) use ($student, $studentGradeLevel) {
                 $q->where('class_id', $student->class_id)
+                    ->orWhereHas('classes', fn ($cq) => $cq->where('classes.id', $student->class_id))
                     ->orWhere(function ($sub) use ($studentGradeLevel) {
                         $sub->whereNull('class_id')
+                            ->doesntHave('classes')
                             ->where(function ($cat) use ($studentGradeLevel) {
                                 if ($studentGradeLevel == 6) {
                                     $cat->where('exam_category', 'ujian_sekolah')
@@ -59,6 +61,17 @@ class StudentExamController extends Controller
                 $canAttempt = $attempts->count() < $exam->max_attempts || $exam->max_attempts == 999;
                 $isAvailable = $exam->isAvailable();
 
+                $showResult = (bool) ($exam->show_result_immediately ?? true);
+                $latestAttempt = $attempts->first();
+
+                if ($latestAttempt && ! $showResult) {
+                    $latestAttempt = clone $latestAttempt;
+                    $latestAttempt->total_score = null;
+                    $latestAttempt->percentage = null;
+                }
+
+                $bestScore = $showResult ? $attempts->max('percentage') : null;
+
                 return [
                     'id' => $exam->id,
                     'title' => $exam->title,
@@ -70,14 +83,15 @@ class StudentExamController extends Controller
                     'end_time' => $exam->end_time,
                     'max_attempts' => $exam->max_attempts,
                     'exam_category' => $exam->exam_category,
+                    'show_result_immediately' => $showResult,
                     'total_questions' => $exam->questions()->count(),
                     'is_available' => $isAvailable,
                     'has_started' => $exam->hasStarted(),
                     'has_ended' => $exam->hasEnded(),
                     'can_attempt' => $canAttempt && $isAvailable,
                     'attempts_count' => $attempts->count(),
-                    'latest_attempt' => $attempts->first(),
-                    'best_score' => $attempts->max('percentage'),
+                    'latest_attempt' => $latestAttempt,
+                    'best_score' => $bestScore,
                 ];
             });
 
@@ -96,15 +110,18 @@ class StudentExamController extends Controller
             return redirect()->route('dashboard');
         }
 
-        if ($exam->class_id !== null && $exam->class_id !== $student->class_id) {
+        $assignedClassIds = $exam->assignedClassIds();
+        $isClassTargeted = ! empty($assignedClassIds);
+
+        if ($isClassTargeted && ! in_array($student->class_id, $assignedClassIds)) {
             return redirect()->route('student.exams.index')->with('error', 'Ujian ini bukan untuk kelas Anda.');
         }
 
-        if ($exam->class_id === null && $exam->exam_category === 'ujian_sekolah' && $student->class?->grade_level != 6) {
+        if (! $isClassTargeted && $exam->exam_category === 'ujian_sekolah' && $student->class?->grade_level != 6) {
             return redirect()->route('student.exams.index')->with('error', 'Ujian Sekolah ini khusus untuk siswa Kelas 6 (Kelas Akhir).');
         }
 
-        $exam->load(['subject', 'teacher.user', 'class']);
+        $exam->load(['subject', 'teacher.user', 'class', 'classes']);
 
         $subjRel = ReligionService::getSubjectReligion($exam->subject);
         if ($subjRel && ! ReligionService::studentCanAccessSubject($student->religion, $subjRel)) {
@@ -115,6 +132,15 @@ class StudentExamController extends Controller
             ->where('student_id', $student->id)
             ->orderBy('attempt_number', 'desc')
             ->get();
+
+        $showResult = (bool) ($exam->show_result_immediately ?? true);
+        if (! $showResult) {
+            $attempts->transform(function ($att) {
+                $att->total_score = null;
+                $att->percentage = null;
+                return $att;
+            });
+        }
 
         $canAttempt = $attempts->count() < $exam->max_attempts || $exam->max_attempts == 999;
 
@@ -135,11 +161,14 @@ class StudentExamController extends Controller
             return redirect()->route('dashboard');
         }
 
-        if ($exam->class_id !== null && $exam->class_id !== $student->class_id) {
+        $assignedClassIds = $exam->assignedClassIds();
+        $isClassTargeted = ! empty($assignedClassIds);
+
+        if ($isClassTargeted && ! in_array($student->class_id, $assignedClassIds)) {
             return redirect()->route('student.exams.index')->with('error', 'Ujian ini bukan untuk kelas Anda.');
         }
 
-        if ($exam->class_id === null && $exam->exam_category === 'ujian_sekolah' && $student->class?->grade_level != 6) {
+        if (! $isClassTargeted && $exam->exam_category === 'ujian_sekolah' && $student->class?->grade_level != 6) {
             return redirect()->route('student.exams.index')->with('error', 'Ujian Sekolah ini khusus untuk siswa Kelas 6 (Kelas Akhir).');
         }
 
@@ -169,10 +198,20 @@ class StudentExamController extends Controller
             return redirect()->route('student.exams.take', $inProgressAttempt->id);
         }
 
+        $questionIds = $exam->questions()
+            ->orderBy('order_number')
+            ->pluck('id')
+            ->all();
+
+        if ($exam->randomize_questions) {
+            shuffle($questionIds);
+        }
+
         $attempt = StudentExamAttempt::create([
             'exam_id' => $exam->id,
             'student_id' => $student->id,
             'attempt_number' => $attemptCount + 1,
+            'question_order' => $questionIds,
             'started_at' => now(),
             'time_remaining_seconds' => $exam->duration_minutes * 60,
             'status' => 'in_progress',
@@ -207,13 +246,33 @@ class StudentExamController extends Controller
         }
 
         $exam = $attempt->exam;
-        $exam->load(['subject', 'class']);
+        $exam->load(['subject', 'class', 'classes']);
 
-        $questionsQuery = $exam->questions();
-        if ($exam->randomize_questions) {
-            $questionsQuery = $questionsQuery->inRandomOrder();
+        $order = $attempt->question_order;
+        if (empty($order)) {
+            $questionIds = $exam->questions()
+                ->orderBy('order_number')
+                ->pluck('id')
+                ->all();
+            if ($exam->randomize_questions) {
+                shuffle($questionIds);
+            }
+            $attempt->update(['question_order' => $questionIds]);
+            $order = $questionIds;
         }
-        $questions = $questionsQuery->get();
+
+        if (! empty($order)) {
+            $questions = $exam->questions()
+                ->whereIn('id', $order)
+                ->get()
+                ->sortBy(function ($q) use ($order) {
+                    $pos = array_search($q->id, $order);
+                    return $pos === false ? 999999 : $pos;
+                })
+                ->values();
+        } else {
+            $questions = $exam->questions()->orderBy('order_number')->get();
+        }
 
         $answers = $attempt->answers()
             ->with('question')
@@ -373,6 +432,20 @@ class StudentExamController extends Controller
 
         $attempt->load(['exam.subject', 'answers.question']);
 
+        $showResult = (bool) ($attempt->exam->show_result_immediately ?? true);
+
+        if (! $showResult) {
+            $maskedAttempt = clone $attempt;
+            $maskedAttempt->total_score = null;
+            $maskedAttempt->percentage = null;
+
+            return Inertia::render('Student/Exams/Result', [
+                'attempt' => $maskedAttempt,
+                'statistics' => null,
+                'show_result_immediately' => false,
+            ]);
+        }
+
         $totalQuestions = $attempt->exam->questions()->count();
         $answeredCount = $attempt->getAnsweredCount();
 
@@ -420,6 +493,7 @@ class StudentExamController extends Controller
         return Inertia::render('Student/Exams/Result', [
             'attempt' => $attempt,
             'statistics' => $statistics,
+            'show_result_immediately' => true,
         ]);
     }
 
@@ -438,9 +512,23 @@ class StudentExamController extends Controller
 
         $attempt->load(['exam.subject', 'answers.question']);
 
+        $order = $attempt->question_order ?? [];
+        if (! empty($order)) {
+            $questions = $attempt->exam->questions()
+                ->whereIn('id', $order)
+                ->get()
+                ->sortBy(function ($q) use ($order) {
+                    $pos = array_search($q->id, $order);
+                    return $pos === false ? 999999 : $pos;
+                })
+                ->values();
+        } else {
+            $questions = $attempt->exam->questions()->orderBy('order_number')->get();
+        }
+
         return Inertia::render('Student/Exams/Review', [
             'attempt' => $attempt,
-            'questions' => $attempt->exam->questions,
+            'questions' => $questions,
             'answers' => $attempt->answers->keyBy('question_id'),
         ]);
     }

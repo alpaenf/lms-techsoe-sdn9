@@ -11,6 +11,7 @@ use App\Models\StudentAnswer;
 use App\Models\StudentExamAttempt;
 use App\Models\Subject;
 use App\Models\Teacher;
+use App\Services\ExamWordExportService;
 use App\Services\ReligionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -70,7 +71,7 @@ class ExamController extends Controller
         $teacher = $this->getTeacher();
 
         $subjects = Subject::all();
-        $classes = Classes::with('homeroomTeacher')->get();
+        $classes = Classes::with('homeroomTeacher')->orderBy('grade_level')->orderBy('name')->get();
 
         return Inertia::render('Exams/Create', [
             'subjects' => $subjects,
@@ -87,6 +88,8 @@ class ExamController extends Controller
         $validated = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
             'class_id' => 'nullable|exists:classes,id',
+            'class_ids' => 'nullable|array',
+            'class_ids.*' => 'exists:classes,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'duration_minutes' => 'required|integer|min:1|max:300',
@@ -111,9 +114,21 @@ class ExamController extends Controller
 
         $validated['teacher_id'] = $teacherId;
         $validated['academic_year_id'] = $academicYearId;
-        $validated['class_id'] = ! empty($validated['class_id']) ? $validated['class_id'] : null;
+
+        $classIds = [];
+        if ($request->has('class_ids') && is_array($request->input('class_ids'))) {
+            $classIds = array_values(array_filter($request->input('class_ids')));
+        } elseif (! empty($validated['class_id'])) {
+            $classIds = [$validated['class_id']];
+        }
+
+        $validated['class_id'] = ! empty($classIds) ? $classIds[0] : null;
 
         $exam = Exam::create($validated);
+        if (! empty($classIds)) {
+            $exam->classes()->sync($classIds);
+        }
+
         $exam->load('subject');
 
         if ($request->has('questions')) {
@@ -138,14 +153,24 @@ class ExamController extends Controller
 
     public function show(Exam $exam)
     {
-        $exam->load(['subject', 'class', 'academicYear', 'teacher', 'questions']);
+        $exam->load(['subject', 'class', 'classes', 'academicYear', 'teacher', 'questions']);
 
         $attemptsCount = $exam->attempts()->count();
         $completedCount = $exam->attempts()->where('status', 'graded')->count();
         $avgScore = $exam->attempts()->where('status', 'graded')->avg('percentage');
 
+        // Daftar ujian lain dengan mapel yang sama yang memiliki soal (untuk fitur salin bank soal paralel)
+        $parallelExams = Exam::where('id', '!=', $exam->id)
+            ->where('subject_id', $exam->subject_id)
+            ->with(['classes', 'class'])
+            ->withCount('questions')
+            ->having('questions_count', '>', 0)
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'title', 'class_id', 'created_at']);
+
         return Inertia::render('Exams/Show', [
             'exam' => $exam,
+            'parallelExams' => $parallelExams,
             'statistics' => [
                 'total_attempts' => $attemptsCount,
                 'completed' => $completedCount,
@@ -158,9 +183,9 @@ class ExamController extends Controller
 
     public function edit(Exam $exam)
     {
-        $exam->load('questions');
+        $exam->load(['questions', 'classes']);
         $subjects = Subject::all();
-        $classes = Classes::all();
+        $classes = Classes::orderBy('grade_level')->orderBy('name')->get();
 
         return Inertia::render('Exams/Edit', [
             'exam' => $exam,
@@ -174,6 +199,8 @@ class ExamController extends Controller
         $validated = $request->validate([
             'subject_id' => 'sometimes|required|exists:subjects,id',
             'class_id' => 'nullable|exists:classes,id',
+            'class_ids' => 'nullable|array',
+            'class_ids.*' => 'exists:classes,id',
             'exam_category' => 'sometimes|required|in:uts,uas,ulangan_harian,ujian_sekolah,kuis',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -187,8 +214,13 @@ class ExamController extends Controller
             'passing_score' => 'nullable|numeric|min:0|max:100',
         ]);
 
-        if (array_key_exists('class_id', $validated)) {
+        if ($request->has('class_ids')) {
+            $classIds = array_values(array_filter($request->input('class_ids', [])));
+            $validated['class_id'] = ! empty($classIds) ? $classIds[0] : null;
+            $exam->classes()->sync($classIds);
+        } elseif (array_key_exists('class_id', $validated)) {
             $validated['class_id'] = ! empty($validated['class_id']) ? $validated['class_id'] : null;
+            $exam->classes()->sync($validated['class_id'] ? [$validated['class_id']] : []);
         }
 
         $exam->update($validated);
@@ -209,23 +241,54 @@ class ExamController extends Controller
             ->with('success', 'Paket ujian berhasil dihapus.');
     }
 
+    protected function storeUploadedFile(\Illuminate\Http\UploadedFile $file, string $directory): string
+    {
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (empty($ext)) {
+            $clientMime = strtolower((string) $file->getClientMimeType());
+            $ext = match ($clientMime) {
+                'image/png' => 'png',
+                'image/webp' => 'webp',
+                'image/gif' => 'gif',
+                'image/svg+xml' => 'svg',
+                default => 'jpg'
+            };
+        }
+        $filename = \Illuminate\Support\Str::random(40) . '.' . $ext;
+
+        return $file->storeAs($directory, $filename, 'public');
+    }
+
     protected function getImageValidationRule(bool $required = false): array
     {
         $rules = [
             $required ? 'required' : 'nullable',
-            'file',
             'max:10240',
             function ($attribute, $value, $fail) {
                 if (! $value instanceof \Illuminate\Http\UploadedFile) {
                     return;
                 }
+                if (! $value->isValid()) {
+                    $fail('Berkas yang diunggah gagal diproses atau rusak.');
+
+                    return;
+                }
                 $extension = strtolower($value->getClientOriginalExtension());
                 $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg', 'jfif', 'avif', 'heic', 'heif', 'tif', 'tiff'];
-                $mime = strtolower((string) $value->getMimeType());
-                $clientMime = strtolower((string) $value->getClientMimeType());
-                $isImageMime = str_starts_with($mime, 'image/') || str_starts_with($clientMime, 'image/');
 
-                if (! in_array($extension, $allowedExtensions) && ! $isImageMime) {
+                $clientMime = strtolower((string) $value->getClientMimeType());
+                $mime = '';
+                try {
+                    if (function_exists('finfo_open')) {
+                        $mime = strtolower((string) @$value->getMimeType());
+                    }
+                } catch (\Throwable $e) {
+                    $mime = '';
+                }
+
+                $isImageMime = ($mime && str_starts_with($mime, 'image/')) || ($clientMime && str_starts_with($clientMime, 'image/'));
+
+                if (! in_array($extension, $allowedExtensions, true) && ! $isImageMime) {
                     $fail('Berkas yang diunggah harus berupa format foto/gambar (JPG, JPEG, PNG, WEBP, GIF, dll).');
                 }
             },
@@ -241,6 +304,11 @@ class ExamController extends Controller
             'question_text' => 'nullable|string',
             'question_image' => 'nullable|string',
             'question_image_file' => $this->getImageValidationRule(),
+            'question_image_files' => 'nullable|array',
+            'question_image_files.*' => $this->getImageValidationRule(),
+            'existing_question_images' => 'nullable',
+            'image_alignment' => 'nullable|in:left,center,right',
+            'image_position' => 'nullable|in:bottom,top,middle',
             'options' => 'nullable',
             'option_image_files' => 'nullable|array',
             'option_image_files.*' => $this->getImageValidationRule(),
@@ -259,8 +327,44 @@ class ExamController extends Controller
             $validated['correct_answer'] = json_encode($validated['correct_answer']);
         }
 
+        $questionImages = [];
+
+        if ($request->has('existing_question_images')) {
+            $existing = is_string($request->input('existing_question_images'))
+                ? json_decode($request->input('existing_question_images'), true)
+                : $request->input('existing_question_images');
+            if (is_array($existing)) {
+                foreach ($existing as $p) {
+                    if (! empty($p) && Storage::disk('public')->exists($p)) {
+                        $questionImages[] = $p;
+                    }
+                }
+            }
+        }
+
+        if ($request->hasFile('question_image_file')) {
+            $path = $this->storeUploadedFile($request->file('question_image_file'), 'exam-questions');
+            $questionImages[] = $path;
+        }
+
+        if ($request->hasFile('question_image_files')) {
+            foreach ($request->file('question_image_files') as $file) {
+                if ($file && $file->isValid()) {
+                    $path = $this->storeUploadedFile($file, 'exam-questions');
+                    $questionImages[] = $path;
+                }
+            }
+        }
+
+        if (empty($questionImages) && ! empty($validated['question_image'])) {
+            $questionImages[] = $validated['question_image'];
+        }
+
+        $validated['question_images'] = ! empty($questionImages) ? array_values(array_unique($questionImages)) : null;
+        $validated['question_image'] = ! empty($questionImages) ? $questionImages[0] : null;
+
         $hasText = ! empty(trim((string) ($validated['question_text'] ?? '')));
-        $hasImage = $request->hasFile('question_image_file') || ! empty($validated['question_image'] ?? null);
+        $hasImage = ! empty($questionImages);
 
         if (! $hasText && ! $hasImage) {
             return back()->withErrors(['question_text' => 'Teks pertanyaan atau gambar soal wajib diisi.']);
@@ -270,16 +374,14 @@ class ExamController extends Controller
             $validated['question_text'] = '(Lihat gambar soal)';
         }
 
-        if ($request->hasFile('question_image_file')) {
-            $path = $request->file('question_image_file')->store('exam-questions', 'public');
-            $validated['question_image'] = $path;
-        }
+        $validated['image_alignment'] = $validated['image_alignment'] ?? 'center';
+        $validated['image_position'] = $validated['image_position'] ?? 'bottom';
 
         $optionImages = [];
         if ($request->hasFile('option_image_files')) {
             foreach ($request->file('option_image_files') as $optKey => $file) {
                 if ($file && $file->isValid()) {
-                    $path = $file->store('exam-options', 'public');
+                    $path = $this->storeUploadedFile($file, 'exam-options');
                     $optionImages[$optKey] = $path;
                 }
             }
@@ -302,6 +404,11 @@ class ExamController extends Controller
             'question_text' => 'nullable|string',
             'question_image' => 'nullable|string',
             'question_image_file' => $this->getImageValidationRule(),
+            'question_image_files' => 'nullable|array',
+            'question_image_files.*' => $this->getImageValidationRule(),
+            'existing_question_images' => 'nullable',
+            'image_alignment' => 'nullable|in:left,center,right',
+            'image_position' => 'nullable|in:bottom,top,middle',
             'remove_question_image' => 'nullable',
             'options' => 'nullable',
             'option_image_files' => 'nullable|array',
@@ -323,8 +430,63 @@ class ExamController extends Controller
             $validated['correct_answer'] = json_encode($validated['correct_answer']);
         }
 
+        $oldImages = $question->getAllImages();
+        $updatedImages = [];
+
+        if ($request->filled('remove_question_image') && $request->input('remove_question_image') !== '0') {
+            foreach ($oldImages as $oldImg) {
+                if ($oldImg && Storage::disk('public')->exists($oldImg)) {
+                    Storage::disk('public')->delete($oldImg);
+                }
+            }
+            $updatedImages = [];
+        } else {
+            $keptExisting = [];
+            if ($request->has('existing_question_images')) {
+                $rawExisting = is_string($request->input('existing_question_images'))
+                    ? json_decode($request->input('existing_question_images'), true)
+                    : $request->input('existing_question_images');
+                if (is_array($rawExisting)) {
+                    foreach ($rawExisting as $p) {
+                        if (! empty($p) && Storage::disk('public')->exists($p)) {
+                            $keptExisting[] = $p;
+                        }
+                    }
+                }
+            } elseif (! empty($question->question_image)) {
+                $keptExisting = $oldImages;
+            }
+
+            foreach ($oldImages as $oldImg) {
+                if (! in_array($oldImg, $keptExisting, true)) {
+                    if ($oldImg && Storage::disk('public')->exists($oldImg)) {
+                        Storage::disk('public')->delete($oldImg);
+                    }
+                }
+            }
+
+            $updatedImages = $keptExisting;
+
+            if ($request->hasFile('question_image_file')) {
+                $path = $this->storeUploadedFile($request->file('question_image_file'), 'exam-questions');
+                $updatedImages[] = $path;
+            }
+
+            if ($request->hasFile('question_image_files')) {
+                foreach ($request->file('question_image_files') as $file) {
+                    if ($file && $file->isValid()) {
+                        $path = $this->storeUploadedFile($file, 'exam-questions');
+                        $updatedImages[] = $path;
+                    }
+                }
+            }
+        }
+
+        $validated['question_images'] = ! empty($updatedImages) ? array_values(array_unique($updatedImages)) : null;
+        $validated['question_image'] = ! empty($updatedImages) ? $updatedImages[0] : null;
+
         $hasText = ! empty(trim((string) ($validated['question_text'] ?? '')));
-        $hasImage = $request->hasFile('question_image_file') || (! empty($question->question_image) && ! $request->filled('remove_question_image'));
+        $hasImage = ! empty($updatedImages);
 
         if (! $hasText && ! $hasImage) {
             return back()->withErrors(['question_text' => 'Teks pertanyaan atau gambar soal wajib diisi.']);
@@ -334,17 +496,11 @@ class ExamController extends Controller
             $validated['question_text'] = '(Lihat gambar soal)';
         }
 
-        if ($request->filled('remove_question_image') && $request->input('remove_question_image') !== '0') {
-            if ($question->question_image && Storage::disk('public')->exists($question->question_image)) {
-                Storage::disk('public')->delete($question->question_image);
-            }
-            $validated['question_image'] = null;
-        } elseif ($request->hasFile('question_image_file')) {
-            if ($question->question_image && Storage::disk('public')->exists($question->question_image)) {
-                Storage::disk('public')->delete($question->question_image);
-            }
-            $path = $request->file('question_image_file')->store('exam-questions', 'public');
-            $validated['question_image'] = $path;
+        if (! array_key_exists('image_alignment', $validated) || empty($validated['image_alignment'])) {
+            $validated['image_alignment'] = $question->image_alignment ?? 'center';
+        }
+        if (! array_key_exists('image_position', $validated) || empty($validated['image_position'])) {
+            $validated['image_position'] = $question->image_position ?? 'bottom';
         }
 
         $currentOptionImages = $question->option_images ?? [];
@@ -385,15 +541,26 @@ class ExamController extends Controller
                     if (! empty($currentOptionImages[$optKey]) && Storage::disk('public')->exists($currentOptionImages[$optKey])) {
                         Storage::disk('public')->delete($currentOptionImages[$optKey]);
                     }
-                    $path = $file->store('exam-options', 'public');
+                    $path = $this->storeUploadedFile($file, 'exam-options');
                     $currentOptionImages[$optKey] = $path;
                 }
             }
         }
 
         if (is_array($validated['options'] ?? null) && is_array($currentOptionImages)) {
+            $validKeys = [];
+            if (isset($validated['options']['rows']) && is_array($validated['options']['rows'])) {
+                foreach ($validated['options']['rows'] as $r) {
+                    if (isset($r['id'])) {
+                        $validKeys[] = (string) $r['id'];
+                    }
+                }
+            } else {
+                $validKeys = array_map('strval', array_keys($validated['options']));
+            }
+
             foreach (array_keys($currentOptionImages) as $imgKey) {
-                if (! array_key_exists($imgKey, $validated['options'])) {
+                if (! in_array((string) $imgKey, $validKeys, true)) {
                     if (Storage::disk('public')->exists($currentOptionImages[$imgKey])) {
                         Storage::disk('public')->delete($currentOptionImages[$imgKey]);
                     }
@@ -409,10 +576,83 @@ class ExamController extends Controller
         return back()->with('success', 'Butir soal berhasil diperbarui.');
     }
 
+    public function copyQuestions(Request $request, Exam $exam)
+    {
+        $validated = $request->validate([
+            'source_exam_id' => 'required|exists:exams,id',
+            'mode' => 'nullable|in:append,replace',
+        ]);
+
+        $sourceExam = Exam::with('questions')->findOrFail($validated['source_exam_id']);
+        if ($sourceExam->questions->isEmpty()) {
+            return back()->with('error', 'Ujian sumber tidak memiliki butir soal untuk disalin.');
+        }
+
+        DB::transaction(function () use ($exam, $sourceExam, $validated) {
+            $startOrder = 0;
+            if (($validated['mode'] ?? 'append') === 'replace') {
+                foreach ($exam->questions as $oldQ) {
+                    $oldQ->delete();
+                }
+            } else {
+                $startOrder = $exam->questions()->max('order_number') ?? 0;
+            }
+
+            foreach ($sourceExam->questions as $index => $q) {
+                ExamQuestion::create([
+                    'exam_id' => $exam->id,
+                    'question_type' => $q->question_type,
+                    'question_text' => $q->question_text,
+                    'question_image' => $q->question_image,
+                    'question_images' => $q->question_images,
+                    'image_alignment' => $q->image_alignment ?? 'center',
+                    'image_position' => $q->image_position ?? 'bottom',
+                    'options' => $q->options,
+                    'option_images' => $q->option_images,
+                    'correct_answer' => $q->correct_answer,
+                    'points' => $q->points,
+                    'order_number' => $startOrder + $index + 1,
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Berhasil menyalin '.$sourceExam->questions->count().' butir soal dari "'.$sourceExam->title.'".');
+    }
+
+    public function printView(Exam $exam)
+    {
+        $exam->load(['subject', 'class', 'classes', 'academicYear', 'teacher.user', 'questions' => function ($q) {
+            $q->orderBy('order_number', 'asc');
+        }]);
+
+        $schoolProfile = DB::table('school_profiles')->first();
+
+        return Inertia::render('Exams/Print', [
+            'exam' => $exam,
+            'schoolProfile' => $schoolProfile,
+        ]);
+    }
+
+    public function exportWord(Exam $exam, ExamWordExportService $exportService)
+    {
+        $exam->load(['subject', 'class', 'classes', 'academicYear', 'teacher.user', 'questions' => function ($q) {
+            $q->orderBy('order_number', 'asc');
+        }]);
+
+        $filePath = $exportService->generate($exam);
+        $filename = 'Naskah_Soal_'.\Illuminate\Support\Str::slug($exam->title).'.docx';
+
+        return response()->download($filePath, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ])->deleteFileAfterSend(true);
+    }
+
     public function deleteQuestion(ExamQuestion $question)
     {
-        if ($question->question_image && Storage::disk('public')->exists($question->question_image)) {
-            Storage::disk('public')->delete($question->question_image);
+        foreach ($question->getAllImages() as $path) {
+            if ($path && Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
         }
         if (! empty($question->option_images) && is_array($question->option_images)) {
             foreach ($question->option_images as $path) {
@@ -437,7 +677,7 @@ class ExamController extends Controller
             Storage::disk('public')->delete($question->question_image);
         }
 
-        $path = $request->file('image')->store('exam-questions', 'public');
+        $path = $this->storeUploadedFile($request->file('image'), 'exam-questions');
         $question->update(['question_image' => $path]);
 
         return back()->with('success', 'Gambar soal berhasil diunggah.');
@@ -465,18 +705,23 @@ class ExamController extends Controller
             return;
         }
 
-        $exam->loadMissing(['subject', 'class']);
+        $exam->loadMissing(['subject', 'class', 'classes']);
+
+        $assignedClassIds = $exam->assignedClassIds();
 
         $studentsQuery = Student::query()
             ->whereNotNull('user_id')
             ->with('class');
 
-        if ($exam->class_id) {
-            // Ujian khusus untuk rombel tertentu
-            $studentsQuery->where('class_id', $exam->class_id);
+        if (! empty($assignedClassIds)) {
+            // Ujian khusus untuk rombel tertentu (satu atau beberapa paralel)
+            $studentsQuery->whereIn('class_id', $assignedClassIds);
         } elseif ($exam->exam_category === 'ujian_sekolah') {
             // Ujian Sekolah khusus untuk seluruh siswa Kelas 6 (Kelas Akhir)
             $studentsQuery->whereHas('class', fn ($c) => $c->where('grade_level', 6));
+        } else {
+            // Jangan broadcast ke seluruh siswa jika tanpa rombel target dan bukan ujian sekolah
+            return;
         }
 
         $students = $studentsQuery->get();
@@ -539,11 +784,13 @@ class ExamController extends Controller
 
     public function monitor(Exam $exam)
     {
-        $exam->load(['subject', 'class', 'questions']);
+        $exam->load(['subject', 'class', 'classes', 'questions']);
+
+        $assignedClassIds = $exam->assignedClassIds();
 
         $studentsQuery = Student::with('class');
-        if ($exam->class_id) {
-            $studentsQuery->where('class_id', $exam->class_id);
+        if (! empty($assignedClassIds)) {
+            $studentsQuery->whereIn('class_id', $assignedClassIds);
         } elseif ($exam->exam_category === 'ujian_sekolah') {
             $studentsQuery->whereHas('class', fn ($c) => $c->where('grade_level', 6));
         }
@@ -577,7 +824,7 @@ class ExamController extends Controller
 
     public function results(Exam $exam)
     {
-        $exam->load(['subject', 'class', 'questions']);
+        $exam->load(['subject', 'class', 'classes', 'questions']);
 
         $attempts = StudentExamAttempt::where('exam_id', $exam->id)
             ->with(['student.class', 'answers.question'])
@@ -585,8 +832,10 @@ class ExamController extends Controller
             ->orderBy('percentage', 'desc')
             ->get();
 
-        $studentsCount = $exam->class_id
-            ? Student::where('class_id', $exam->class_id)->count()
+        $assignedClassIds = $exam->assignedClassIds();
+
+        $studentsCount = ! empty($assignedClassIds)
+            ? Student::whereIn('class_id', $assignedClassIds)->count()
             : ($exam->exam_category === 'ujian_sekolah'
                 ? Student::whereHas('class', fn ($c) => $c->where('grade_level', 6))->count()
                 : Student::count());

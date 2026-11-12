@@ -13,6 +13,7 @@ import {
     X,
     ShieldAlert
 } from 'lucide-react';
+import QuestionContentRenderer from '@/Components/QuestionContentRenderer';
 
 export default function TakeExam({ auth, attempt, exam, questions = [], answers = {}, time_remaining }) {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -349,22 +350,17 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
                                     </div>
                                 </div>
 
-                                {/* Question Text */}
-                                <div className="space-y-4">
-                                    <p className="text-base text-slate-900 leading-relaxed font-medium whitespace-pre-wrap">
-                                        {currentQuestion.question_text}
-                                    </p>
-                                    {currentQuestion.question_image && (
-                                        <div className="pt-2">
-                                            <img 
-                                                src={`/storage/${currentQuestion.question_image}`}
-                                                alt="Gambar Soal"
-                                                onClick={() => setLightboxImage(`/storage/${currentQuestion.question_image}`)}
-                                                className="rounded-2xl border border-slate-200 max-h-80 object-contain cursor-pointer hover:opacity-95 transition bg-white p-1"
-                                                title="Klik untuk perbesar gambar soal"
-                                            />
-                                        </div>
-                                    )}
+                                {/* Question Text & Image */}
+                                <div>
+                                    <QuestionContentRenderer
+                                        text={currentQuestion.question_text}
+                                        images={currentQuestion.question_images || (currentQuestion.question_image ? [currentQuestion.question_image] : [])}
+                                        alignment={currentQuestion.image_alignment || 'center'}
+                                        position={currentQuestion.image_position || 'bottom'}
+                                        className="text-base text-slate-900 leading-relaxed font-medium"
+                                        imageClassName="max-h-80 object-contain"
+                                        onImageClick={(src) => setLightboxImage(src)}
+                                    />
                                 </div>
 
                                 {/* Answer Input Section */}
@@ -512,7 +508,23 @@ export default function TakeExam({ auth, attempt, exam, questions = [], answers 
                                                                             </span>
                                                                         </td>
                                                                         <td className="py-4 px-4 text-slate-800 font-medium leading-relaxed align-middle">
-                                                                            {row.text}
+                                                                            <div className="space-y-2">
+                                                                                {currentQuestion.option_images?.[row.id] && (
+                                                                                    <div className="pt-0.5">
+                                                                                        <img
+                                                                                            src={`/storage/${currentQuestion.option_images[row.id]}`}
+                                                                                            alt={`Pilihan ${row.id}`}
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                setLightboxImage(`/storage/${currentQuestion.option_images[row.id]}`);
+                                                                                            }}
+                                                                                            className="rounded-xl border border-slate-200 max-h-48 max-w-full object-contain bg-white p-1 hover:opacity-95 shadow-sm transition cursor-zoom-in"
+                                                                                            title="Klik untuk perbesar gambar opsi"
+                                                                                        />
+                                                                                    </div>
+                                                                                )}
+                                                                                {row.text && <div>{row.text}</div>}
+                                                                            </div>
                                                                         </td>
                                                                         <td 
                                                                             onClick={() => setKategoriRowChoice(currentQuestion.id, row.id, cat1)}

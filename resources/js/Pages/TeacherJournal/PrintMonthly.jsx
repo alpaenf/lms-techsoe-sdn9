@@ -20,15 +20,28 @@ export default function PrintMonthly({
     // Calculate last date of month for signature
     const lastDay = new Date(year, month, 0).getDate();
 
+    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+    const getDayNameFromDateStr = (dateStr) => {
+        if (!dateStr) return 'Senin';
+        const parts = String(dateStr).slice(0, 10).split('-');
+        if (parts.length < 3) return 'Senin';
+        const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        return dayNames[d.getDay()] || 'Senin';
+    };
+
     const formatDateIndo = (dateStr) => {
         if (!dateStr) return '-';
-        const d = new Date(dateStr + 'T00:00:00');
-        if (isNaN(d.getTime())) return dateStr;
-        return d.toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        });
+        const parts = String(dateStr).slice(0, 10).split('-');
+        if (parts.length === 3) {
+            const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            return d.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+        return dateStr;
     };
 
     return (
@@ -129,7 +142,7 @@ export default function PrintMonthly({
                             <tr className="bg-slate-100 text-slate-900 font-bold border-b border-slate-300 text-center">
                                 <th className="border border-slate-300 p-2 w-8">No</th>
                                 <th className="border border-slate-300 p-2 w-28">Hari / Tanggal</th>
-                                <th className="border border-slate-300 p-2 w-20">Waktu</th>
+                                <th className="border border-slate-300 p-2 w-24">Waktu (WITA)</th>
                                 <th className="border border-slate-300 p-2 w-20">Kelas</th>
                                 <th className="border border-slate-300 p-2 w-28">Mata Pelajaran</th>
                                 <th className="border border-slate-300 p-2">Pokok Bahasan / Materi</th>
@@ -151,12 +164,12 @@ export default function PrintMonthly({
                                             {idx + 1}
                                         </td>
                                         <td className="border border-slate-300 p-2">
-                                            <div className="font-bold text-slate-900">{item.day_name}</div>
+                                            <div className="font-bold text-slate-900">{getDayNameFromDateStr(item.journal_date) || item.day_name}</div>
                                             <div className="text-[11px] text-slate-600 font-medium">{formatDateIndo(item.journal_date)}</div>
                                         </td>
                                         <td className="border border-slate-300 p-2 text-center text-[11px] font-mono">
                                             {item.start_time ? (
-                                                <span>{item.start_time.slice(0, 5)} - {item.end_time ? item.end_time.slice(0, 5) : 'selesai'}</span>
+                                                <span>{item.start_time.slice(0, 5)} - {item.end_time ? item.end_time.slice(0, 5) : 'selesai'} <span className="font-sans text-[10px] text-slate-500">WITA</span></span>
                                             ) : (
                                                 <span className="text-slate-400">-</span>
                                             )}

@@ -40,9 +40,10 @@ export default function TeacherScheduleWidget({
     // Count today's schedule
     const todayCount = teachingSchedules.filter(s => s.day_of_week === todayDay).length;
 
-    // Determine current time
+    // Determine current time in WITA (Asia/Makassar, UTC+8)
     const now = new Date();
     const timeFormatter = new Intl.DateTimeFormat('id-ID', {
+        timeZone: 'Asia/Makassar',
         hour: '2-digit',
         minute: '2-digit',
         hour12: false

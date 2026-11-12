@@ -15,7 +15,7 @@ import {
     Award
 } from 'lucide-react';
 
-export default function StudentExamResult({ auth, attempt, statistics }) {
+export default function StudentExamResult({ auth, attempt, statistics, show_result_immediately = true }) {
     const formatScore = (val) => {
         if (val === null || val === undefined || isNaN(val)) return 0;
         return Math.round(Number(val));
@@ -36,6 +36,8 @@ export default function StudentExamResult({ auth, attempt, statistics }) {
         if (val >= 60) return 'C';
         return 'D';
     };
+
+    const isResultVisible = Boolean(show_result_immediately && attempt.exam?.show_result_immediately !== false);
 
     const isPassed = Boolean(statistics?.is_passed);
     const maxAttempts = Number(attempt?.exam?.max_attempts || 1);
@@ -74,8 +76,42 @@ export default function StudentExamResult({ auth, attempt, statistics }) {
             <Head title={`Hasil Ujian - ${attempt.exam?.title}`} />
 
             <div className="space-y-6 max-w-4xl mx-auto">
-                {/* Result Hero Card */}
-                <div className={`rounded-3xl p-8 text-white shadow-lg ${
+                {!isResultVisible ? (
+                    <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-center space-y-6">
+                        <div className="w-20 h-20 rounded-3xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600 shadow-sm">
+                            <Clock className="w-10 h-10" />
+                        </div>
+                        <div className="max-w-md mx-auto space-y-2">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                                Percobaan #{attempt.attempt_number} • Tersimpan
+                            </span>
+                            <h1 className="text-2xl font-black text-slate-900">
+                                Ujian Berhasil Dikumpulkan
+                            </h1>
+                            <p className="text-xs text-slate-600 leading-relaxed">
+                                Lembar jawaban Anda telah tersimpan dengan aman di server. Sesuai dengan kebijakan ujian ini, <strong>nilai akhir dirahasiakan</strong> dan akan diumumkan secara resmi oleh guru setelah seluruh proses penilaian selesai.
+                            </p>
+                        </div>
+
+                        <div className="max-w-md mx-auto p-4 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-2 gap-3 text-left">
+                            <div>
+                                <p className="text-[11px] font-semibold text-slate-400">Waktu Penyerahan</p>
+                                <p className="text-xs font-bold text-slate-800 mt-0.5">
+                                    {attempt.submitted_at ? new Date(attempt.submitted_at).toLocaleString('id-ID') : '-'}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-[11px] font-semibold text-slate-400">Mata Pelajaran</p>
+                                <p className="text-xs font-bold text-slate-800 mt-0.5">
+                                    {attempt.exam?.subject?.name || '-'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        {/* Result Hero Card */}
+                        <div className={`rounded-3xl p-8 text-white shadow-lg ${
                     isPassed 
                         ? 'bg-gradient-to-r from-emerald-600 to-emerald-700' 
                         : 'bg-gradient-to-r from-[#800020] to-[#5C0017]'
@@ -297,6 +333,8 @@ export default function StudentExamResult({ auth, attempt, statistics }) {
                             </div>
                         </div>
                     </div>
+                )}
+                </>
                 )}
 
                 {/* Action Buttons */}

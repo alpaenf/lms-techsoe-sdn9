@@ -230,6 +230,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::match(['put', 'post'], '/questions/{question}', [ExamController::class, 'updateQuestion'])->name('exams.questions.update');
         Route::delete('/questions/{question}', [ExamController::class, 'deleteQuestion'])->name('exams.questions.delete');
         Route::post('/questions/{question}/upload-image', [ExamController::class, 'uploadQuestionImage'])->name('exams.questions.image');
+        Route::post('/{exam}/copy-questions', [ExamController::class, 'copyQuestions'])->name('exams.copy-questions');
+
+        // Cetak & Ekspor Soal
+        Route::get('/{exam}/print', [ExamController::class, 'printView'])->name('exams.print');
+        Route::get('/{exam}/export-word', [ExamController::class, 'exportWord'])->name('exams.export-word');
 
         // Monitoring & Grading
         Route::get('/{exam}/monitor', [ExamController::class, 'monitor'])->name('exams.monitor');

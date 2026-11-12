@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, BookOpen, Calendar, Clock, Layers, FileText, CheckCircle2 } from 'lucide-react';
 
 export default function ModalJournal({
@@ -15,13 +15,65 @@ export default function ModalJournal({
 }) {
     const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
+    // Real-time live WITA clock inside modal
+    const [modalLiveWita, setModalLiveWita] = useState('');
+    useEffect(() => {
+        if (!isOpen) return;
+        const update = () => {
+            try {
+                const now = new Date();
+                const timeStr = new Intl.DateTimeFormat('id-ID', {
+                    timeZone: 'Asia/Makassar',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                }).format(now);
+                setModalLiveWita(timeStr.replace('.', ':'));
+            } catch (e) {
+                const now = new Date();
+                setModalLiveWita(now.toTimeString().slice(0, 8));
+            }
+        };
+        update();
+        const t = setInterval(update, 1000);
+        return () => clearInterval(t);
+    }, [isOpen]);
+
+    const syncCurrentWitaTime = () => {
+        try {
+            const now = new Date();
+            const timeStr = new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Asia/Makassar',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            }).format(now);
+            const [h, m] = timeStr.split(':').map(Number);
+            const endH = (h + 1) % 24;
+            const endStr = `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            setJournalForm(prev => ({
+                ...prev,
+                start_time: timeStr,
+                end_time: endStr
+            }));
+        } catch (e) {}
+    };
+
+    const getDayNameFromDateStr = (dateStr) => {
+        if (!dateStr) return 'Senin';
+        const parts = String(dateStr).slice(0, 10).split('-');
+        if (parts.length < 3) return 'Senin';
+        const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        return dayNames[d.getDay()] || 'Senin';
+    };
+
     const handleDateChange = (newDate) => {
         if (!newDate) {
-            setJournalForm({ ...journalForm, journal_date: '' });
+            setJournalForm({ ...journalForm, journal_date: '', day_name: '' });
             return;
         }
-        const d = new Date(newDate + 'T00:00:00');
-        const dayName = !isNaN(d.getDay()) ? dayNames[d.getDay()] : 'Senin';
+        const dayName = getDayNameFromDateStr(newDate);
         setJournalForm({
             ...journalForm,
             journal_date: newDate,
@@ -31,6 +83,12 @@ export default function ModalJournal({
 
     useEffect(() => {
         if (isOpen) {
+            if (journalForm.journal_date) {
+                const correctDay = getDayNameFromDateStr(journalForm.journal_date);
+                if (journalForm.day_name !== correctDay) {
+                    setJournalForm(prev => ({ ...prev, day_name: correctDay }));
+                }
+            }
             if (!journalForm.subject_id && subjects.length > 0) {
                 setJournalForm(prev => ({ ...prev, subject_id: String(subjects[0].id) }));
             }
@@ -61,13 +119,21 @@ export default function ModalJournal({
                         </div>
                     </div>
 
-                    <button
-                        onClick={onClose}
-                        type="button"
-                        className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center space-x-2">
+                        {modalLiveWita && (
+                            <div className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>{modalLiveWita} WITA</span>
+                            </div>
+                        )}
+                        <button
+                            onClick={onClose}
+                            type="button"
+                            className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Modal Body */}
@@ -152,30 +218,48 @@ export default function ModalJournal({
                         </div>
                     </div>
 
-                    {/* Baris 3: Jam Pelajaran */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                                Jam Mulai (WIB/WITA)
+                    {/* Baris 3: Jam Pelajaran (WITA) */}
+                    <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                Waktu Pembelajaran (WITA)
                             </label>
-                            <input
-                                type="time"
-                                value={journalForm.start_time || ''}
-                                onChange={(e) => setJournalForm({ ...journalForm, start_time: e.target.value })}
-                                className="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
-                            />
+                            <button
+                                type="button"
+                                onClick={syncCurrentWitaTime}
+                                className="text-[11px] font-bold text-[#800020] hover:text-[#5C0017] bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-200 transition inline-flex items-center space-x-1 shadow-2xs"
+                                title="Klik untuk menyetel waktu mulai ke waktu WITA saat ini"
+                            >
+                                <Clock className="w-3.5 h-3.5 text-[#800020]" />
+                                <span>Gunakan Jam WITA Sekarang {modalLiveWita ? `(${modalLiveWita.slice(0, 5)})` : ''}</span>
+                            </button>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                                Jam Selesai (WIB/WITA)
-                            </label>
-                            <input
-                                type="time"
-                                value={journalForm.end_time || ''}
-                                onChange={(e) => setJournalForm({ ...journalForm, end_time: e.target.value })}
-                                className="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
-                            />
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-500 mb-1">
+                                    Jam Mulai (WITA) <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="time"
+                                    required
+                                    value={journalForm.start_time || ''}
+                                    onChange={(e) => setJournalForm({ ...journalForm, start_time: e.target.value })}
+                                    className="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-500 mb-1">
+                                    Jam Selesai (WITA)
+                                </label>
+                                <input
+                                    type="time"
+                                    value={journalForm.end_time || ''}
+                                    onChange={(e) => setJournalForm({ ...journalForm, end_time: e.target.value })}
+                                    className="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:border-[#800020] focus:ring-[#800020]"
+                                />
+                            </div>
                         </div>
                     </div>
 

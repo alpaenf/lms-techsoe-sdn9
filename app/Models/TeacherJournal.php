@@ -30,7 +30,7 @@ class TeacherJournal extends Model
     ];
 
     protected $casts = [
-        'journal_date' => 'date',
+        'journal_date' => 'date:Y-m-d',
     ];
 
     public function teacher(): BelongsTo

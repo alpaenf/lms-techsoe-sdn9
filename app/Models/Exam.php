@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Exam extends Model
@@ -45,6 +46,16 @@ class Exam extends Model
 
     public function getTargetClassLabelAttribute(): string
     {
+        $classes = $this->relationLoaded('classes') ? $this->classes : $this->classes()->get();
+
+        if ($classes->count() > 1) {
+            return $classes->pluck('name')->join(', ');
+        }
+
+        if ($classes->count() === 1) {
+            return $classes->first()->name;
+        }
+
         if ($this->class) {
             return $this->class->name;
         }
@@ -54,6 +65,21 @@ class Exam extends Model
         }
 
         return 'Semua Rombel';
+    }
+
+    public function classes(): BelongsToMany
+    {
+        return $this->belongsToMany(Classes::class, 'exam_classes', 'exam_id', 'class_id')->withTimestamps();
+    }
+
+    public function assignedClassIds(): array
+    {
+        $ids = $this->classes()->pluck('classes.id')->toArray();
+        if ($this->class_id && ! in_array($this->class_id, $ids)) {
+            $ids[] = $this->class_id;
+        }
+
+        return $ids;
     }
 
     public function teacher(): BelongsTo

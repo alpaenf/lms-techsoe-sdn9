@@ -12,6 +12,7 @@ class StudentExamAttempt extends Model
         'exam_id',
         'student_id',
         'attempt_number',
+        'question_order',
         'started_at',
         'submitted_at',
         'time_remaining_seconds',
@@ -22,6 +23,7 @@ class StudentExamAttempt extends Model
     ];
 
     protected $casts = [
+        'question_order' => 'array',
         'started_at' => 'datetime',
         'submitted_at' => 'datetime',
         'auto_submitted' => 'boolean',

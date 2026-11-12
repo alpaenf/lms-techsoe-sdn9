@@ -34,6 +34,14 @@ export default function ExamsEdit({ auth, exam, subjects = [], classes = [] }) {
         return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
     };
 
+    const initialTargetMode = (exam.classes && exam.classes.length > 1) ? 'parallel' : 'single';
+    const initialClassIds = (exam.classes && exam.classes.length > 0)
+        ? exam.classes.map(c => c.id)
+        : (exam.class_id ? [Number(exam.class_id)] : []);
+
+    const [targetMode, setTargetMode] = useState(initialTargetMode);
+    const [selectedClassIds, setSelectedClassIds] = useState(initialClassIds);
+
     const [form, setForm] = useState({
         title: exam.title || '',
         description: exam.description || '',
@@ -52,10 +60,32 @@ export default function ExamsEdit({ auth, exam, subjects = [], classes = [] }) {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const toggleParallelClass = (classId) => {
+        setSelectedClassIds(prev => {
+            if (prev.includes(classId)) {
+                return prev.filter(id => id !== classId);
+            } else {
+                return [...prev, classId];
+            }
+        });
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        if (targetMode === 'parallel' && selectedClassIds.length === 0) {
+            alert('Silakan pilih minimal 1 kelas paralel untuk target ujian ini.');
+            return;
+        }
+
+        const payload = {
+            ...form,
+            class_id: targetMode === 'parallel' ? (selectedClassIds[0] || null) : (form.class_id || null),
+            class_ids: targetMode === 'parallel' ? selectedClassIds : (form.class_id ? [form.class_id] : []),
+        };
+
         setIsSubmitting(true);
-        router.put(route('exams.update', exam.id), form, {
+        router.put(route('exams.update', exam.id), payload, {
             onFinish: () => setIsSubmitting(false)
         });
     };
@@ -122,7 +152,7 @@ export default function ExamsEdit({ auth, exam, subjects = [], classes = [] }) {
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-1">
                                     Mata Pelajaran <span className="text-rose-500">*</span>
@@ -163,26 +193,117 @@ export default function ExamsEdit({ auth, exam, subjects = [], classes = [] }) {
                                     <option value="kuis">Kuis / Latihan Harian</option>
                                 </select>
                             </div>
+                        </div>
 
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-1">
-                                    Sasaran Rombel / Kelas <span className="text-rose-500">*</span>
-                                </label>
+                        {/* Pengaturan Sasaran Kelas / Kelas Paralel */}
+                        <div className="pt-2 border-t border-slate-100 space-y-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800">
+                                        Pengaturan Sasaran Kelas (Rombel) <span className="text-rose-500">*</span>
+                                    </label>
+                                    <p className="text-[11px] text-slate-500">
+                                        Tentukan apakah ujian ini untuk satu kelas atau bank soal bersama untuk beberapa kelas paralel
+                                    </p>
+                                </div>
+                                {form.exam_category !== 'ujian_sekolah' && (
+                                    <div className="inline-flex p-1 bg-slate-100 rounded-xl text-xs font-semibold self-start sm:self-auto">
+                                        <button
+                                            type="button"
+                                            onClick={() => setTargetMode('single')}
+                                            className={`px-3 py-1 rounded-lg transition ${
+                                                targetMode === 'single'
+                                                    ? 'bg-white text-slate-900 shadow-sm font-bold'
+                                                    : 'text-slate-600 hover:text-slate-900'
+                                            }`}
+                                        >
+                                            Satu Kelas
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setTargetMode('parallel');
+                                                if (selectedClassIds.length === 0 && form.class_id) {
+                                                    setSelectedClassIds([Number(form.class_id)]);
+                                                }
+                                            }}
+                                            className={`px-3 py-1 rounded-lg transition ${
+                                                targetMode === 'parallel'
+                                                    ? 'bg-[#800020] text-white shadow-sm font-bold'
+                                                    : 'text-slate-600 hover:text-slate-900'
+                                            }`}
+                                        >
+                                            Kelas Paralel (Soal Bersama)
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {form.exam_category === 'ujian_sekolah' ? (
+                                <div className="space-y-2">
+                                    <select
+                                        value={form.class_id}
+                                        onChange={(e) => setForm({ ...form, class_id: e.target.value })}
+                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] bg-white font-medium"
+                                    >
+                                        <option value="">Seluruh Kelas 6 (Kelas Akhir)</option>
+                                        {classes.filter(c => c.grade_level === 6).map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            ) : targetMode === 'single' ? (
                                 <select
+                                    required
                                     value={form.class_id}
                                     onChange={(e) => setForm({ ...form, class_id: e.target.value })}
                                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#800020] focus:ring-[#800020] bg-white font-medium"
                                 >
-                                    <option value="">
-                                        {form.exam_category === 'ujian_sekolah'
-                                            ? 'Seluruh Kelas 6 (Kelas Akhir)'
-                                            : 'Semua Rombel'}
-                                    </option>
+                                    <option value="" disabled>Pilih Rombel / Kelas...</option>
                                     {classes.map(c => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                        <option key={c.id} value={c.id}>
+                                            {c.name} {c.homeroom_teacher ? `(Wali: ${c.homeroom_teacher.full_name})` : ''}
+                                        </option>
                                     ))}
                                 </select>
-                            </div>
+                            ) : (
+                                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-bold text-slate-800">
+                                            Pilih Kelas-Kelas Paralel yang Menggunakan Soal Ini:
+                                        </span>
+                                        <span className="text-[11px] text-[#800020] font-bold">
+                                            {selectedClassIds.length} Kelas Dipilih
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                                        {classes.map(c => {
+                                            const isChecked = selectedClassIds.includes(c.id);
+                                            return (
+                                                <label
+                                                    key={c.id}
+                                                    className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-semibold cursor-pointer transition select-none ${
+                                                        isChecked
+                                                            ? 'bg-[#FDF2F4] border-[#800020] text-[#800020] font-bold shadow-sm'
+                                                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+                                                    }`}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isChecked}
+                                                        onChange={() => toggleParallelClass(c.id)}
+                                                        className="rounded text-[#800020] focus:ring-[#800020] w-4 h-4"
+                                                    />
+                                                    <span className="truncate">{c.name}</span>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 italic">
+                                        💡 Contoh: Jika Anda mencentang Kelas 5A dan 5B, siswa dari kedua kelas paralel ini akan mengerjakan bank soal ujian yang sama secara otomatis.
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         {form.exam_category === 'ujian_sekolah' && (

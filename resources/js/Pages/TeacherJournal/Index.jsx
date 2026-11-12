@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, usePage, Link } from '@inertiajs/react';
 import {
@@ -36,6 +36,7 @@ export default function TeacherJournalIndex({
     stats = {},
     schoolProfile = null,
     academicYear = null,
+    serverTimeWita = null,
 }) {
     const { auth } = usePage().props;
     const userRole = auth?.user?.role || 'siswa';
@@ -56,8 +57,71 @@ export default function TeacherJournalIndex({
     const [editingJournal, setEditingJournal] = useState(null);
 
     const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const todayDayName = dayNames[new Date().getDay()];
+
+    // Helper to compute date & time in WITA (Asia/Makassar, UTC+8)
+    const getWitaDateTime = () => {
+        const now = new Date();
+        try {
+            const dateStr = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Makassar',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(now);
+
+            const timeStr = new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Asia/Makassar',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            }).format(now);
+
+            return { date: dateStr, time: timeStr };
+        } catch (e) {
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            const h = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            return { date: `${y}-${m}-${d}`, time: `${h}:${min}` };
+        }
+    };
+
+    const getDayNameFromDateStr = (dateStr) => {
+        if (!dateStr) return 'Senin';
+        const parts = String(dateStr).slice(0, 10).split('-');
+        if (parts.length < 3) return 'Senin';
+        const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        return dayNames[d.getDay()] || 'Senin';
+    };
+
+    // Live WITA Clock
+    const [liveTimeWita, setLiveTimeWita] = useState('');
+    useEffect(() => {
+        const updateClock = () => {
+            try {
+                const now = new Date();
+                const timeStr = new Intl.DateTimeFormat('id-ID', {
+                    timeZone: 'Asia/Makassar',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                }).format(now);
+                setLiveTimeWita(timeStr.replace('.', ':'));
+            } catch (e) {
+                const now = new Date();
+                setLiveTimeWita(now.toTimeString().slice(0, 8));
+            }
+        };
+        updateClock();
+        const timer = setInterval(updateClock, 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const initialWita = getWitaDateTime();
+    const todayStr = serverTimeWita?.date || initialWita.date;
+    const todayDayName = serverTimeWita?.day_name || getDayNameFromDateStr(todayStr);
 
     const initialClass = defaultClassId ? String(defaultClassId) : (availableClasses[0]?.id ? String(availableClasses[0].id) : '');
     const initialSubject = defaultSubjectId ? String(defaultSubjectId) : (availableSubjects[0]?.id ? String(availableSubjects[0].id) : '');
@@ -67,8 +131,8 @@ export default function TeacherJournalIndex({
         subject_id: initialSubject,
         journal_date: todayStr,
         day_name: todayDayName,
-        start_time: '07:30',
-        end_time: '09:00',
+        start_time: initialWita.time,
+        end_time: '',
         material_topic: '',
         activity_description: '',
         learning_media: '',
@@ -109,13 +173,26 @@ export default function TeacherJournalIndex({
 
     const openCreateModal = () => {
         setEditingJournal(null);
+        const wita = getWitaDateTime();
+        const curDate = wita.date;
+        const curTime = wita.time; // Current realtime time in WITA!
+        
+        let defaultEndTime = '';
+        try {
+            const [h, m] = curTime.split(':').map(Number);
+            const endH = (h + 1) % 24;
+            defaultEndTime = `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        } catch (e) {
+            defaultEndTime = '09:00';
+        }
+
         setJournalForm({
             class_id: initialClass,
             subject_id: initialSubject,
-            journal_date: todayStr,
-            day_name: todayDayName,
-            start_time: '07:30',
-            end_time: '09:00',
+            journal_date: curDate,
+            day_name: getDayNameFromDateStr(curDate),
+            start_time: curTime,
+            end_time: defaultEndTime,
             material_topic: '',
             activity_description: '',
             learning_media: '',
@@ -128,13 +205,15 @@ export default function TeacherJournalIndex({
 
     const openEditModal = (journal) => {
         setEditingJournal(journal);
-        const dateStr = journal.journal_date ? String(journal.journal_date).slice(0, 10) : todayStr;
+        const wita = getWitaDateTime();
+        const dateStr = journal.journal_date ? String(journal.journal_date).slice(0, 10) : wita.date;
+        const calculatedDay = getDayNameFromDateStr(dateStr);
         setJournalForm({
             class_id: String(journal.class_id),
             subject_id: String(journal.subject_id),
             journal_date: dateStr,
-            day_name: journal.day_name || 'Senin',
-            start_time: journal.start_time ? journal.start_time.slice(0, 5) : '',
+            day_name: calculatedDay || journal.day_name || 'Senin',
+            start_time: journal.start_time ? journal.start_time.slice(0, 5) : wita.time,
             end_time: journal.end_time ? journal.end_time.slice(0, 5) : '',
             material_topic: journal.material_topic || '',
             activity_description: journal.activity_description || '',
@@ -214,7 +293,14 @@ export default function TeacherJournalIndex({
                         </p>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        {/* Live WITA Clock */}
+                        <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold shadow-2xs">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>{liveTimeWita || '00:00:00'} WITA</span>
+                        </div>
+
                         <Link
                             href={route('journals.print-monthly', {
                                 month,
@@ -425,7 +511,7 @@ export default function TeacherJournalIndex({
                                 <tr className="bg-slate-50/70 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-100">
                                     <th className="p-4 w-12 text-center">No</th>
                                     <th className="p-4 w-36">Hari & Tanggal</th>
-                                    <th className="p-4 w-28 text-center">Waktu</th>
+                                    <th className="p-4 w-32 text-center">Waktu (WITA)</th>
                                     <th className="p-4 w-28">Kelas</th>
                                     <th className="p-4 w-36">Mata Pelajaran</th>
                                     <th className="p-4">Pokok Bahasan & Aktivitas</th>
@@ -460,10 +546,12 @@ export default function TeacherJournalIndex({
                                     </tr>
                                 ) : (
                                     filteredJournals.map((item, idx) => {
-                                        const d = new Date(item.journal_date + 'T00:00:00');
-                                        const formattedDate = !isNaN(d.getTime())
-                                            ? d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+                                        const dateStr = String(item.journal_date || '').slice(0, 10);
+                                        const parts = dateStr.split('-');
+                                        const formattedDate = parts.length === 3
+                                            ? new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
                                             : item.journal_date;
+                                        const dayName = getDayNameFromDateStr(dateStr) || item.day_name;
 
                                         return (
                                             <tr key={item.id} className="hover:bg-slate-50/60 transition">
@@ -472,17 +560,22 @@ export default function TeacherJournalIndex({
                                                 </td>
 
                                                 <td className="p-4">
-                                                    <div className="font-bold text-slate-900">{item.day_name}</div>
+                                                    <div className="font-bold text-slate-900">{dayName}</div>
                                                     <div className="text-[11px] text-slate-500 font-medium mt-0.5">{formattedDate}</div>
                                                 </td>
 
                                                 <td className="p-4 text-center font-mono text-[11px] text-slate-600">
                                                     {item.start_time ? (
-                                                        <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md font-semibold">
-                                                            {item.start_time.slice(0, 5)} - {item.end_time ? item.end_time.slice(0, 5) : 'selesai'}
+                                                        <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md font-semibold inline-block">
+                                                            {item.start_time.slice(0, 5)} - {item.end_time ? item.end_time.slice(0, 5) : 'selesai'} <span className="text-[10px] text-slate-500 font-sans">WITA</span>
                                                         </span>
                                                     ) : (
                                                         <span className="text-slate-400">-</span>
+                                                    )}
+                                                    {item.created_at_wita && (
+                                                        <div className="text-[10px] text-slate-400 font-sans mt-1" title="Waktu Input Log">
+                                                            Log: {item.created_at_wita}
+                                                        </div>
                                                     )}
                                                 </td>
 

@@ -329,11 +329,15 @@ export default function StudentExamsIndex({ auth, exams = [], student }) {
                                             <p className="text-sm text-slate-600 mt-1">{exam.subject.name}</p>
                                         </div>
                                         <div className="text-right">
-                                            {exam.best_score !== null && (
+                                            {exam.best_score !== null && exam.best_score !== undefined ? (
                                                 <>
                                                     <p className="text-2xl font-bold text-emerald-600">{Math.round(Number(exam.best_score || 0))}</p>
                                                     <p className="text-xs text-slate-500">Nilai Terbaik</p>
                                                 </>
+                                            ) : (
+                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                                                    Selesai
+                                                </span>
                                             )}
                                         </div>
                                     </div>

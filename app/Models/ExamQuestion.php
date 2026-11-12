@@ -13,6 +13,9 @@ class ExamQuestion extends Model
         'question_type',
         'question_text',
         'question_image',
+        'question_images',
+        'image_alignment',
+        'image_position',
         'options',
         'option_images',
         'correct_answer',
@@ -23,8 +26,27 @@ class ExamQuestion extends Model
     protected $casts = [
         'options' => 'array',
         'option_images' => 'array',
+        'question_images' => 'array',
         'points' => 'integer',
     ];
+
+    /**
+     * Mendapatkan daftar seluruh berkas gambar soal (multiple images dengan fallback single image).
+     *
+     * @return array<int, string>
+     */
+    public function getAllImages(): array
+    {
+        if (is_array($this->question_images) && ! empty($this->question_images)) {
+            return array_values(array_filter($this->question_images));
+        }
+
+        if (! empty($this->question_image)) {
+            return [$this->question_image];
+        }
+
+        return [];
+    }
 
     public function exam(): BelongsTo
     {

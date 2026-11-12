@@ -15,6 +15,17 @@ class TeacherJournalController extends Controller
 {
     private function getIndonesianDayName(string $date): string
     {
+        $cleanDate = substr(trim($date), 0, 10);
+        try {
+            $carbon = \Carbon\Carbon::createFromFormat('Y-m-d', $cleanDate, 'Asia/Makassar');
+            if (! $carbon) {
+                $carbon = \Carbon\Carbon::parse($cleanDate, 'Asia/Makassar');
+            }
+            $dayOfWeek = (int) $carbon->dayOfWeek;
+        } catch (\Throwable $e) {
+            $dayOfWeek = (int) date('w', strtotime($cleanDate));
+        }
+
         $days = [
             0 => 'Minggu',
             1 => 'Senin',
@@ -24,7 +35,6 @@ class TeacherJournalController extends Controller
             5 => 'Jumat',
             6 => 'Sabtu',
         ];
-        $dayOfWeek = (int) date('w', strtotime($date));
 
         return $days[$dayOfWeek] ?? 'Senin';
     }
@@ -34,8 +44,9 @@ class TeacherJournalController extends Controller
         $user = $request->user();
         $role = $user?->role ?? 'siswa';
 
-        $selectedMonth = (int) $request->query('month', date('n'));
-        $selectedYear = (int) $request->query('year', date('Y'));
+        $nowWita = \Carbon\Carbon::now('Asia/Makassar');
+        $selectedMonth = (int) $request->query('month', (int) $nowWita->format('n'));
+        $selectedYear = (int) $request->query('year', (int) $nowWita->format('Y'));
         $filterClassId = $request->query('class_id');
         $filterSubjectId = $request->query('subject_id');
 
@@ -129,6 +140,12 @@ class TeacherJournalController extends Controller
             ->orderBy('start_time', 'desc')
             ->get();
 
+        $journals->transform(function ($j) {
+            $j->created_at_wita = $j->created_at ? \Carbon\Carbon::parse($j->created_at)->timezone('Asia/Makassar')->translatedFormat('d M Y, H:i') . ' WITA' : null;
+            $j->updated_at_wita = $j->updated_at ? \Carbon\Carbon::parse($j->updated_at)->timezone('Asia/Makassar')->translatedFormat('d M Y, H:i') . ' WITA' : null;
+            return $j;
+        });
+
         // Monthly statistics
         $stats = [
             'total_entries' => $journals->count(),
@@ -157,6 +174,13 @@ class TeacherJournalController extends Controller
             'stats' => $stats,
             'schoolProfile' => $schoolProfile,
             'academicYear' => $activeYear,
+            'serverTimeWita' => [
+                'date' => $nowWita->format('Y-m-d'),
+                'time' => $nowWita->format('H:i'),
+                'day_name' => $this->getIndonesianDayName($nowWita->format('Y-m-d')),
+                'formatted' => $nowWita->locale('id')->isoFormat('dddd, D MMMM YYYY • HH:mm') . ' WITA',
+                'timezone' => 'WITA',
+            ],
         ]);
     }
 
@@ -164,6 +188,7 @@ class TeacherJournalController extends Controller
     {
         $user = $request->user();
         $teacher = Teacher::where('user_id', $user->id)->first();
+        $nowWita = \Carbon\Carbon::now('Asia/Makassar');
 
         $validated = $request->validate([
             'class_id' => 'required|exists:classes,id',
@@ -183,6 +208,7 @@ class TeacherJournalController extends Controller
         $academicYearId = DB::table('academic_years')->where('is_active', true)->value('id') ?? 1;
 
         $dayName = $this->getIndonesianDayName($validated['journal_date']);
+        $startTime = ! empty($validated['start_time']) ? substr($validated['start_time'], 0, 5) : $nowWita->format('H:i');
 
         TeacherJournal::create([
             'teacher_id' => $teacherId,
@@ -191,7 +217,7 @@ class TeacherJournalController extends Controller
             'subject_id' => $validated['subject_id'],
             'journal_date' => $validated['journal_date'],
             'day_name' => $dayName,
-            'start_time' => ! empty($validated['start_time']) ? substr($validated['start_time'], 0, 5) : null,
+            'start_time' => $startTime,
             'end_time' => ! empty($validated['end_time']) ? substr($validated['end_time'], 0, 5) : null,
             'material_topic' => $validated['material_topic'],
             'activity_description' => $validated['activity_description'],
@@ -255,8 +281,9 @@ class TeacherJournalController extends Controller
         $user = $request->user();
         $role = $user?->role ?? 'siswa';
 
-        $month = (int) $request->query('month', date('n'));
-        $year = (int) $request->query('year', date('Y'));
+        $nowWita = \Carbon\Carbon::now('Asia/Makassar');
+        $month = (int) $request->query('month', (int) $nowWita->format('n'));
+        $year = (int) $request->query('year', (int) $nowWita->format('Y'));
         $classId = $request->query('class_id');
         $subjectId = $request->query('subject_id');
         $targetTeacherId = $request->query('teacher_id');
@@ -321,6 +348,7 @@ class TeacherJournalController extends Controller
             'selectedSubject' => $selectedSubject,
             'schoolProfile' => $schoolProfile,
             'academicYear' => $activeYear,
+            'printedAtWita' => $nowWita->locale('id')->isoFormat('dddd, D MMMM YYYY • HH:mm') . ' WITA',
         ]);
     }
 }

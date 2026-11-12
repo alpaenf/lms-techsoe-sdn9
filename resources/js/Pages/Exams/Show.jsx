@@ -20,13 +20,25 @@ import {
     Award,
     HelpCircle,
     Loader2,
-    ZoomIn
+    ZoomIn,
+    Printer,
+    Download,
+    Copy,
+    AlignCenter,
+    AlignLeft,
+    AlignRight
 } from 'lucide-react';
+import QuestionContentRenderer from '@/Components/QuestionContentRenderer';
 
-export default function ExamsShow({ auth, exam, statistics = {} }) {
+export default function ExamsShow({ auth, exam, statistics = {}, parallelExams = [] }) {
     const questions = exam.questions || [];
     const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
     const [editingQuestion, setEditingQuestion] = useState(null);
+
+    const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
+    const [sourceExamId, setSourceExamId] = useState('');
+    const [copyMode, setCopyMode] = useState('append');
+    const [isSubmittingCopy, setIsSubmittingCopy] = useState(false);
 
     const [questionForm, setQuestionForm] = useState({
         question_type: 'multiple_choice',
@@ -34,11 +46,14 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         points: 10,
         options: { A: '', B: '', C: '', D: '' },
         correct_answer: 'A',
+        image_alignment: 'center',
+        image_position: 'bottom',
     });
 
     const [questionImageFile, setQuestionImageFile] = useState(null);
     const [questionImagePreview, setQuestionImagePreview] = useState(null);
     const [removeQuestionImage, setRemoveQuestionImage] = useState(false);
+    const [questionImagesList, setQuestionImagesList] = useState([]);
 
     const [optionImageFiles, setOptionImageFiles] = useState({ A: null, B: null, C: null, D: null });
     const [optionImagePreviews, setOptionImagePreviews] = useState({ A: null, B: null, C: null, D: null });
@@ -115,11 +130,38 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
     // State untuk PGK Kategori (Tabel Matriks Pilihan Kategori)
     const [kategoriCategories, setKategoriCategories] = useState(['Benar', 'Salah']);
     const [kategoriRows, setKategoriRows] = useState([
-        { id: 'A', text: '' },
-        { id: 'B', text: '' },
-        { id: 'C', text: '' }
+        { id: 'A', text: '', imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null },
+        { id: 'B', text: '', imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null },
+        { id: 'C', text: '', imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null }
     ]);
     const [kategoriAnswers, setKategoriAnswers] = useState({ A: 'Benar', B: 'Benar', C: 'Salah' });
+
+    const handleKategoriRowImageChange = (rowId, e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 10 * 1024 * 1024) {
+            alert('Ukuran berkas gambar maksimal adalah 10MB.');
+            return;
+        }
+
+        setKategoriRows(prev => prev.map(r => r.id === rowId ? {
+            ...r,
+            imageFile: file,
+            imagePreview: URL.createObjectURL(file),
+            removeImage: false,
+        } : r));
+    };
+
+    const handleRemoveKategoriRowImage = (rowId) => {
+        setKategoriRows(prev => prev.map(r => r.id === rowId ? {
+            ...r,
+            imageFile: null,
+            imagePreview: null,
+            removeImage: true,
+            existingImagePath: null,
+        } : r));
+    };
 
     const KATEGORI_PRESETS = [
         { label: 'Benar / Salah', cat1: 'Benar', cat2: 'Salah' },
@@ -181,6 +223,8 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
             points: 10,
             options: { A: '', B: '', C: '', D: '' },
             correct_answer: 'A',
+            image_alignment: 'center',
+            image_position: 'bottom',
         });
         setMcmaOptions([
             { id: 'A', text: '', isCorrect: false, imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null },
@@ -189,14 +233,15 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         ]);
         setKategoriCategories(['Benar', 'Salah']);
         setKategoriRows([
-            { id: 'A', text: '' },
-            { id: 'B', text: '' },
-            { id: 'C', text: '' }
+            { id: 'A', text: '', imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null },
+            { id: 'B', text: '', imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null },
+            { id: 'C', text: '', imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null }
         ]);
         setKategoriAnswers({ A: 'Benar', B: 'Benar', C: 'Salah' });
         setQuestionImageFile(null);
         setQuestionImagePreview(null);
         setRemoveQuestionImage(false);
+        setQuestionImagesList([]);
         setOptionImageFiles({ A: null, B: null, C: null, D: null });
         setOptionImagePreviews({ A: null, B: null, C: null, D: null });
         setRemoveOptionImages({ A: false, B: false, C: false, D: false });
@@ -211,6 +256,8 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
             points: q.points || 10,
             options: q.options || { A: '', B: '', C: '', D: '' },
             correct_answer: q.correct_answer || 'A',
+            image_alignment: q.image_alignment || 'center',
+            image_position: q.image_position || 'bottom',
         });
 
         // Initialize PGK MCMA
@@ -263,12 +310,22 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
             setKategoriCategories(cats);
 
             let rows = [
-                { id: 'A', text: '' },
-                { id: 'B', text: '' },
-                { id: 'C', text: '' }
+                { id: 'A', text: '', imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null },
+                { id: 'B', text: '', imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null },
+                { id: 'C', text: '', imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null }
             ];
             if (q.options?.rows && Array.isArray(q.options.rows)) {
-                rows = q.options.rows;
+                rows = q.options.rows.map(r => {
+                    const existingImg = q.option_images?.[r.id] || null;
+                    return {
+                        id: r.id,
+                        text: r.text || '',
+                        imagePreview: existingImg ? `/storage/${existingImg}` : null,
+                        imageFile: null,
+                        removeImage: false,
+                        existingImagePath: existingImg,
+                    };
+                });
             }
             setKategoriRows(rows);
 
@@ -282,9 +339,9 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         } else {
             setKategoriCategories(['Benar', 'Salah']);
             setKategoriRows([
-                { id: 'A', text: '' },
-                { id: 'B', text: '' },
-                { id: 'C', text: '' }
+                { id: 'A', text: '', imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null },
+                { id: 'B', text: '', imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null },
+                { id: 'C', text: '', imagePreview: null, imageFile: null, removeImage: false, existingImagePath: null }
             ]);
             setKategoriAnswers({ A: 'Benar', B: 'Benar', C: 'Salah' });
         }
@@ -292,6 +349,18 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         setQuestionImageFile(null);
         setQuestionImagePreview(q.question_image ? `/storage/${q.question_image}` : null);
         setRemoveQuestionImage(false);
+
+        const existingImgs = (Array.isArray(q.question_images) && q.question_images.length > 0)
+            ? q.question_images
+            : (q.question_image ? [q.question_image] : []);
+
+        setQuestionImagesList(existingImgs.map((path, idx) => ({
+            id: `existing-${idx}-${path}`,
+            file: null,
+            preview: path.startsWith('/') || path.startsWith('http') ? path : `/storage/${path}`,
+            existingPath: path,
+        })));
+
         setOptionImageFiles({ A: null, B: null, C: null, D: null });
         setOptionImagePreviews({
             A: q.option_images?.A ? `/storage/${q.option_images.A}` : null,
@@ -301,6 +370,49 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         });
         setRemoveOptionImages({ A: false, B: false, C: false, D: false });
         setIsQuestionModalOpen(true);
+    };
+
+    const handleQuestionImagesChange = (e) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        const newItems = [];
+        for (const file of files) {
+            if (file.size > 10 * 1024 * 1024) {
+                alert(`Ukuran berkas "${file.name}" melebihi 10MB.`);
+                continue;
+            }
+            newItems.push({
+                id: `new-${Date.now()}-${Math.random()}`,
+                file,
+                preview: URL.createObjectURL(file),
+                existingPath: null,
+            });
+        }
+
+        setQuestionImagesList(prev => [...prev, ...newItems]);
+        e.target.value = '';
+    };
+
+    const handleRemoveQuestionImageItem = (index) => {
+        setQuestionImagesList(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleMoveQuestionImage = (fromIndex, toIndex) => {
+        setQuestionImagesList(prev => {
+            if (toIndex < 0 || toIndex >= prev.length) return prev;
+            const updated = [...prev];
+            const [moved] = updated.splice(fromIndex, 1);
+            updated.splice(toIndex, 0, moved);
+            return updated;
+        });
+    };
+
+    const handleInsertImageTag = (tag) => {
+        setQuestionForm(prev => ({
+            ...prev,
+            question_text: (prev.question_text || '').trim() ? `${prev.question_text.trim()} [${tag}]` : `[${tag}]`,
+        }));
     };
 
     const handleQuestionImageChange = (e) => {
@@ -321,6 +433,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         setQuestionImageFile(null);
         setQuestionImagePreview(null);
         setRemoveQuestionImage(true);
+        setQuestionImagesList([]);
     };
 
     const handleOptionImageChange = (opt, e) => {
@@ -347,7 +460,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         e.preventDefault();
 
         const hasText = Boolean(questionForm.question_text && questionForm.question_text.trim());
-        const hasImg = Boolean(questionImagePreview);
+        const hasImg = questionImagesList.length > 0 || Boolean(questionImagePreview);
         if (!hasText && !hasImg) {
             alert('Silakan tuliskan teks soal atau unggah foto/gambar soal terlebih dahulu.');
             return;
@@ -402,8 +515,10 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                 return;
             }
             for (const row of kategoriRows) {
-                if (!row.text || !row.text.trim()) {
-                    alert(`Pernyataan baris ${row.id} masih kosong. Silakan lengkapi teks pernyataan.`);
+                const hasText = row.text !== undefined && row.text !== null && String(row.text).trim() !== '';
+                const hasImg = Boolean(row.imagePreview);
+                if (!hasText && !hasImg) {
+                    alert(`Pernyataan baris ${row.id} belum memiliki teks pernyataan atau gambar.`);
                     return;
                 }
                 if (!kategoriAnswers[row.id]) {
@@ -420,6 +535,8 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         formData.append('question_type', questionForm.question_type);
         formData.append('points', questionForm.points);
         formData.append('question_text', questionForm.question_text);
+        formData.append('image_alignment', questionForm.image_alignment || 'center');
+        formData.append('image_position', questionForm.image_position || 'bottom');
 
         if (questionForm.question_type === 'multiple_choice') {
             formData.append('correct_answer', questionForm.correct_answer || 'A');
@@ -449,17 +566,39 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
         } else if (questionForm.question_type === 'pgk_kategori') {
             const cat1 = (kategoriCategories[0] || '').trim();
             const cat2 = (kategoriCategories[1] || '').trim();
-            formData.append('options', JSON.stringify({ categories: [cat1, cat2], rows: kategoriRows }));
+            const cleanRows = kategoriRows.map(r => ({ id: r.id, text: r.text || '' }));
+            formData.append('options', JSON.stringify({ categories: [cat1, cat2], rows: cleanRows }));
             formData.append('correct_answer', JSON.stringify(kategoriAnswers));
+            kategoriRows.forEach((row) => {
+                if (row.imageFile) {
+                    formData.append(`option_image_files[${row.id}]`, row.imageFile);
+                } else if (row.existingImagePath && !row.removeImage) {
+                    formData.append(`existing_option_images[${row.id}]`, row.existingImagePath);
+                }
+                if (row.removeImage) {
+                    formData.append(`remove_option_images[${row.id}]`, '1');
+                }
+            });
         } else {
             formData.append('correct_answer', questionForm.correct_answer || '');
         }
 
-        if (questionImageFile) {
-            formData.append('question_image_file', questionImageFile);
-        }
-        if (removeQuestionImage) {
+        // Multiple Question Images
+        const keptExisting = questionImagesList.filter(item => item.existingPath).map(item => item.existingPath);
+        formData.append('existing_question_images', JSON.stringify(keptExisting));
+
+        questionImagesList.forEach(item => {
+            if (item.file) {
+                formData.append('question_image_files[]', item.file);
+            }
+        });
+
+        if (questionImagesList.length === 0) {
             formData.append('remove_question_image', '1');
+        } else if (questionImagesList[0].file) {
+            formData.append('question_image_file', questionImagesList[0].file);
+        } else if (questionImagesList[0].existingPath) {
+            formData.append('question_image', questionImagesList[0].existingPath);
         }
 
         setIsSubmittingQuestion(true);
@@ -538,12 +677,36 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                 {exam.title}
                             </h2>
                             <p className="text-xs text-slate-500 font-medium mt-0.5">
-                                {exam.subject?.name} • {exam.class ? exam.class.name : (exam.exam_category === 'ujian_sekolah' ? 'Seluruh Kelas 6 (Kelas Akhir)' : 'Semua Rombel')}
+                                {exam.subject?.name} • {
+                                    exam.classes && exam.classes.length > 1
+                                        ? `Kelas Bersama (${exam.classes.map(c => c.name).join(', ')})`
+                                        : (exam.class ? exam.class.name : (exam.exam_category === 'ujian_sekolah' ? 'Seluruh Kelas 6 (Kelas Akhir)' : 'Semua Rombel'))
+                                }
                             </p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
+                        <a
+                            href={route('exams.print', exam.id)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition shadow-sm"
+                            title="Buka tampilan naskah siap cetak"
+                        >
+                            <Printer className="w-4 h-4 mr-1.5" />
+                            Cetak Naskah
+                        </a>
+
+                        <a
+                            href={route('exams.export-word', exam.id)}
+                            className="inline-flex items-center px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition shadow-sm"
+                            title="Unduh naskah ujian format Microsoft Word (.docx)"
+                        >
+                            <Download className="w-4 h-4 mr-1.5" />
+                            Export Word (.docx)
+                        </a>
+
                         <Link
                             href={route('exams.monitor', exam.id)}
                             className="inline-flex items-center px-3.5 py-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold transition"
@@ -608,19 +771,31 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                 </div>
 
                 {/* Question Section Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
                         <h3 className="text-base font-bold text-slate-900">Daftar Bank Soal Ujian</h3>
-                        <p className="text-xs text-slate-500">Kelola pertanyaan pilihan ganda, isian singkat, dan essay</p>
+                        <p className="text-xs text-slate-500">Kelola butir soal pilihan ganda, PGK MCMA, PGK kategori, isian singkat, dan essay</p>
                     </div>
 
-                    <button
-                        onClick={openAddQuestionModal}
-                        className="inline-flex items-center px-4 py-2.5 rounded-xl bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-bold transition shadow-sm"
-                    >
-                        <Plus className="w-4 h-4 mr-1.5" />
-                        Tambah Butir Soal
-                    </button>
+                    <div className="flex items-center gap-2">
+                        {parallelExams && parallelExams.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => setIsCopyModalOpen(true)}
+                                className="inline-flex items-center px-3.5 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold border border-purple-200 transition shadow-sm"
+                            >
+                                <Copy className="w-4 h-4 mr-1.5" />
+                                Salin Soal dari Ujian Lain
+                            </button>
+                        )}
+                        <button
+                            onClick={openAddQuestionModal}
+                            className="inline-flex items-center px-4 py-2.5 rounded-xl bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-bold transition shadow-sm"
+                        >
+                            <Plus className="w-4 h-4 mr-1.5" />
+                            Tambah Butir Soal
+                        </button>
+                    </div>
                 </div>
 
                 {/* Questions List */}
@@ -677,20 +852,15 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
 
                                 {/* Question Text */}
                                 <div>
-                                    <p className="text-sm text-slate-900 leading-relaxed font-medium whitespace-pre-wrap">
-                                        {q.question_text}
-                                    </p>
-                                    {q.question_image && (
-                                        <div className="mt-3">
-                                            <img
-                                                src={`/storage/${q.question_image}`}
-                                                alt={`Gambar Soal #${idx + 1}`}
-                                                onClick={() => setLightboxImage(`/storage/${q.question_image}`)}
-                                                className="rounded-xl border border-slate-200 max-h-56 object-contain cursor-pointer hover:opacity-95 transition bg-white p-1"
-                                                title="Klik untuk melihat ukuran penuh"
-                                            />
-                                        </div>
-                                    )}
+                                    <QuestionContentRenderer
+                                        text={q.question_text}
+                                        images={q.question_images || (q.question_image ? [q.question_image] : [])}
+                                        alignment={q.image_alignment || 'center'}
+                                        position={q.image_position || 'bottom'}
+                                        className="text-sm text-slate-900 leading-relaxed font-medium"
+                                        imageClassName="max-h-60 object-contain"
+                                        onImageClick={(src) => setLightboxImage(src)}
+                                    />
                                 </div>
 
                                 {/* Options & Answer Preview */}
@@ -826,7 +996,21 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                                         {rows.map((row) => (
                                                             <tr key={row.id} className="hover:bg-teal-50/30">
                                                                 <td className="py-2.5 px-3 font-bold text-teal-950 text-center">{row.id}</td>
-                                                                <td className="py-2.5 px-3 text-slate-800 font-medium">{row.text}</td>
+                                                                <td className="py-2.5 px-3 text-slate-800 font-medium">
+                                                                    <div className="space-y-1.5">
+                                                                        {q.option_images?.[row.id] && (
+                                                                            <div>
+                                                                                <img
+                                                                                    src={`/storage/${q.option_images[row.id]}`}
+                                                                                    alt={`Gambar Baris ${row.id}`}
+                                                                                    onClick={() => setLightboxImage(`/storage/${q.option_images[row.id]}`)}
+                                                                                    className="max-h-24 rounded-lg border border-teal-200 bg-white object-contain p-1 cursor-pointer hover:opacity-95 shadow-sm transition"
+                                                                                />
+                                                                            </div>
+                                                                        )}
+                                                                        {row.text && <div>{row.text}</div>}
+                                                                    </div>
+                                                                </td>
                                                                 <td className="py-2.5 px-3 text-center">
                                                                     <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-extrabold ${
                                                                         correctMap[row.id] === categories[0]
@@ -944,55 +1128,250 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                 />
                             </div>
 
-                            {/* Unggah Gambar / Foto Soal */}
-                            <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 space-y-3">
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                        <Image className="w-4 h-4 text-[#800020]" />
-                                        Unggah Gambar / Foto Soal (Opsional)
-                                    </label>
-                                    <span className="text-[11px] font-semibold text-[#800020] bg-[#FDF2F4] px-2.5 py-0.5 rounded-full self-start sm:self-auto">
-                                        Semua Format Foto Didukung (Maks. 10MB)
-                                    </span>
-                                </div>
-
-                                {questionImagePreview ? (
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-                                        <img
-                                            src={questionImagePreview}
-                                            alt="Pratinjau Gambar Soal"
-                                            className="max-h-36 max-w-[240px] rounded-lg object-contain border border-slate-100 bg-slate-50 cursor-pointer hover:opacity-90 transition"
-                                            onClick={() => setLightboxImage(questionImagePreview)}
-                                            title="Klik untuk melihat ukuran penuh"
-                                        />
-                                        <div className="space-y-1.5">
-                                            <p className="text-xs font-bold text-slate-800">Foto Soal Terlampir</p>
-                                            <p className="text-[11px] text-slate-500">Klik gambar untuk melihat ukuran penuh</p>
-                                            <button
-                                                type="button"
-                                                onClick={handleRemoveQuestionImage}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold transition"
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                                Hapus Foto Soal
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
+                            {/* Unggah Gambar / Foto Soal (Mendukung Multiple Images) */}
+                            <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 space-y-3.5">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                     <div>
-                                        <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#800020] bg-white text-xs font-bold text-slate-700 hover:text-[#800020] cursor-pointer transition shadow-sm">
-                                            <Upload className="w-4 h-4 text-slate-400" />
-                                            <span>Pilih Foto / Gambar Soal</span>
+                                        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                            <Image className="w-4 h-4 text-[#800020]" />
+                                            <span>Foto / Gambar Pendukung Soal</span>
+                                            {questionImagesList.length > 0 && (
+                                                <span className="px-2 py-0.5 rounded-full bg-[#800020] text-white text-[10px] font-bold">
+                                                    {questionImagesList.length} Gambar
+                                                </span>
+                                            )}
+                                        </label>
+                                        <p className="text-[11px] text-slate-500 mt-0.5">
+                                            Bisa menambah lebih dari 1 gambar (misal: Gambar 1 & Gambar 2 untuk komparasi / stimulus)
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#800020] hover:bg-[#5C0017] text-white text-xs font-bold cursor-pointer transition shadow-xs">
+                                            <Upload className="w-3.5 h-3.5" />
+                                            <span>+ Tambah Gambar</span>
                                             <input
                                                 type="file"
                                                 accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.svg,.jfif,.avif"
-                                                onChange={handleQuestionImageChange}
+                                                multiple
+                                                onChange={handleQuestionImagesChange}
                                                 className="hidden"
                                             />
                                         </label>
-                                        <p className="text-[11px] text-slate-400 mt-1.5">
-                                            Mendukung JPG, JPEG, PNG, WEBP, GIF, SVG, BMP, dll. Cocok untuk soal TKA dengan diagram, pola, atau grafik.
-                                        </p>
+                                    </div>
+                                </div>
+
+                                {questionImagesList.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {/* Kartu Daftar Gambar */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                            {questionImagesList.map((item, idx) => (
+                                                <div key={item.id} className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-2 flex flex-col justify-between">
+                                                    <div className="relative flex justify-center bg-slate-50 rounded-xl p-1.5 border border-slate-100 overflow-hidden">
+                                                        <img
+                                                            src={item.preview}
+                                                            alt={`Gambar ${idx + 1}`}
+                                                            className="h-28 object-contain cursor-pointer hover:opacity-90 transition rounded-lg"
+                                                            onClick={() => setLightboxImage(item.preview)}
+                                                            title="Klik untuk melihat ukuran penuh"
+                                                        />
+                                                        <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-[#800020] text-white text-[10px] font-bold shadow-xs">
+                                                            Gambar {idx + 1}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="space-y-1.5 pt-1">
+                                                        <div className="flex items-center justify-between text-[11px]">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleInsertImageTag(`gambar${idx + 1}`)}
+                                                                className="text-[10px] font-bold text-[#800020] bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-md transition"
+                                                                title="Sisipkan tag ke dalam teks pertanyaan"
+                                                            >
+                                                                + Tag [gambar{idx + 1}]
+                                                            </button>
+
+                                                            <div className="flex items-center space-x-1">
+                                                                <button
+                                                                    type="button"
+                                                                    disabled={idx === 0}
+                                                                    onClick={() => handleMoveQuestionImage(idx, idx - 1)}
+                                                                    className="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center text-slate-700 text-xs font-bold transition"
+                                                                    title="Pindah ke kiri / atas"
+                                                                >
+                                                                    ◀
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    disabled={idx === questionImagesList.length - 1}
+                                                                    onClick={() => handleMoveQuestionImage(idx, idx + 1)}
+                                                                    className="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center text-slate-700 text-xs font-bold transition"
+                                                                    title="Pindah ke kanan / bawah"
+                                                                >
+                                                                    ▶
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleRemoveQuestionImageItem(idx)}
+                                                                    className="w-6 h-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 flex items-center justify-center transition"
+                                                                    title="Hapus gambar ini"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Pengaturan Perataan & Posisi Gambar */}
+                                        <div className="bg-white p-3.5 rounded-2xl border border-slate-200 space-y-3">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                {/* Pengaturan Perataan (Alignment) */}
+                                                <div>
+                                                    <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
+                                                        Perataan Gambar (Horizontal):
+                                                    </label>
+                                                    <div className="inline-flex p-1 bg-slate-100 rounded-xl text-xs font-semibold gap-1">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setQuestionForm({ ...questionForm, image_alignment: 'left' })}
+                                                            className={`px-3 py-1 rounded-lg transition inline-flex items-center gap-1 ${
+                                                                questionForm.image_alignment === 'left'
+                                                                    ? 'bg-white text-slate-900 shadow-xs font-bold'
+                                                                    : 'text-slate-600 hover:text-slate-900'
+                                                            }`}
+                                                        >
+                                                            <AlignLeft className="w-3.5 h-3.5" />
+                                                            <span>Kiri</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setQuestionForm({ ...questionForm, image_alignment: 'center' })}
+                                                            className={`px-3 py-1 rounded-lg transition inline-flex items-center gap-1 ${
+                                                                questionForm.image_alignment === 'center'
+                                                                    ? 'bg-[#800020] text-white shadow-xs font-bold'
+                                                                    : 'text-slate-600 hover:text-slate-900'
+                                                            }`}
+                                                        >
+                                                            <AlignCenter className="w-3.5 h-3.5" />
+                                                            <span>Tengah (Center)</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setQuestionForm({ ...questionForm, image_alignment: 'right' })}
+                                                            className={`px-3 py-1 rounded-lg transition inline-flex items-center gap-1 ${
+                                                                questionForm.image_alignment === 'right'
+                                                                    ? 'bg-white text-slate-900 shadow-xs font-bold'
+                                                                    : 'text-slate-600 hover:text-slate-900'
+                                                            }`}
+                                                        >
+                                                            <AlignRight className="w-3.5 h-3.5" />
+                                                            <span>Kanan</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Pengaturan Letak Posisi terhadap Teks */}
+                                                <div>
+                                                    <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
+                                                        Tata Letak terhadap Teks:
+                                                    </label>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setQuestionForm({ ...questionForm, image_position: 'bottom' })}
+                                                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
+                                                                questionForm.image_position === 'bottom'
+                                                                    ? 'bg-slate-800 text-white border-slate-800 font-bold shadow-xs'
+                                                                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                                            }`}
+                                                        >
+                                                            Di Bawah Teks
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setQuestionForm({ ...questionForm, image_position: 'middle' })}
+                                                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
+                                                                questionForm.image_position === 'middle'
+                                                                    ? 'bg-slate-800 text-white border-slate-800 font-bold shadow-xs'
+                                                                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                                            }`}
+                                                        >
+                                                            Di Antara Paragraf
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setQuestionForm({ ...questionForm, image_position: 'top' })}
+                                                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
+                                                                questionForm.image_position === 'top'
+                                                                    ? 'bg-slate-800 text-white border-slate-800 font-bold shadow-xs'
+                                                                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                                            }`}
+                                                        >
+                                                            Di Atas Teks
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                                                <span>
+                                                    💡 <strong>Tips Penempatan Presisi:</strong> Anda dapat mengetik tag <code className="text-[#800020] bg-white px-1.5 py-0.5 rounded border border-rose-200 font-bold">[gambar1]</code>, <code className="text-[#800020] bg-white px-1.5 py-0.5 rounded border border-rose-200 font-bold">[gambar2]</code> di baris mana pun di teks soal.
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setQuestionImagesList([])}
+                                                    className="text-rose-600 hover:text-rose-800 font-bold hover:underline shrink-0 self-end sm:self-auto"
+                                                >
+                                                    Hapus Semua Gambar
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Pratinjau Langsung Tata Letak Teks & Seluruh Gambar */}
+                                        <div className="p-3.5 rounded-2xl bg-white border border-slate-200 space-y-1.5">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                                                    Pratinjau Tampilan pada Lembar Ujian:
+                                                </p>
+                                                <span className="text-[10px] font-bold text-slate-500">
+                                                    {questionImagesList.length} Gambar Terpasang
+                                                </span>
+                                            </div>
+                                            <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                                                <QuestionContentRenderer
+                                                    text={questionForm.question_text || '(Teks pertanyaan Anda akan ditampilkan di sini bersama gambar)'}
+                                                    images={questionImagesList.map(item => item.preview)}
+                                                    alignment={questionForm.image_alignment}
+                                                    position={questionForm.image_position}
+                                                    className="text-xs text-slate-800 font-medium leading-relaxed"
+                                                    imageClassName="max-h-44 object-contain"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="border-2 border-dashed border-slate-200 hover:border-[#800020] rounded-2xl p-6 text-center bg-white transition group">
+                                        <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#800020] flex items-center justify-center mx-auto mb-2 group-hover:scale-105 transition">
+                                            <Upload className="w-5 h-5" />
+                                        </div>
+                                        <label className="cursor-pointer">
+                                            <span className="text-xs font-bold text-[#800020] hover:underline">
+                                                Pilih satu atau beberapa foto / gambar soal
+                                            </span>
+                                            <p className="text-[11px] text-slate-400 mt-1">
+                                                Mendukung JPG, JPEG, PNG, WEBP, GIF, dll. Bisa pilih beberapa gambar sekaligus (maks. 10MB per gambar)
+                                            </p>
+                                            <input
+                                                type="file"
+                                                accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.svg,.jfif,.avif"
+                                                multiple
+                                                onChange={handleQuestionImagesChange}
+                                                className="hidden"
+                                            />
+                                        </label>
                                     </div>
                                 )}
                             </div>
@@ -1288,7 +1667,14 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                             type="button"
                                             onClick={() => {
                                                 const nextId = String.fromCharCode(65 + kategoriRows.length);
-                                                setKategoriRows(prev => [...prev, { id: nextId, text: '' }]);
+                                                setKategoriRows(prev => [...prev, {
+                                                    id: nextId,
+                                                    text: '',
+                                                    imagePreview: null,
+                                                    imageFile: null,
+                                                    removeImage: false,
+                                                    existingImagePath: null
+                                                }]);
                                                 setKategoriAnswers(prev => ({ ...prev, [nextId]: kategoriCategories[0] || 'Kategori 1' }));
                                             }}
                                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200 transition self-start sm:self-auto shadow-sm"
@@ -1302,22 +1688,56 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                         {kategoriRows.map((row) => (
                                             <div
                                                 key={row.id}
-                                                className="p-3.5 rounded-2xl border border-teal-200 bg-teal-50/30 space-y-2"
+                                                className="p-3.5 rounded-2xl border border-teal-200 bg-teal-50/30 space-y-2.5"
                                             >
                                                 <div className="flex items-start gap-2">
                                                     <span className="w-7 h-7 rounded-lg bg-teal-100 text-teal-900 font-extrabold text-xs flex items-center justify-center shrink-0 mt-1">
                                                         {row.id}
                                                     </span>
-                                                    <textarea
-                                                        rows={2}
-                                                        value={row.text}
-                                                        onChange={(e) => {
-                                                            const newText = e.target.value;
-                                                            setKategoriRows(prev => prev.map(r => r.id === row.id ? { ...r, text: newText } : r));
-                                                        }}
-                                                        placeholder={`Tuliskan teks pernyataan baris ${row.id}...`}
-                                                        className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-teal-600 focus:ring-teal-600 bg-white font-medium resize-none"
-                                                    />
+                                                    <div className="flex-1 space-y-2">
+                                                        <textarea
+                                                            rows={2}
+                                                            value={row.text}
+                                                            onChange={(e) => {
+                                                                const newText = e.target.value;
+                                                                setKategoriRows(prev => prev.map(r => r.id === row.id ? { ...r, text: newText } : r));
+                                                            }}
+                                                            placeholder={`Tuliskan teks pernyataan baris ${row.id} (bisa disertai gambar)...`}
+                                                            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-teal-600 focus:ring-teal-600 bg-white font-medium resize-none"
+                                                        />
+
+                                                        {/* Upload & Preview Gambar Baris */}
+                                                        <div className="flex items-center gap-3">
+                                                            {row.imagePreview ? (
+                                                                <div className="relative inline-flex items-center gap-2 p-1.5 rounded-xl border border-teal-200 bg-white shadow-sm">
+                                                                    <img
+                                                                        src={row.imagePreview}
+                                                                        alt={`Preview ${row.id}`}
+                                                                        className="max-h-20 max-w-xs rounded-lg object-contain"
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleRemoveKategoriRowImage(row.id)}
+                                                                        className="p-1 rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100 transition self-start"
+                                                                        title="Hapus gambar baris"
+                                                                    >
+                                                                        <X className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-teal-300 hover:border-teal-500 text-teal-800 bg-white hover:bg-teal-50/60 text-[11px] font-bold cursor-pointer transition shadow-sm">
+                                                                    <Image className="w-3.5 h-3.5 text-teal-600" />
+                                                                    <span>Unggah Gambar Pilihan {row.id}</span>
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        onChange={(e) => handleKategoriRowImageChange(row.id, e)}
+                                                                        className="hidden"
+                                                                    />
+                                                                </label>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                     {kategoriRows.length > 2 && (
                                                         <button
                                                             type="button"
@@ -1338,7 +1758,7 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                                 </div>
 
                                                 {/* Radio Kunci Kategori Dinamis */}
-                                                <div className="flex items-center justify-end gap-6 pr-2 pt-1 border-t border-teal-100">
+                                                <div className="flex items-center justify-end gap-6 pr-2 pt-2 border-t border-teal-100">
                                                     <span className="text-[11px] font-bold text-slate-600 mr-auto">
                                                         Kunci baris {row.id}:
                                                     </span>
@@ -1465,6 +1885,120 @@ export default function ExamsShow({ auth, exam, statistics = {} }) {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Salin Soal dari Ujian Lain */}
+            {isCopyModalOpen && (
+                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl animate-scaleUp">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <div className="flex items-center gap-2.5 text-purple-800">
+                                <Copy className="w-5 h-5" />
+                                <h3 className="font-bold text-base text-slate-900">Salin Soal dari Ujian Lain</h3>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsCopyModalOpen(false)}
+                                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                            Pilih paket ujian sumber (misalnya dari kelas paralel yang sama atau ujian terdahulu) untuk menyalin seluruh butir soal ke dalam ujian ini.
+                        </p>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    Pilih Ujian Sumber <span className="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    value={sourceExamId}
+                                    onChange={(e) => setSourceExamId(e.target.value)}
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-purple-600 focus:ring-purple-600 bg-white font-medium"
+                                >
+                                    <option value="">-- Pilih Paket Ujian --</option>
+                                    {parallelExams.map(ex => (
+                                        <option key={ex.id} value={ex.id}>
+                                            {ex.title} ({ex.class?.name || (ex.classes?.map(c => c.name).join(', ') || 'Semua Rombel')}) - {ex.questions_count} Soal
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    Metode Penambahan Soal
+                                </label>
+                                <div className="space-y-2">
+                                    <label className="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition">
+                                        <input
+                                            type="radio"
+                                            name="copyMode"
+                                            value="append"
+                                            checked={copyMode === 'append'}
+                                            onChange={() => setCopyMode('append')}
+                                            className="mt-0.5 text-purple-600 focus:ring-purple-500"
+                                        />
+                                        <div>
+                                            <p className="text-xs font-bold text-slate-800">Tambahkan ke Soal yang Sudah Ada (Append)</p>
+                                            <p className="text-[11px] text-slate-500">Soal yang disalin akan ditambahkan di bagian belakang nomor terakhir.</p>
+                                        </div>
+                                    </label>
+
+                                    <label className="flex items-start gap-2.5 p-3 rounded-xl border border-rose-200 bg-rose-50/30 cursor-pointer hover:bg-rose-50/60 transition">
+                                        <input
+                                            type="radio"
+                                            name="copyMode"
+                                            value="replace"
+                                            checked={copyMode === 'replace'}
+                                            onChange={() => setCopyMode('replace')}
+                                            className="mt-0.5 text-rose-600 focus:ring-rose-500"
+                                        />
+                                        <div>
+                                            <p className="text-xs font-bold text-rose-900">Gantikan Semua Soal Lama (Replace)</p>
+                                            <p className="text-[11px] text-rose-600">Seluruh soal yang saat ini ada pada ujian ini akan dihapus dan digantikan oleh soal ujian sumber.</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                            <button
+                                type="button"
+                                onClick={() => setIsCopyModalOpen(false)}
+                                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="button"
+                                disabled={!sourceExamId || isSubmittingCopy}
+                                onClick={() => {
+                                    if (!sourceExamId) return;
+                                    setIsSubmittingCopy(true);
+                                    router.post(route('exams.copy-questions', exam.id), {
+                                        source_exam_id: sourceExamId,
+                                        mode: copyMode
+                                    }, {
+                                        onSuccess: () => {
+                                            setIsCopyModalOpen(false);
+                                            setIsSubmittingCopy(false);
+                                        },
+                                        onError: () => setIsSubmittingCopy(false)
+                                    });
+                                }}
+                                className="inline-flex items-center px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 disabled:opacity-50 text-white text-xs font-bold transition shadow-sm"
+                            >
+                                {isSubmittingCopy ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Copy className="w-4 h-4 mr-1.5" />}
+                                Salin Soal Sekarang
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
