@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Exam;
 use Illuminate\Support\Facades\DB;
-use ZipArchive;
 
 class ExamWordExportService
 {
@@ -32,10 +31,14 @@ class ExamWordExportService
         $this->imageCounter = 0;
 
         $tempFile = tempnam(sys_get_temp_dir(), 'exam_word_') . '.docx';
-        $zip = new ZipArchive();
 
-        if ($zip->open($tempFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            throw new \RuntimeException('Gagal membuat berkas Word sementara.');
+        if (class_exists(\ZipArchive::class)) {
+            $zip = new \ZipArchive();
+            if ($zip->open($tempFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                $zip = new SimpleZipWriter($tempFile);
+            }
+        } else {
+            $zip = new SimpleZipWriter($tempFile);
         }
 
         $documentXml = $this->buildDocumentXml();
@@ -223,8 +226,10 @@ class ExamWordExportService
     protected function buildDocumentXml(): string
     {
         $schoolProfile = DB::table('school_profiles')->first();
-        $schoolName = $schoolProfile?->school_name ?? 'SD NEGERI 9 MANGGAR';
-        $schoolAddress = $schoolProfile?->address ?? 'Kecamatan Manggar, Kabupaten Belitung Timur';
+        $schoolName = $schoolProfile?->school_name ?? 'UPT SDN 9 Gandangbatu Sillanan';
+        $regency = $schoolProfile?->regency ?? 'Tana Toraja';
+        $district = $schoolProfile?->district ?? 'Gandangbatu Sillanan';
+        $schoolAddress = $schoolProfile?->address ? ($schoolProfile->address . ', Kab. ' . $regency) : 'Gandangbatu, Kec. Gandangbatu Sillanan, Kab. Tana Toraja, Sulawesi Selatan';
 
         $examTitle = $this->exam->title;
         $subjectName = $this->exam->subject?->name ?? 'Mata Pelajaran';
@@ -239,12 +244,20 @@ class ExamWordExportService
             '<w:body>';
 
         // 1. Kop Surat
+        $xml .= '<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="20"/></w:pPr>' .
+            '<w:r><w:rPr><w:b/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr>' .
+            '<w:t>PEMERINTAH KABUPATEN ' . $this->escapeXml(strtoupper($regency)) . '</w:t></w:r></w:p>';
+
+        $xml .= '<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="20"/></w:pPr>' .
+            '<w:r><w:rPr><w:b/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr>' .
+            '<w:t>DINAS PENDIDIKAN</w:t></w:r></w:p>';
+
         $xml .= '<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="40"/></w:pPr>' .
             '<w:r><w:rPr><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr>' .
             '<w:t>' . $this->escapeXml(strtoupper($schoolName)) . '</w:t></w:r></w:p>';
 
         $xml .= '<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="40"/></w:pPr>' .
-            '<w:r><w:rPr><w:sz w:val="20"/><w:szCs w:val="20"/><w:color w:val="555555"/></w:rPr>' .
+            '<w:r><w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/><w:color w:val="555555"/></w:rPr>' .
             '<w:t>' . $this->escapeXml($schoolAddress) . '</w:t></w:r></w:p>';
 
         $xml .= '<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="60" w:after="160"/><w:pBdr><w:bottom w:val="double" w:sz="12" w:space="8" w:color="000000"/></w:pBdr></w:pPr>' .
@@ -513,6 +526,33 @@ class ExamWordExportService
             // Spacing antar soal
             $xml .= '<w:p><w:pPr><w:spacing w:after="120"/></w:pPr></w:p>';
         }
+
+        // 5. Tanda Tangan Mengetahui & Guru Pengampu
+        $principalName = $schoolProfile?->principal_name ?? 'Hendrika Genti, S.Pd.SD.';
+        $principalNip = $schoolProfile?->principal_nip ?? '198502012010012025';
+        $teacherName = $this->exam->teacher?->full_name ?? $this->exam->teacher?->user?->name ?? '................................................';
+        $teacherNip = $this->exam->teacher?->nip ?? $this->exam->teacher?->nuptk ?? '........................................';
+        $signCity = $district ?: 'Gandangbatu Sillanan';
+        $dateFormatted = \Carbon\Carbon::now()->translatedFormat('d F Y');
+
+        $xml .= '<w:p><w:pPr><w:spacing w:before="280" w:after="120"/></w:pPr></w:p>';
+        $xml .= '<w:tbl>' .
+            '<w:tblPr><w:tblW w:w="9200" w:type="dxa"/><w:jc w:val="center"/><w:tblBorders><w:top w:val="none"/><w:left w:val="none"/><w:bottom w:val="none"/><w:right w:val="none"/><w:insideH w:val="none"/><w:insideV w:val="none"/></w:tblBorders></w:tblPr>' .
+            '<w:tr>' .
+            '<w:tc><w:tcPr><w:tcW w:w="4600" w:type="dxa"/></w:tcPr>' .
+            '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:t>Mengetahui,</w:t></w:r></w:p>' .
+            '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/></w:rPr><w:t>Kepala Sekolah</w:t></w:r></w:p>' .
+            '<w:p><w:pPr><w:spacing w:before="1000"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:u w:val="single"/></w:rPr><w:t>' . $this->escapeXml($principalName) . '</w:t></w:r></w:p>' .
+            '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:sz w:val="18"/></w:rPr><w:t>NIP. ' . $this->escapeXml($principalNip) . '</w:t></w:r></w:p>' .
+            '</w:tc>' .
+            '<w:tc><w:tcPr><w:tcW w:w="4600" w:type="dxa"/></w:tcPr>' .
+            '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:t>' . $this->escapeXml($signCity) . ', ' . $this->escapeXml($dateFormatted) . '</w:t></w:r></w:p>' .
+            '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/></w:rPr><w:t>Guru Pengampu</w:t></w:r></w:p>' .
+            '<w:p><w:pPr><w:spacing w:before="1000"/><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:u w:val="single"/></w:rPr><w:t>' . $this->escapeXml($teacherName) . '</w:t></w:r></w:p>' .
+            '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:sz w:val="18"/></w:rPr><w:t>NIP. ' . $this->escapeXml($teacherNip) . '</w:t></w:r></w:p>' .
+            '</w:tc>' .
+            '</w:tr>' .
+            '</w:tbl>';
 
         $xml .= '</w:body></w:document>';
 

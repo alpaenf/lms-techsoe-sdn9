@@ -86,9 +86,9 @@ export default function ExamPrint({
                 <div className="border-b-[3px] border-double border-slate-900 pb-3 mb-4">
                     <div className="flex items-center justify-between gap-4">
                         <div className="w-20 h-20 shrink-0 flex items-center justify-center">
-                            {schoolProfile?.logo ? (
+                            {(schoolProfile?.logo_path || schoolProfile?.logo) ? (
                                 <img
-                                    src={`/storage/${schoolProfile.logo}`}
+                                    src={`/storage/${schoolProfile.logo_path || schoolProfile.logo}`}
                                     alt="Logo Sekolah"
                                     className="max-h-20 max-w-20 object-contain"
                                 />
@@ -101,13 +101,16 @@ export default function ExamPrint({
 
                         <div className="flex-1 text-center font-sans space-y-0.5">
                             <p className="text-xs font-bold tracking-wider uppercase text-slate-700">
-                                {schoolProfile?.district ? `PEMERINTAH KABUPATEN / KOTA` : 'DINAS PENDIDIKAN DAN KEBUDAYAAN'}
+                                PEMERINTAH KABUPATEN {schoolProfile?.regency ? schoolProfile.regency.toUpperCase() : 'TANA TORAJA'}
+                            </p>
+                            <p className="text-xs font-bold tracking-wider uppercase text-slate-700">
+                                DINAS PENDIDIKAN
                             </p>
                             <h1 className="text-lg sm:text-xl font-extrabold tracking-wide uppercase text-slate-900">
-                                {schoolProfile?.name || 'SD NEGERI 9 SAMARINDA'}
+                                {schoolProfile?.school_name || schoolProfile?.name || 'UPT SDN 9 GANDANGBATU SILLANAN'}
                             </h1>
                             <p className="text-[11px] text-slate-600">
-                                {schoolProfile?.address || 'Jl. P. Hidayatullah, Samarinda, Kalimantan Timur'}
+                                {schoolProfile?.address || 'Gandangbatu, Kec. Gandangbatu Sillanan, Kab. Tana Toraja'}
                                 {schoolProfile?.phone ? ` • Telp: ${schoolProfile.phone}` : ''}
                                 {schoolProfile?.email ? ` • Email: ${schoolProfile.email}` : ''}
                             </p>
@@ -405,16 +408,16 @@ export default function ExamPrint({
                         <p className="font-bold text-slate-900 mt-0.5">Kepala Sekolah</p>
                         <div className="h-20 sm:h-24"></div>
                         <p className="font-bold text-slate-900 underline underline-offset-2">
-                            {schoolProfile?.headmaster_name || '................................................'}
+                            {schoolProfile?.principal_name || schoolProfile?.headmaster_name || 'Hendrika Genti, S.Pd.SD.'}
                         </p>
                         <p className="text-slate-600 text-[11px] mt-0.5">
-                            NIP. {schoolProfile?.headmaster_nip || '........................................'}
+                            NIP. {schoolProfile?.principal_nip || schoolProfile?.headmaster_nip || '198502012010012025'}
                         </p>
                     </div>
 
                     <div>
                         <p className="text-slate-600">
-                            Samarinda, {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            {schoolProfile?.district || 'Gandangbatu Sillanan'}, {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                         <p className="font-bold text-slate-900 mt-0.5">Guru Pengampu</p>
                         <div className="h-20 sm:h-24"></div>
