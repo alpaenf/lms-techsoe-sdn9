@@ -359,11 +359,6 @@ class ExamController extends Controller
             }
         }
 
-        if ($request->hasFile('question_image_file')) {
-            $path = $this->storeUploadedFile($request->file('question_image_file'), 'exam-questions');
-            $questionImages[] = $path;
-        }
-
         if ($request->hasFile('question_image_files')) {
             foreach ($request->file('question_image_files') as $file) {
                 if ($file && $file->isValid()) {
@@ -371,6 +366,9 @@ class ExamController extends Controller
                     $questionImages[] = $path;
                 }
             }
+        } elseif ($request->hasFile('question_image_file')) {
+            $path = $this->storeUploadedFile($request->file('question_image_file'), 'exam-questions');
+            $questionImages[] = $path;
         }
 
         if (empty($questionImages) && ! empty($validated['question_image'])) {
@@ -484,11 +482,6 @@ class ExamController extends Controller
 
             $updatedImages = $keptExisting;
 
-            if ($request->hasFile('question_image_file')) {
-                $path = $this->storeUploadedFile($request->file('question_image_file'), 'exam-questions');
-                $updatedImages[] = $path;
-            }
-
             if ($request->hasFile('question_image_files')) {
                 foreach ($request->file('question_image_files') as $file) {
                     if ($file && $file->isValid()) {
@@ -496,6 +489,9 @@ class ExamController extends Controller
                         $updatedImages[] = $path;
                     }
                 }
+            } elseif ($request->hasFile('question_image_file')) {
+                $path = $this->storeUploadedFile($request->file('question_image_file'), 'exam-questions');
+                $updatedImages[] = $path;
             }
         }
 

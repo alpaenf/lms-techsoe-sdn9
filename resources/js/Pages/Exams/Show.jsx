@@ -595,8 +595,6 @@ export default function ExamsShow({ auth, exam, statistics = {}, parallelExams =
 
         if (questionImagesList.length === 0) {
             formData.append('remove_question_image', '1');
-        } else if (questionImagesList[0].file) {
-            formData.append('question_image_file', questionImagesList[0].file);
         } else if (questionImagesList[0].existingPath) {
             formData.append('question_image', questionImagesList[0].existingPath);
         }
