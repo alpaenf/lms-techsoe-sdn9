@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__.'/fileinfo_polyfill.php';
+
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Application;

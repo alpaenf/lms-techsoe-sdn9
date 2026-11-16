@@ -254,9 +254,26 @@ class ExamController extends Controller
                 default => 'jpg'
             };
         }
-        $filename = \Illuminate\Support\Str::random(40) . '.' . $ext;
+        $filename = \Illuminate\Support\Str::random(40).'.'.$ext;
 
-        return $file->storeAs($directory, $filename, 'public');
+        try {
+            $storedPath = $file->storeAs($directory, $filename, 'public');
+            if ($storedPath) {
+                return $storedPath;
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('storeAs public disk failed, fallback to direct storage: '.$e->getMessage());
+        }
+
+        // Direct storage fallback if Flysystem / Storage disk fails
+        $cleanDir = trim(str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $directory), DIRECTORY_SEPARATOR);
+        $targetDir = storage_path('app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.$cleanDir);
+        if (! is_dir($targetDir)) {
+            @mkdir($targetDir, 0755, true);
+        }
+        $file->move($targetDir, $filename);
+
+        return trim(str_replace('\\', '/', $cleanDir), '/').'/'.$filename;
     }
 
     protected function getImageValidationRule(bool $required = false): array
