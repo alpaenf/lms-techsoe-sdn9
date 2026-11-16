@@ -67,11 +67,6 @@ export default function QuestionContentRenderer({
                     } ${imageClassName} ${isPrint ? 'print:border-slate-300 print:shadow-none' : ''}`}
                     title={handleClick ? 'Klik untuk memperbesar gambar' : undefined}
                 />
-                {allImages.length > 1 && (
-                    <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md bg-slate-900/75 text-white text-[10px] font-bold backdrop-blur-xs no-print">
-                        Gambar {idx + 1}
-                    </span>
-                )}
             </div>
         );
     };
