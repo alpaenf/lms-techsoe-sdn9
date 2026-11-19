@@ -107,10 +107,6 @@ export default function ExamsResults({ auth, exam, attempts = [], statistics = {
         );
     };
 
-    const handleExport = () => {
-        router.get(route('exams.export', exam.id));
-    };
-
     return (
         <AuthenticatedLayout
             header={
@@ -133,13 +129,13 @@ export default function ExamsResults({ auth, exam, attempts = [], statistics = {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <button
-                            onClick={handleExport}
+                        <a
+                            href={route('exams.export', exam.id)}
                             className="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm"
                         >
                             <Download className="w-4 h-4 mr-1.5" />
                             Ekspor Nilai (.xlsx)
-                        </button>
+                        </a>
                     </div>
                 </div>
             }
@@ -265,19 +261,12 @@ export default function ExamsResults({ auth, exam, attempts = [], statistics = {
                                                     )}
                                                 </td>
                                                 <td className="py-3.5 px-4 text-right">
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-base font-extrabold text-[#800020]">
-                                                            {Math.round(Number(att.percentage || 0))}
-                                                        </span>
-                                                        <div className="flex items-center gap-1.5 mt-0.5">
-                                                            <span className="inline-flex items-center text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200" title="Jumlah soal dijawab benar">
-                                                                {att.correct_count ?? 0} Benar
-                                                            </span>
-                                                            <span className="inline-flex items-center text-[10px] text-rose-700 font-bold bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200" title="Jumlah soal dijawab salah">
-                                                                {att.wrong_count ?? 0} Salah
-                                                            </span>
-                                                        </div>
-                                                    </div>
+                                                    <span 
+                                                        className="text-base font-extrabold text-[#800020]"
+                                                        title={`Perolehan: ${Number(att.earned_points ?? att.total_score ?? 0)} dari ${Number(att.total_possible_points ?? exam.total_points ?? 100)} poin`}
+                                                    >
+                                                        {Math.round(Number(att.percentage || 0))}/100
+                                                    </span>
                                                 </td>
                                                 <td className="py-3.5 px-4 text-center">
                                                     <div className="flex items-center justify-center gap-1.5">

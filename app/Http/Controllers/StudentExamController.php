@@ -446,6 +446,16 @@ class StudentExamController extends Controller
             ]);
         }
 
+        $totalExamPoints = (float) $attempt->exam->totalPoints();
+        if ($totalExamPoints <= 0 && $attempt->exam->total_points > 0) {
+            $totalExamPoints = (float) $attempt->exam->total_points;
+        }
+
+        $earnedPoints = (float) $attempt->answers->sum('points_earned');
+        $calcPercentage = $totalExamPoints > 0 ? round(($earnedPoints / $totalExamPoints) * 100, 1) : (float) $attempt->percentage;
+        $attempt->total_score = $earnedPoints;
+        $attempt->percentage = $calcPercentage;
+
         $totalQuestions = $attempt->exam->questions()->count();
         $answeredCount = $attempt->getAnsweredCount();
 

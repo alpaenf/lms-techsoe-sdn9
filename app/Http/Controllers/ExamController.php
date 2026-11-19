@@ -17,6 +17,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ExamController extends Controller
 {
@@ -845,8 +852,13 @@ class ExamController extends Controller
             ->orderBy('percentage', 'desc')
             ->get();
 
+        $totalExamPoints = (float) $exam->totalPoints();
+        if ($totalExamPoints <= 0 && $exam->total_points > 0) {
+            $totalExamPoints = (float) $exam->total_points;
+        }
+
         $totalQuestions = $exam->questions->count();
-        $attempts->transform(function ($att) use ($totalQuestions) {
+        $attempts->transform(function ($att) use ($totalQuestions, $totalExamPoints) {
             $answers = $att->answers;
             $correctCount = $answers->where('is_correct', true)->count();
             $wrongCount = $answers->where('is_correct', false)->count();
@@ -855,15 +867,24 @@ class ExamController extends Controller
             $ungradedEssayCount = $essayAnswers->whereNull('is_correct')->count();
             $answeredCount = $answers->whereNotNull('answer_text')->filter(fn ($a) => $a->answer_text !== '')->count();
 
+            $earnedPoints = (float) $answers->sum('points_earned');
+            $calculatedPercentage = $totalExamPoints > 0 ? round(($earnedPoints / $totalExamPoints) * 100, 1) : 0;
+
+            $att->total_score = $earnedPoints;
+            $att->percentage = $calculatedPercentage;
             $att->total_questions = $totalQuestions;
             $att->correct_count = $correctCount;
             $att->wrong_count = $wrongCount;
             $att->unanswered_count = max(0, $totalQuestions - $answeredCount);
             $att->has_essay = $hasEssay;
             $att->ungraded_essay_count = $ungradedEssayCount;
+            $att->earned_points = $earnedPoints;
+            $att->total_possible_points = $totalExamPoints;
 
             return $att;
         });
+
+        $attempts = $attempts->sortByDesc('percentage')->values();
 
         $assignedClassIds = $exam->assignedClassIds();
 
@@ -879,8 +900,8 @@ class ExamController extends Controller
             'average_score' => round($attempts->avg('percentage') ?? 0, 2),
             'highest_score' => $attempts->max('percentage') ?? 0,
             'lowest_score' => $attempts->min('percentage') ?? 0,
-            'passed' => $attempts->where('percentage', '>=', $exam->passing_score)->count(),
-            'failed' => $attempts->where('percentage', '<', $exam->passing_score)->count(),
+            'passed' => $attempts->where('percentage', '>=', (float) $exam->passing_score)->count(),
+            'failed' => $attempts->where('percentage', '<', (float) $exam->passing_score)->count(),
         ];
 
         return Inertia::render('Exams/Results', [
@@ -913,11 +934,22 @@ class ExamController extends Controller
             $questions = $exam->questions()->orderBy('order_number')->get();
         }
 
+        $totalExamPossiblePoints = (float) $exam->totalPoints();
+        if ($totalExamPossiblePoints <= 0 && $exam->total_points > 0) {
+            $totalExamPossiblePoints = (float) $exam->total_points;
+        }
+
         $studentList = StudentExamAttempt::where('exam_id', $exam->id)
             ->whereIn('status', ['submitted', 'graded'])
-            ->with('student.class')
-            ->orderBy('percentage', 'desc')
+            ->with(['student.class', 'answers'])
             ->get()
+            ->map(function ($att) use ($totalExamPossiblePoints) {
+                $earned = (float) $att->answers->sum('points_earned');
+                $calcPct = $totalExamPossiblePoints > 0 ? round(($earned / $totalExamPossiblePoints) * 100, 1) : round((float) $att->percentage, 1);
+                $att->dynamic_percentage = $calcPct;
+                return $att;
+            })
+            ->sortByDesc('dynamic_percentage')
             ->values()
             ->map(function ($att, $idx) use ($exam) {
                 return [
@@ -927,8 +959,8 @@ class ExamController extends Controller
                     'full_name' => $att->student?->full_name ?? '-',
                     'nis' => $att->student?->nis ?? '-',
                     'class_name' => $att->student?->class?->name ?? 'Kelas',
-                    'percentage' => round((float) $att->percentage, 1),
-                    'is_passed' => (float) $att->percentage >= (float) $exam->passing_score,
+                    'percentage' => $att->dynamic_percentage,
+                    'is_passed' => $att->dynamic_percentage >= (float) $exam->passing_score,
                 ];
             });
 
@@ -969,6 +1001,11 @@ class ExamController extends Controller
             }
         }
 
+        $finalPossiblePoints = $totalPossiblePoints > 0 ? $totalPossiblePoints : $totalExamPossiblePoints;
+        $calculatedScore = $finalPossiblePoints > 0 ? round(($totalPointsEarned / $finalPossiblePoints) * 100, 1) : 0;
+        $attempt->percentage = $calculatedScore;
+        $attempt->total_score = $totalPointsEarned;
+
         $statistics = [
             'total_questions' => $totalQuestions,
             'correct_count' => $correctCount,
@@ -977,9 +1014,9 @@ class ExamController extends Controller
             'essay_count' => $essayCount,
             'ungraded_essay_count' => $ungradedEssayCount,
             'total_points_earned' => $totalPointsEarned,
-            'total_possible_points' => $totalPossiblePoints > 0 ? $totalPossiblePoints : (float) $exam->totalPoints(),
-            'score' => round((float) $attempt->percentage, 1),
-            'is_passed' => (float) $attempt->percentage >= (float) $exam->passing_score,
+            'total_possible_points' => $finalPossiblePoints,
+            'score' => $calculatedScore,
+            'is_passed' => $calculatedScore >= (float) $exam->passing_score,
         ];
 
         return Inertia::render('Exams/Review', [
@@ -1096,6 +1133,310 @@ class ExamController extends Controller
 
     public function exportResults(Exam $exam)
     {
-        return back()->with('info', 'Fitur unduh leger nilai akan segera tersedia.');
+        $exam->loadMissing(['subject', 'class', 'classes', 'academicYear', 'teacher.user', 'questions']);
+
+        $totalExamPoints = (float) $exam->totalPoints();
+        if ($totalExamPoints <= 0 && $exam->total_points > 0) {
+            $totalExamPoints = (float) $exam->total_points;
+        }
+
+        $examQuestions = $exam->questions;
+        $totalQuestionsCount = $examQuestions->count();
+        $mcCount = $examQuestions->where('question_type', 'multiple_choice')->count();
+        $pgkCount = $examQuestions->whereIn('question_type', ['pgk_mcma', 'pgk_kategori'])->count();
+        $shortCount = $examQuestions->where('question_type', 'short_answer')->count();
+        $essayCount = $examQuestions->where('question_type', 'essay')->count();
+
+        $attempts = StudentExamAttempt::where('exam_id', $exam->id)
+            ->whereIn('status', ['submitted', 'graded'])
+            ->with(['student.class', 'answers.question'])
+            ->get()
+            ->map(function ($att) use ($totalExamPoints) {
+                $answers = $att->answers;
+                $earnedPoints = (float) $answers->sum('points_earned');
+                $calcPct = $totalExamPoints > 0 ? round(($earnedPoints / $totalExamPoints) * 100, 1) : round((float) $att->percentage, 1);
+                $att->dynamic_score = $earnedPoints;
+                $att->dynamic_percentage = $calcPct;
+
+                return $att;
+            })
+            ->sortByDesc('dynamic_percentage')
+            ->values();
+
+        $schoolProfile = DB::table('school_profiles')->first();
+        $schoolName = strtoupper($schoolProfile?->school_name ?? 'UPT SDN 9 GANDANGBATU SILLANAN');
+        $principalName = $schoolProfile?->principal_name ?? 'Hendrika Genti, S.Pd.SD.';
+        $principalNip = $schoolProfile?->principal_nip ?? '198502012010012025';
+
+        $teacherName = $exam->teacher?->full_name ?? ($exam->teacher?->user?->name ?? 'Guru Pengampu');
+        $teacherNip = $exam->teacher?->nip ?? '-';
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Leger Nilai Ujian');
+
+        $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
+        $sheet->getPageSetup()->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_A4);
+
+        // Header Title
+        $sheet->setCellValue('A1', 'PEMERINTAH KABUPATEN TANA TORAJA');
+        $sheet->setCellValue('A2', 'DINAS PENDIDIKAN DAN KEBUDAYAAN');
+        $sheet->setCellValue('A3', $schoolName);
+        $sheet->setCellValue('A4', 'REKAPITULASI HASIL & NILAI UJIAN ONLINE');
+
+        $sheet->mergeCells('A1:O1');
+        $sheet->mergeCells('A2:O2');
+        $sheet->mergeCells('A3:O3');
+        $sheet->mergeCells('A4:O4');
+
+        $sheet->getStyle('A1:A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1:A2')->getFont()->setSize(11)->setBold(true);
+        $sheet->getStyle('A3')->getFont()->setSize(13)->setBold(true);
+        $sheet->getStyle('A4')->getFont()->setSize(11)->setBold(true)->setUnderline(true);
+
+        // Metadata Info
+        $categoryLabels = [
+            'uts' => 'Penilaian Tengah Semester (PTS/UTS)',
+            'uas' => 'Penilaian Akhir Semester (PAS/UAS)',
+            'ulangan_harian' => 'Ulangan Harian / Penilaian Harian',
+            'ujian_sekolah' => 'Ujian Sekolah (US)',
+            'kuis' => 'Kuis Harian',
+        ];
+        $categoryName = $categoryLabels[$exam->exam_category] ?? strtoupper($exam->exam_category);
+        $targetClassLabel = $exam->class?->name ?? ($exam->exam_category === 'ujian_sekolah' ? 'Seluruh Kelas 6 (Kelas Akhir)' : 'Semua Rombel');
+        $printDate = now()->setTimezone('Asia/Makassar')->translatedFormat('d F Y, H:i').' WITA';
+
+        $sheet->setCellValue('B6', 'Mata Pelajaran');
+        $sheet->setCellValue('D6', ': '.($exam->subject?->name ?? '-'));
+        $sheet->setCellValue('B7', 'Judul Ujian');
+        $sheet->setCellValue('D7', ': '.$exam->title);
+        $sheet->setCellValue('B8', 'Kategori Ujian');
+        $sheet->setCellValue('D8', ': '.$categoryName);
+        $sheet->setCellValue('B9', 'Kelas / Sasaran');
+        $sheet->setCellValue('D9', ': '.$targetClassLabel);
+
+        $sheet->setCellValue('I6', 'Tahun Ajaran');
+        $sheet->setCellValue('K6', ': '.($exam->academicYear?->name ?? '-'));
+        $sheet->setCellValue('I7', 'Batas KKM');
+        $sheet->setCellValue('K7', ': '.number_format((float) $exam->passing_score, 0).' / 100');
+        $sheet->setCellValue('I8', 'Total Soal & Poin');
+        $sheet->setCellValue('K8', ': '.$totalQuestionsCount.' Soal (Maks: '.$totalExamPoints.' Poin)');
+        $sheet->setCellValue('I9', 'Tanggal Cetak');
+        $sheet->setCellValue('K9', ': '.$printDate);
+
+        $sheet->getStyle('B6:B9')->getFont()->setBold(true)->setSize(9);
+        $sheet->getStyle('D6:D9')->getFont()->setSize(9);
+        $sheet->getStyle('I6:I9')->getFont()->setBold(true)->setSize(9);
+        $sheet->getStyle('K6:K9')->getFont()->setSize(9);
+
+        // Table Column Headers (Row 11)
+        $headers = [
+            'A11' => 'NO',
+            'B11' => 'PERINGKAT',
+            'C11' => 'NIS',
+            'D11' => 'NISN',
+            'E11' => 'NAMA LENGKAP SISWA',
+            'F11' => 'KELAS',
+            'G11' => 'PERCOBAAN',
+            'H11' => 'WAKTU SELESAI',
+            'I11' => 'PG BENAR',
+            'J11' => 'PGK BENAR',
+            'K11' => 'ISIAN BENAR',
+            'L11' => 'POIN DIPEROLEH',
+            'M11' => 'POIN MAKSIMAL',
+            'N11' => 'NILAI (0-100)',
+            'O11' => 'STATUS KKM',
+        ];
+
+        foreach ($headers as $cell => $text) {
+            $sheet->setCellValue($cell, $text);
+        }
+
+        $headerStyle = [
+            'font' => ['bold' => true, 'size' => 9, 'color' => ['rgb' => 'FFFFFF']],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'wrapText' => true,
+            ],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '4A0012']]],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '800020'],
+            ],
+        ];
+        $sheet->getStyle('A11:O11')->applyFromArray($headerStyle);
+        $sheet->getRowDimension(11)->setRowHeight(28);
+
+        // Data Rows
+        $currentRow = 12;
+        if ($attempts->isEmpty()) {
+            $sheet->setCellValue('A12', 'Belum ada data pengerjaan ujian yang tersimpan.');
+            $sheet->mergeCells('A12:O12');
+            $sheet->getStyle('A12')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('A12')->getFont()->setItalic(true)->setSize(10);
+            $sheet->getStyle('A12:O12')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $currentRow = 13;
+        } else {
+            foreach ($attempts as $idx => $att) {
+                $student = $att->student;
+                $answers = $att->answers;
+
+                $correctMc = $answers->where('is_correct', true)->filter(fn ($a) => $a->question?->question_type === 'multiple_choice')->count();
+                $correctPgk = $answers->where('is_correct', true)->filter(fn ($a) => in_array($a->question?->question_type, ['pgk_mcma', 'pgk_kategori']))->count();
+                $correctShort = $answers->where('is_correct', true)->filter(fn ($a) => $a->question?->question_type === 'short_answer')->count();
+
+                $submittedText = $att->submitted_at
+                    ? $att->submitted_at->setTimezone('Asia/Makassar')->format('d/m/Y H:i')
+                    : '-';
+
+                $isPassed = $att->dynamic_percentage >= (float) $exam->passing_score;
+
+                $sheet->setCellValue('A'.$currentRow, $idx + 1);
+                $sheet->setCellValue('B'.$currentRow, '#'.($idx + 1));
+                $sheet->setCellValueExplicit('C'.$currentRow, (string) ($student?->nis ?? '-'), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                $sheet->setCellValueExplicit('D'.$currentRow, (string) ($student?->nisn ?? '-'), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                $sheet->setCellValue('E'.$currentRow, $student?->full_name ?? '-');
+                $sheet->setCellValue('F'.$currentRow, $student?->class?->name ?? '-');
+                $sheet->setCellValue('G'.$currentRow, 'Ke-'.$att->attempt_number);
+                $sheet->setCellValue('H'.$currentRow, $submittedText);
+                $sheet->setCellValue('I'.$currentRow, "{$correctMc} / {$mcCount}");
+                $sheet->setCellValue('J'.$currentRow, "{$correctPgk} / {$pgkCount}");
+                $sheet->setCellValue('K'.$currentRow, "{$correctShort} / {$shortCount}");
+                $sheet->setCellValue('L'.$currentRow, $att->dynamic_score);
+                $sheet->setCellValue('M'.$currentRow, $totalExamPoints);
+                $sheet->setCellValue('N'.$currentRow, round($att->dynamic_percentage, 1));
+                $sheet->setCellValue('O'.$currentRow, $isPassed ? 'LULUS' : 'BELUM LULUS');
+
+                // Zebra striping
+                if ($idx % 2 === 1) {
+                    $sheet->getStyle("A{$currentRow}:O{$currentRow}")->getFill()
+                        ->setFillType(Fill::FILL_SOLID)
+                        ->getStartColor()->setRGB('F8FAFC');
+                }
+
+                // Status KKM formatting
+                if ($isPassed) {
+                    $sheet->getStyle('O'.$currentRow)->getFont()->setBold(true)->getColor()->setRGB('15803D');
+                } else {
+                    $sheet->getStyle('O'.$currentRow)->getFont()->setBold(true)->getColor()->setRGB('B91C1C');
+                }
+
+                $sheet->getStyle('N'.$currentRow)->getFont()->setBold(true);
+                $sheet->getRowDimension($currentRow)->setRowHeight(20);
+                $currentRow++;
+            }
+
+            $dataEndRow = $currentRow - 1;
+
+            $sheet->getStyle("A12:O{$dataEndRow}")->applyFromArray([
+                'font' => ['size' => 9],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'CBD5E1']]],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+            ]);
+
+            $sheet->getStyle("A12:D{$dataEndRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("E12:E{$dataEndRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle("F12:K{$dataEndRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("L12:M{$dataEndRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("N12:O{$dataEndRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+
+        // Summary Statistics Box
+        $summaryRow = $currentRow + 1;
+        $sheet->setCellValue('B'.$summaryRow, 'REKAPITULASI HASIL:');
+        $sheet->getStyle('B'.$summaryRow)->getFont()->setBold(true)->setSize(10);
+
+        $totalCompleted = $attempts->count();
+        $avgScore = $totalCompleted > 0 ? round($attempts->avg('dynamic_percentage'), 2) : 0;
+        $maxScore = $totalCompleted > 0 ? $attempts->max('dynamic_percentage') : 0;
+        $minScore = $totalCompleted > 0 ? $attempts->min('dynamic_percentage') : 0;
+        $passedCount = $attempts->where('dynamic_percentage', '>=', (float) $exam->passing_score)->count();
+        $failedCount = $totalCompleted - $passedCount;
+
+        $sheet->setCellValue('B'.($summaryRow + 1), 'Total Siswa Mengikuti');
+        $sheet->setCellValue('D'.($summaryRow + 1), ': '.$totalCompleted.' Siswa');
+        $sheet->setCellValue('B'.($summaryRow + 2), 'Nilai Rata-rata Ujian');
+        $sheet->setCellValue('D'.($summaryRow + 2), ': '.$avgScore);
+        $sheet->setCellValue('B'.($summaryRow + 3), 'Nilai Tertinggi / Terendah');
+        $sheet->setCellValue('D'.($summaryRow + 3), ': '.$maxScore.' / '.$minScore);
+
+        $passedPct = $totalCompleted > 0 ? round(($passedCount / $totalCompleted) * 100, 1) : 0;
+        $failedPct = $totalCompleted > 0 ? round(($failedCount / $totalCompleted) * 100, 1) : 0;
+        $sheet->setCellValue('H'.($summaryRow + 1), 'Jumlah Lulus KKM');
+        $sheet->setCellValue('J'.($summaryRow + 1), ': '.$passedCount.' Siswa ('.$passedPct.'%)');
+        $sheet->setCellValue('H'.($summaryRow + 2), 'Jumlah Belum Lulus');
+        $sheet->setCellValue('J'.($summaryRow + 2), ': '.$failedCount.' Siswa ('.$failedPct.'%)');
+
+        $sheet->getStyle('B'.($summaryRow + 1).':D'.($summaryRow + 3))->getFont()->setSize(9);
+        $sheet->getStyle('H'.($summaryRow + 1).':J'.($summaryRow + 2))->getFont()->setSize(9);
+
+        // Signatures
+        $sigRow = $summaryRow + 5;
+        $todayDate = now()->setTimezone('Asia/Makassar')->translatedFormat('d F Y');
+
+        $sheet->setCellValue('B'.$sigRow, 'Mengetahui,');
+        $sheet->setCellValue('B'.($sigRow + 1), 'Kepala Sekolah');
+        $sheet->setCellValue('B'.($sigRow + 4), $principalName);
+        $sheet->setCellValue('B'.($sigRow + 5), 'NIP. '.$principalNip);
+
+        $sheet->setCellValue('K'.$sigRow, 'Gandangbatu Sillanan, '.$todayDate);
+        $sheet->setCellValue('K'.($sigRow + 1), 'Guru Mata Pelajaran / Pengampu,');
+        $sheet->setCellValue('K'.($sigRow + 4), $teacherName);
+        $sheet->setCellValue('K'.($sigRow + 5), $teacherNip !== '-' ? 'NIP. '.$teacherNip : '-');
+
+        $sheet->getStyle('B'.($sigRow + 4))->getFont()->setBold(true)->setUnderline(true)->setSize(10);
+        $sheet->getStyle('K'.($sigRow + 4))->getFont()->setBold(true)->setUnderline(true)->setSize(10);
+        $sheet->getStyle('B'.($sigRow + 5))->getFont()->setSize(9);
+        $sheet->getStyle('K'.($sigRow + 5))->getFont()->setSize(9);
+
+        // Column Widths
+        $colWidths = [
+            'A' => 6,
+            'B' => 12,
+            'C' => 14,
+            'D' => 16,
+            'E' => 32,
+            'F' => 14,
+            'G' => 13,
+            'H' => 20,
+            'I' => 13,
+            'J' => 13,
+            'K' => 13,
+            'L' => 15,
+            'M' => 15,
+            'N' => 15,
+            'O' => 15,
+        ];
+        foreach ($colWidths as $col => $w) {
+            $sheet->getColumnDimension($col)->setWidth($w);
+        }
+
+        $safeExam = preg_replace('/[^A-Za-z0-9]/', '_', substr($exam->title, 0, 30));
+        $safeClass = preg_replace('/[^A-Za-z0-9]/', '_', $exam->class?->name ?? 'Semua_Rombel');
+
+        // Check if ZipArchive is available on server
+        if (! class_exists(\ZipArchive::class)) {
+            $fileNameCsv = "LEGER_NILAI_{$safeExam}_{$safeClass}.csv";
+
+            return response()->streamDownload(function () use ($spreadsheet) {
+                $writer = new Csv($spreadsheet);
+                $writer->setUseBOM(true);
+                $writer->save('php://output');
+            }, $fileNameCsv, [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Cache-Control' => 'max-age=0',
+            ]);
+        }
+
+        $fileName = "LEGER_NILAI_{$safeExam}_{$safeClass}.xlsx";
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 }
