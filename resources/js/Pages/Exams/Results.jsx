@@ -15,7 +15,8 @@ import {
     X,
     Save,
     HelpCircle,
-    User
+    User,
+    Eye
 } from 'lucide-react';
 
 export default function ExamsResults({ auth, exam, attempts = [], statistics = {} }) {
@@ -264,24 +265,44 @@ export default function ExamsResults({ auth, exam, attempts = [], statistics = {
                                                     )}
                                                 </td>
                                                 <td className="py-3.5 px-4 text-right">
-                                                    <span className="text-base font-extrabold text-[#800020]">
-                                                        {Math.round(Number(att.percentage || 0))}
-                                                    </span>
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-base font-extrabold text-[#800020]">
+                                                            {Math.round(Number(att.percentage || 0))}
+                                                        </span>
+                                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                                            <span className="inline-flex items-center text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200" title="Jumlah soal dijawab benar">
+                                                                {att.correct_count ?? 0} Benar
+                                                            </span>
+                                                            <span className="inline-flex items-center text-[10px] text-rose-700 font-bold bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200" title="Jumlah soal dijawab salah">
+                                                                {att.wrong_count ?? 0} Salah
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 </td>
                                                 <td className="py-3.5 px-4 text-center">
-                                                    {hasEssay && (
-                                                        <button
-                                                            onClick={() => openGradingModal(att)}
-                                                            className={`inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                                                    <div className="flex items-center justify-center gap-1.5">
+                                                        <Link
+                                                            href={route('exams.attempts.review', [exam.id, att.id])}
+                                                            className={`inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm ${
                                                                 hasUngradedEssay
                                                                     ? 'bg-amber-500 hover:bg-amber-600 text-white animate-pulse'
-                                                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                                                                    : 'bg-[#800020] hover:bg-[#5C0017] text-white'
                                                             }`}
+                                                            title="Buka Lembar Jawaban & Analisis Butir Soal Benar/Salah"
                                                         >
-                                                            <Edit3 className="w-3.5 h-3.5 mr-1" />
-                                                            {hasUngradedEssay ? 'Nilai Essay' : 'Cek Essay'}
-                                                        </button>
-                                                    )}
+                                                            {hasUngradedEssay ? (
+                                                                <>
+                                                                    <Edit3 className="w-3.5 h-3.5 mr-1" />
+                                                                    <span>Koreksi Essay ({att.ungraded_essay_count || 1})</span>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Eye className="w-3.5 h-3.5 mr-1" />
+                                                                    <span>Lihat Hasil & Koreksi</span>
+                                                                </>
+                                                            )}
+                                                        </Link>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         );

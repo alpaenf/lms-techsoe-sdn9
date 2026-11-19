@@ -239,6 +239,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Monitoring & Grading
         Route::get('/{exam}/monitor', [ExamController::class, 'monitor'])->name('exams.monitor');
         Route::get('/{exam}/results', [ExamController::class, 'results'])->name('exams.results');
+        Route::get('/{exam}/attempts/{attempt}/review', [ExamController::class, 'reviewAttempt'])->name('exams.attempts.review');
         Route::get('/{exam}/export', [ExamController::class, 'exportResults'])->name('exams.export');
         Route::post('/answers/{answer}/grade', [ExamController::class, 'gradeEssay'])->name('exams.grade');
 

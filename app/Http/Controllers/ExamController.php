@@ -845,6 +845,26 @@ class ExamController extends Controller
             ->orderBy('percentage', 'desc')
             ->get();
 
+        $totalQuestions = $exam->questions->count();
+        $attempts->transform(function ($att) use ($totalQuestions) {
+            $answers = $att->answers;
+            $correctCount = $answers->where('is_correct', true)->count();
+            $wrongCount = $answers->where('is_correct', false)->count();
+            $essayAnswers = $answers->filter(fn ($a) => $a->question?->question_type === 'essay');
+            $hasEssay = $essayAnswers->isNotEmpty();
+            $ungradedEssayCount = $essayAnswers->whereNull('is_correct')->count();
+            $answeredCount = $answers->whereNotNull('answer_text')->filter(fn ($a) => $a->answer_text !== '')->count();
+
+            $att->total_questions = $totalQuestions;
+            $att->correct_count = $correctCount;
+            $att->wrong_count = $wrongCount;
+            $att->unanswered_count = max(0, $totalQuestions - $answeredCount);
+            $att->has_essay = $hasEssay;
+            $att->ungraded_essay_count = $ungradedEssayCount;
+
+            return $att;
+        });
+
         $assignedClassIds = $exam->assignedClassIds();
 
         $studentsCount = ! empty($assignedClassIds)
@@ -866,6 +886,108 @@ class ExamController extends Controller
         return Inertia::render('Exams/Results', [
             'exam' => $exam,
             'attempts' => $attempts,
+            'statistics' => $statistics,
+        ]);
+    }
+
+    public function reviewAttempt(Exam $exam, StudentExamAttempt $attempt)
+    {
+        if ($attempt->exam_id !== $exam->id) {
+            abort(404);
+        }
+
+        $exam->load(['subject', 'class', 'classes', 'academicYear', 'teacher.user']);
+        $attempt->load(['student.class', 'answers.question']);
+
+        $order = $attempt->question_order ?? [];
+        if (! empty($order)) {
+            $questions = $exam->questions()
+                ->whereIn('id', $order)
+                ->get()
+                ->sortBy(function ($q) use ($order) {
+                    $pos = array_search($q->id, $order);
+                    return $pos === false ? 999999 : $pos;
+                })
+                ->values();
+        } else {
+            $questions = $exam->questions()->orderBy('order_number')->get();
+        }
+
+        $studentList = StudentExamAttempt::where('exam_id', $exam->id)
+            ->whereIn('status', ['submitted', 'graded'])
+            ->with('student.class')
+            ->orderBy('percentage', 'desc')
+            ->get()
+            ->values()
+            ->map(function ($att, $idx) use ($exam) {
+                return [
+                    'id' => $att->id,
+                    'rank' => $idx + 1,
+                    'student_id' => $att->student_id,
+                    'full_name' => $att->student?->full_name ?? '-',
+                    'nis' => $att->student?->nis ?? '-',
+                    'class_name' => $att->student?->class?->name ?? 'Kelas',
+                    'percentage' => round((float) $att->percentage, 1),
+                    'is_passed' => (float) $att->percentage >= (float) $exam->passing_score,
+                ];
+            });
+
+        $answers = $attempt->answers->keyBy('question_id');
+        $totalQuestions = $questions->count();
+        $correctCount = 0;
+        $wrongCount = 0;
+        $unansweredCount = 0;
+        $essayCount = 0;
+        $ungradedEssayCount = 0;
+        $totalPointsEarned = 0;
+        $totalPossiblePoints = 0;
+
+        foreach ($questions as $q) {
+            $totalPossiblePoints += (float) $q->points;
+            $ans = $answers->get($q->id);
+            $hasAnswerText = $ans && $ans->answer_text !== null && $ans->answer_text !== '';
+
+            if (! $hasAnswerText) {
+                $unansweredCount++;
+            }
+
+            if ($q->question_type === 'essay') {
+                $essayCount++;
+                if (! $ans || $ans->is_correct === null) {
+                    $ungradedEssayCount++;
+                }
+            } else {
+                if ($ans && $ans->is_correct === true) {
+                    $correctCount++;
+                } elseif ($ans && $ans->is_correct === false) {
+                    $wrongCount++;
+                }
+            }
+
+            if ($ans) {
+                $totalPointsEarned += (float) ($ans->points_earned ?? 0);
+            }
+        }
+
+        $statistics = [
+            'total_questions' => $totalQuestions,
+            'correct_count' => $correctCount,
+            'wrong_count' => $wrongCount,
+            'unanswered_count' => $unansweredCount,
+            'essay_count' => $essayCount,
+            'ungraded_essay_count' => $ungradedEssayCount,
+            'total_points_earned' => $totalPointsEarned,
+            'total_possible_points' => $totalPossiblePoints > 0 ? $totalPossiblePoints : (float) $exam->totalPoints(),
+            'score' => round((float) $attempt->percentage, 1),
+            'is_passed' => (float) $attempt->percentage >= (float) $exam->passing_score,
+        ];
+
+        return Inertia::render('Exams/Review', [
+            'exam' => $exam,
+            'attempt' => $attempt,
+            'questions' => $questions,
+            'answers' => $answers,
+            'studentList' => $studentList,
             'statistics' => $statistics,
         ]);
     }
